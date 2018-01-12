@@ -3,7 +3,37 @@
 
 ## Installation
 
-XXX TODO tomorrow
+### 1. Installing Anaconda 
+
+[What is Anaconda?](https://www.anaconda.com/what-is-anaconda/)
+
+I choose Anaconda for 2 reasons. 
+
+1. Anaconda is one of the most popular open source distribution for data science project, 
+
+2. Everybody uses different OS (2 Mac users, 3 Windows, 1 Ubuntu), which, from my experience, can cause troubles, especially installing packages etc when use normal vertualenv (especially for Windows). Anaconda supports all three OS.
+
+Once installed, run
+
+```conda env create -f environment.yaml``` 
+
+where "venv" is the name of your vertual environment (you could call it whatever you like). 
+
+To get into the vertual environment, run 
+
+```source activate venv``` 
+
+(This command could be different depending on your OS)
+
+This environment is different from your local computer. 
+
+Make sure you are using python3 (not python2) in this environment by running
+
+```python --version ```
+
+If not, try 
+
+```conda create -n py3 python=3 ```
 
 
 ## Git workflow
@@ -28,7 +58,7 @@ Our branching workflow is as follow.
 2. When you have finished your task/issue, make a pull request to ```product```. 
     - When you do it, make sure to always refer to which issue you've done on the pull request comment (e.g "Resolve #11 Update a final layer ", where #11 is the issue No.).
 
-3. Usually Ong and Kiyo have to do reviews for all pull requests. If the pull request looks okay, merge it into ```product```. 
+3. Usually Ong and Kiyo have to do reviews for all pull requests. If the pull request looks okay, Kiyo or Ong merge it into ```product```. 
     - Make sure to delete the branch and close the issue/update the issue board after the merging.
 
 ### Warning 
@@ -38,6 +68,18 @@ Our branching workflow is as follow.
 - In case we've found a bug on ```product``` (which means Kiyo or Ong's mistakes), we can fix the bug on ```product``` branch.
 
 - ```master``` has to be always error-free and we can show our project to anyone at anytime.
+
+## Coding Style Guide
+
+TBD
+
+This is too obvious, but please make your code readable (leave comments, better variables names), because other people will read your code. 
+
+### Linter
+
+Run Pep 8
+
+[Online version](http://pep8online.com/)
 
 ## Folder Structures
 
