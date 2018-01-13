@@ -15,13 +15,13 @@ I choose Anaconda for 2 reasons.
 
 Once Anaconda (for Python3) is installed, got to the project directory, and run
 
-```conda venv create -f environment.yaml``` 
+`conda venv create -f environment.yaml` 
 
 where "venv" is the name of your vertual environment (you could call it whatever you like), and environment.yaml includes all the packages/dependencies.
 
 To get into the vertual environment, run 
 
-```source activate venv``` 
+`source activate venv` 
 
 (This command could be different depending on your OS)
 
@@ -29,45 +29,45 @@ This environment is different from your local computer.
 
 Make sure you are using python3 (not python2) in this environment by running
 
-```python --version ```
+`python --version `
 
 If not, try 
 
-```conda create -n py3 python=3.5 ```
+`conda create -n py3 python=3.5 `
 
 
 ## Git workflow
 
 Our branching workflow is as follow.
 
-- ```master``` Fully working model. 
+- `master` Fully working model. 
     
     E.g if this project was a E-commerce website, this codebase is live-working website, and what users interact with.
 
-- ```product``` Fully working model, but not live. 
+- `product` Fully working model, but not live. 
 
 
-- ```features/XXX``` features branches, where everyone does real development here 
+- `features/XXX` features branches, where everyone does real development here 
 
 ### Branching and pull requests rules
 
-1. When you are assigned a issue, create a new branch from ```product``` branch (never from ```master```), and do your work.
+1. When you are assigned a issue, create a new branch from `product` branch (never from `master`), and do your work.
 
-    - When you make a branch from ```product```, make sure to start the name with ```features/XXX``` where XXX is the name of the issue you are working with (e.g ```features/image_argumentation``` )
+    - When you make a branch from `product`, make sure to start the name with `features/XXX` where XXX is the name of the issue you are working with (e.g `features/image_argumentation` )
 
-2. When you have finished your task/issue, make a pull request to ```product```. 
+2. When you have finished your task/issue, make a pull request to `product`. 
     - When you do it, make sure to always refer to which issue you've done on the pull request comment (e.g "Resolve #11 Update a final layer ", where #11 is the issue No.).
 
-3. Usually Ong and Kiyo have to do reviews for all pull requests. If the pull request looks okay, Kiyo or Ong merge it into ```product```. 
+3. Usually Ong and Kiyo have to do reviews for all pull requests. If the pull request looks okay, Kiyo or Ong merge it into `product`. 
     - Make sure to delete the branch and close the issue/update the issue board after the merging.
 
 ### Warning 
 
-- Usually no one does any direct changes on any code on ```master``` and ```product``` branches. These two branches will be updated only by merging by Kiyo or Ong.
+- Usually no one does any direct changes on any code on `master` and `product` branches. These two branches will be updated only by merging by Kiyo or Ong.
 
-- In case we've found a bug on ```product``` (which means Kiyo or Ong's mistakes), we can fix the bug on ```product``` branch.
+- In case we've found a bug on `product` (which means Kiyo or Ong's mistakes), we can fix the bug on `product` branch.
 
-- ```master``` has to be always error-free and we can show our project to anyone at anytime.
+- `master` has to be always error-free and we can show our project to anyone at anytime.
 
 ## Coding Style Guide
 
@@ -85,25 +85,25 @@ Run Pep 8 (TDB)
 
 I took the idea from [this post](https://www.kaggle.com/general/4815#25562). We might adjust it slightly as we make progress.
 
-```/analysis``` 
+`/analysis` 
 
 - All quick analysis/initial experiments are done, and this directory is sparated from our project codebase.
 
-```/download``` 
+`/download` 
 
 - downloaded data only (No augumented/manipulated data).
 
-```/features``` 
+`/features` 
 
 - features fed to classifier.
 
-```/logs``` 
+`/logs` 
 
 - Keep all the loggings in here (logging is what you see on your command line when you are executing the program/training the model)
 
 - We might not do this, but we will experiment
 
-```/src``` 
+`/src` 
 
 - Do we need this???
 
