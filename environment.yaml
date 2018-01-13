@@ -32,7 +32,7 @@ dependencies:
 - setuptools=36.4.0=py35_1
 - six=1.10.0=py35_0
 - sqlite=3.13.0=0
-- tensorflow=1.1.0=np112py35_0
+- tensorflow=1.2.0=np112py35_0
 - tk=8.5.18=0
 - urllib3=1.22=py35h2ab6e29_0
 - werkzeug=0.12.2=py35_0
