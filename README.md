@@ -89,13 +89,9 @@ I took the idea from [this post](https://www.kaggle.com/general/4815#25562). We 
 
 - All quick analysis/initial experiments are done, and this directory is sparated from our project codebase.
 
-```/download``` 
+```/data``` 
 
-- downloaded data only (No augumented/manipulated data).
-
-```/features``` 
-
-- features fed to classifier.
+- all the data (both raw and processed).
 
 ```/logs``` 
 
@@ -103,9 +99,14 @@ I took the idea from [this post](https://www.kaggle.com/general/4815#25562). We 
 
 - We might not do this, but we will experiment
 
+
+```/ref``` 
+
+- Reference files (e.g from research)
+
 ```/src``` 
 
-- Do we need this???
+- All the working files
 
 ## Technology used
 
