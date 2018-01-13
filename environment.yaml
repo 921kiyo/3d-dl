@@ -1,20 +1,32 @@
 name: venv
 channels:
-- anaconda-fusion
 - defaults
 dependencies:
+- asn1crypto=0.24.0=py35_0
 - certifi=2016.2.28=py35_0
+- cffi=1.11.2=py35hc7b2db7_0
+- chardet=3.0.4=py35hb6e9ddf_1
+- cryptography=2.0.3=py35hef72dfd_1
+- idna=2.6=py35h8605a33_1
+- libffi=3.2.1=hd88cf55_4
+- libgcc-ng=7.2.0=h7cc24e2_2
+- libgfortran=3.0.0=1
 - libprotobuf=3.2.0=0
+- libstdcxx-ng=7.2.0=h7a57d05_2
 - mkl=2017.0.3=0
 - numpy=1.12.1=py35_0
 - openssl=1.0.2l=0
 - pandas=0.20.3=py35_0
 - pip=9.0.1=py35_1
 - protobuf=3.2.0=py35_0
+- pycparser=2.18=py35h61b3040_1
+- pyopenssl=17.4.0=py35hb50ab36_0
+- pysocks=1.6.7=py35h6aefbb0_1
 - python=3.5.4=0
 - python-dateutil=2.6.1=py35_0
 - pytz=2017.2=py35_0
 - readline=6.2=2
+- requests=2.14.2=py35_0
 - scikit-learn=0.19.0=np112py35_0
 - scipy=0.19.1=np112py35_0
 - setuptools=36.4.0=py35_1
@@ -22,9 +34,10 @@ dependencies:
 - sqlite=3.13.0=0
 - tensorflow=1.1.0=np112py35_0
 - tk=8.5.18=0
+- urllib3=1.22=py35h2ab6e29_0
 - werkzeug=0.12.2=py35_0
 - wheel=0.29.0=py35_0
 - xz=5.2.3=0
 - zlib=1.2.11=0
-prefix: /Users/kiyohito/anaconda3/envs/venv
+prefix: /home/kiyo/anaconda3/envs/venv
 
