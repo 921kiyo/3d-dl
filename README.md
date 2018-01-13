@@ -9,15 +9,15 @@
 
 I choose Anaconda for 2 reasons. 
 
-1. Anaconda is one of the most popular open source distribution for data science project, 
+1. Anaconda is one of the most popular open source distribution for data science project.
 
-2. Everybody uses different OS (2 Mac users, 3 Windows, 1 Ubuntu), which, from my experience, can cause troubles, especially installing packages etc when use normal vertualenv (especially for Windows). Anaconda supports all three OS.
+2. We will have to use Anaconda for Lab PC.
 
-Once installed, run
+Once Anaconda (for Python3) is installed, got to the project directory, and run
 
-```conda env create -f environment.yaml``` 
+```conda venv create -f environment.yaml``` 
 
-where "venv" is the name of your vertual environment (you could call it whatever you like). 
+where "venv" is the name of your vertual environment (you could call it whatever you like), and environment.yaml includes all the packages/dependencies.
 
 To get into the vertual environment, run 
 
@@ -33,7 +33,7 @@ Make sure you are using python3 (not python2) in this environment by running
 
 If not, try 
 
-```conda create -n py3 python=3 ```
+```conda create -n py3 python=3.5 ```
 
 
 ## Git workflow
@@ -77,7 +77,7 @@ This is too obvious, but please make your code readable (leave comments, better 
 
 ### Linter
 
-Run Pep 8
+Run Pep 8 (TDB)
 
 [Online version](http://pep8online.com/)
 
@@ -87,28 +87,25 @@ I took the idea from [this post](https://www.kaggle.com/general/4815#25562). We 
 
 ```/analysis``` 
 
-    - All quick analysis/initial experiments are done, and this directory is sparated from our project codebase.
+- All quick analysis/initial experiments are done, and this directory is sparated from our project codebase.
 
 ```/download``` 
 
-    - downloaded data only (No augumented/manipulated data).
+- downloaded data only (No augumented/manipulated data).
 
 ```/features``` 
 
-    - features fed to classifier.
-
+- features fed to classifier.
 
 ```/logs``` 
 
-    - Keep all the loggings in here (logging is what you see on your command line when you are executing the program/training the model)
+- Keep all the loggings in here (logging is what you see on your command line when you are executing the program/training the model)
 
-    - We might not do this, but we will experiment
+- We might not do this, but we will experiment
 
 ```/src``` 
 
-    - Do we need this???
-
-
+- Do we need this???
 
 ## Technology used
 
