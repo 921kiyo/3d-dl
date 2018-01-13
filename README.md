@@ -40,11 +40,11 @@ If not, try
 
 Our branching workflow is as follow.
 
-- `master` Fully working model. 
+- `master` Fully working program. 
     
     E.g if this project was a E-commerce website, this codebase is live-working website, and what users interact with.
 
-- `product` Fully working model, but not live. 
+- `product` Fully working program, but not live. 
 
 
 - `features/XXX` features branches, where everyone does real development here 
