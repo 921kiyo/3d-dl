@@ -15,9 +15,9 @@ I choose Anaconda for 2 reasons.
 
 Once Anaconda (for Python3) is installed, got to the project directory, and run
 
-`conda venv create -f environment.yaml` 
+`conda env create -f environment.yaml` 
 
-where "venv" is the name of your vertual environment (you could call it whatever you like), and environment.yaml includes all the packages/dependencies.
+to create an virtualenv with all dependencies specified in environment.yaml, so everyone gets the same envrionment. 
 
 To get into the vertual environment, run 
 
