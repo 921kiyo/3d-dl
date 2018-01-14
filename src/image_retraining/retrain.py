@@ -1191,19 +1191,19 @@ if __name__ == '__main__':
       '--output_dir',
       type=str,
       default='./tmp/',
-      help='Path to folders'
+      help='Path to folders for all output files'
   )
   parser.add_argument(
       '--output_graph',
       type=str,
       default='/output_graph.pb',
-      help='Where to save the trained graph.'
+      help='Where to save the trained graph. (relative to output_dir)'
   )
   parser.add_argument(
       '--intermediate_output_graphs_dir',
       type=str,
       default='intermediate_graph/',
-      help='Where to save the intermediate graphs.'
+      help='Where to save the intermediate graphs.  (relative to output_dir)'
   )
   parser.add_argument(
       '--intermediate_store_frequency',
@@ -1218,13 +1218,13 @@ if __name__ == '__main__':
       '--output_labels',
       type=str,
       default='output_labels.txt',
-      help='Where to save the trained graph\'s labels.'
+      help='Where to save the trained graph\'s labels.  (relative to output_dir)'
   )
   parser.add_argument(
       '--summaries_dir',
       type=str,
       default='retrain_logs/',
-      help='Where to save summary logs for TensorBoard.'
+      help='Where to save summary logs for TensorBoard.  (relative to output_dir)'
   )
   parser.add_argument(
       '--how_many_training_steps',
