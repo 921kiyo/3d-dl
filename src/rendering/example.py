@@ -10,6 +10,6 @@ if not (boop in sys.path):
 
 import BlenderObjects as bo
 
-pl0 = bo.BlenderPlane(location=(-3,0,0),scale=(3,3,3), orientation=(90,0,1,0))
-pl1 = bo.BlenderPlane(location=(0,3,0),scale=(3,3,3), orientation=(90,1,0,0))
-pl2 = bo.BlenderPlane(location=(0,0,-3),scale=(3,3,3))
+pl0 = bo.BlenderPlane(location=(-5,0,0),scale=(5,5,5), orientation=(90,0,1,0))
+pl1 = bo.BlenderPlane(location=(0,5,0),scale=(5,5,5), orientation=(90,1,0,0))
+pl2 = bo.BlenderPlane(location=(0,0,-5),scale=(5,5,5))
