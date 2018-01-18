@@ -1196,7 +1196,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--output_graph',
       type=str,
-      default='/output_graph.pb',
+      default='output_graph.pb',
       help='Where to save the trained graph. (relative to output_dir)'
   )
   parser.add_argument(
