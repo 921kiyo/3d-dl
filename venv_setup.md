@@ -1,8 +1,16 @@
-# Intro
-- need to setup a virtualenv, then install all tools within the venv
-- cannot install anaconda
+## activating ocado venv from anywhere
+venv is installed in group folder
+```
+. /vol/project/2017/530/g1753002/ocadovenv/ocadovenv/bin/activate
+```
 
-# Setting up Venv
+## product dataset link
+```
+/vol/project/2017/530/g1753002/product-image-dataset
+```
+
+
+# How Venv was set up
 
 Create a virtual environment for a project:
 ```
@@ -33,16 +41,3 @@ $ deactivate
 $ cd /vol/project/2017/530/g1753002
 $ virtualenv ocadovenv
 ```
-
-# product dataset link
-```
-/vol/project/2017/530/g1753002/product-image-dataset
-```
-
-# activating ocado venv
-venv is installed in group folder
-```
-. /vol/project/2017/530/g1753002/ocadovenv/ocadovenv/bin/activate
-```
-
-(to be tested)
