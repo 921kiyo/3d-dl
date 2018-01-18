@@ -1,15 +1,3 @@
-## activating ocado venv from anywhere
-venv is installed in group folder
-```
-. /vol/project/2017/530/g1753002/ocadovenv/ocadovenv/bin/activate
-```
-
-## product dataset link
-```
-/vol/project/2017/530/g1753002/product-image-dataset
-```
-
-
 # How Venv was set up
 
 Create a virtual environment for a project:
@@ -30,11 +18,6 @@ $ source ocadovenv/bin/activate
 
 Install all packages:
 (done manually, tensorflow-gpu, matplotlib)
-
-exit venv:
-```
-$ deactivate
-```
 
 # use created venv
 ```
