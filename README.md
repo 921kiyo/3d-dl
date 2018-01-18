@@ -1,5 +1,14 @@
 # Machine Learning for Object Recognition at Ocado
 
+### ensure correct read/write permissions on Group Directory
+
+As per emails of Fidelis/Duncan, add
+```
+umask 002
+```
+
+to the end of .bashrc file on your home directory
+
 ### How to Train
 
 ## activate correct CUDA version to link TF to GPU
