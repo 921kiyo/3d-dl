@@ -42,7 +42,7 @@ $ virtualenv ocadovenv
 # activating ocado venv
 venv is installed in group folder
 ```
-. /vol/project/2017/530/g1753002/ocado/ocadovenv/bin/activate
+. /vol/project/2017/530/g1753002/ocadovenv/ocadovenv/bin/activate
 ```
 
 (to be tested)
