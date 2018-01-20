@@ -20,6 +20,20 @@ def to_quaternion(w,x,y,z):
 	else:
 		q = mathU.Quaternion([x/m, y/m, z/m], w)
 	return q
+
+def random_shell_coords(radius):
+	theta = math.radians(random.uniform(0.0,360.0))
+	phi = math.radians(random.uniform(0.0,360.0))
+	x = radius*math.cos(theta)*math.sin(phi)
+	y = radius*math.sin(theta)*math.sin(phi)
+	z = radius*math.cos(phi)
+	return x,y,z
+	
+def random_cartesian_coords(mux, muy, muz, sigma, lim):
+	x = min(random.gauss(mux,sigma), lim)
+	y = min(random.gauss(muy,sigma), lim)
+	z = min(random.gauss(muz,sigma), lim)
+	return x,y,z
 	
 class BlenderObject(object):
 	def __init__(self, location=(0,0,0), orientation=(0,0,0,0), scale=(1,1,1), reference=None):
@@ -98,5 +112,82 @@ class BlenderCamera(BlenderObject):
 		rot_angle = math.degrees(math.acos(rot_origin.dot(target)))
 		# set rotation quaternion
 		self.set_rot(rot_angle, rot_axis[0], rot_axis[1], rot_axis[2])
-		
+
+class BlenderLamp(BlenderObject):
+	def __init__(self, obj_reference, obj_data):
+		super(BlenderLamp, self).__init__(reference=obj_reference)
+		self.data = obj_data
 	
+	def set_brightness(self,strength):
+		self.data.use_nodes = True
+		self.data.node_tree.nodes["Emission"].inputs["Strength"].default_value = strength
+
+class BlenderRoom(object):
+	def __init__(self,radius):
+		self.walls = []
+		self.walls.append(BlenderPlane(location=(-radius,0,0),scale=(radius,radius,radius), orientation=(90,0,1,0)) )
+		self.walls.append(BlenderPlane(location=(0,radius,0),scale=(radius,radius,radius), orientation=(90,1,0,0)) )
+		self.walls.append(BlenderPlane(location=(0,0,-radius),scale=(radius,radius,radius)) )
+		self.walls.append(BlenderPlane(location=(radius,0,0),scale=(radius,radius,radius), orientation=(90,0,1,0)) )
+		self.walls.append(BlenderPlane(location=(0,-radius,0),scale=(radius,radius,radius), orientation=(90,1,0,0)) )
+		self.walls.append(BlenderPlane(location=(0,0,radius),scale=(radius,radius,radius)) )
+		
+	def assign_random_colors(self):
+		for wall in self.walls:
+			wall.set_diffuse_color(*random_color())
+	
+	def delete(self):
+		for wall in self.walls:
+			wall.delete()
+		self.walls = [] # drop deleted references
+	
+		
+class BlenderScene(object):
+	def __init__(self, data):
+		self.lamp = None
+		self.background = None
+		self.objects_fixed = []
+		self.objects_unfixed = []
+		self.camera = None
+		self.subject = None
+		self.data = data
+
+	def add_background(self,background):
+		self.background = background
+	
+	def add_camera(self,camera):
+		self.camera = camera
+		
+	def add_subject(self,subject):
+		self.subject = subject
+	
+	def add_object_fixed(self,object):
+		self.objects_fixed.append(object)
+	
+	def add_object_unfixed(self,object):
+		self.ojbects_unfixed.append(object)
+	
+	def add_lamp(self,lamp):
+		self.lamp = lamp
+	
+	def delete_all(self):
+		for obj in self.objects_fixed:
+			obj.delete()
+		for obj in self.objects_unfixed:
+			obj.delete()
+		self.subject.delete()
+		self.objects_fixed = []
+		self.objects_unfixed = []
+	
+	def set_render(self):
+		self.data.cycles.max_bounces = 3
+		self.data.cycles.min_bounces = 1
+		self.data.cycles.transparent_max_bounces = 3
+		self.data.cycles.transparent_min_bounces = 1
+		self.data.cycles.samples = 64
+		self.data.cycles.device = 'GPU'
+		self.data.render.tile_x = 512
+		self.data.render.tile_y = 512
+		self.data.render.resolution_x = 720
+		self.data.render.resolution_y = 720
+		
