@@ -18,7 +18,7 @@ radius = 10.0
 room = bo.BlenderRoom(radius)
 room.assign_random_colors()
 cam = bo.BlenderCamera(bpy.data.objects['Camera'])
-cube = bo.BlenderCube(reference=bpy.data.objects['SketchUp'])
+cube = bo.BlenderCube(reference=bpy.data.objects['Cube'])
 lamp = bo.BlenderLamp(bpy.data.objects['Lamp'],bpy.data.lamps[0])
 
 # instantiate scene
