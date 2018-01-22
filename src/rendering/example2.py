@@ -31,15 +31,17 @@ obj_path = 'D:\\PycharmProjects\\Lobster\\src\\rendering\\9562dwzzz4sg-BottleBee
 status = bpy.ops.import_scene.obj(filepath=obj_path)
 product = bpy.context.selected_objects[0]
 	
-product = bo.BlenderCube(reference=product)
+product = bo.BlenderCube(reference=product, location=(-1,0,-1) ,orientation=(0,0,1,0))
 product.add_image_texture('D:\\PycharmProjects\\Lobster\\src\\rendering\\9562dwzzz4sg-BottleBeerCorona\\Corona\\BotellaText.jpg')
 product.set_diffuse(color=(1,0,0,1),rough=0.1)
 product.set_gloss(rough=0.1)
 product.set_mixer(0.6)
 product.set_scale((.1,.1,.1))
+product.toggle_smooth()
 
 # Create a cube
 cube2 = bo.BlenderCube(location = (3,3,3))
+cube2.set_scale((.5,.5,.5))
 cube2.set_diffuse(color=(0,0,1,1),rough=0.1)
 cube2.set_gloss(rough=0.1)
 cube2.set_mixer(0.3)
@@ -61,6 +63,7 @@ scene.set_render()
 with open('D:\\PycharmProjects\\Lobster\\src\\rendering\\9562dwzzz4sg-BottleBeerCorona\\Corona\\render\\camera.csv','w') as csvfile:
 	coord_writer = csv.writer(csvfile, delimiter=',')
 	for i in range(1000):
+	
 		x,y,z = bo.random_shell_coords(5.0)
 		lamp.set_location((x,y,z))
 
@@ -73,11 +76,18 @@ with open('D:\\PycharmProjects\\Lobster\\src\\rendering\\9562dwzzz4sg-BottleBeer
 		x,y,z = bo.random_shell_coords(7.0)
 		cam.set_location((x,y,z))
 		cam.face_towards(0.0,0.0,0.0)
-		coord_writer.writerow([x,y,z])
 
 		loc = bo.random_cartesian_coords(0.0,0.0,0.0,1.0,4.0)
-
 		product.set_location((loc))
+		
+		is_flip = (random.uniform(0,1)<0.5)
+		if is_flip:
+			product.set_rot(90,0,1,0)
+			coord_writer.writerow([x,y,z])
+		else:
+			product.set_rot(0,0,1,0)
+			coord_writer.writerow([x,-z,y])	
+		
 		loc2 = loc
 
 		while(list_distances(loc, loc2) < math.sqrt(3)):
