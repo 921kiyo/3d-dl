@@ -285,6 +285,10 @@ class BlenderMesh(BlenderObject):
 		self.links.new(vector, self.nodes['node_imgtex'].get_vector_input())
 		self.links.new(self.nodes['node_imgtex'].get_color_output(), self.nodes['node_diff'].get_color_input())
 		self.links.new(self.nodes['node_imgtex'].get_color_output(), self.nodes['node_gloss'].get_color_input())
+	
+	def toggle_smooth(self):
+		for poly in self.reference.data.polygons:
+			poly.use_smooth = True
 		
 		
 class BlenderCube(BlenderMesh):
