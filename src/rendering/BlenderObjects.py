@@ -37,7 +37,17 @@ def random_cartesian_coords(mux, muy, muz, sigma, lim):
 	return x,y,z
 
 class BlenderNode(object):
+	"""
+	Generic Node object in Blender, with operations to create node, and reference node inputs and outputs
+	via indexing or key name. Node tree must always be given, if reference is given, a BlenderNode
+	of that reference type is created
+	"""
 	def __init__(self, node_tree, type, reference=None):
+		"""
+		@param node_tree : (Blender Native Object) required, node tree in which this node lives
+		@param type : (string) type name of node. ignored if reference provided.
+		@param reference : (Blender Native Object) optional, reference to an existing node
+		"""
 		self.node_tree = node_tree
 		self.type=type
 		if reference is None:
@@ -67,6 +77,11 @@ class BlenderNode(object):
 		return True
 
 class BlenderMixShaderNode(BlenderNode):
+	"""
+	subclass of BlenderNode object
+	Mix Shader nodes take in different shader nodes as inputs and outputs a resulting 
+	mixed shader with respect to a mixing factor
+	"""
 	def __init__(self, node_tree, reference=None):
 		super(BlenderMixShaderNode, self).__init__(node_tree,'ShaderNodeMixShader',reference)
 
@@ -84,14 +99,25 @@ class BlenderMixShaderNode(BlenderNode):
 			fac = 1.0
 		self.set_input('Fac',fac)
 
+		
 class BlenderMaterialOutputNode(BlenderNode):
+	"""
+	subclass of BlenderNode object
+	Material node takes in a shader node and outputs a surface, used by the rendering
+	engine to determine the properties of a material surface
+	"""
 	def __init__(self, node_tree, reference=None):
 		super(BlenderMaterialOutputNode, self).__init__(node_tree,None,reference)
 
 	def get_surface_input(self):
 		return self.get_input('Surface')
+
 		
 class BlenderDiffuseBSDFNode(BlenderNode):
+	"""
+	subclass of BlenderNode object
+	Describes the diffuse properties of a shading. Can be plugged into a mix shader
+	"""
 	def __init__(self, node_tree, reference=None):
 		super(BlenderDiffuseBSDFNode, self).__init__(node_tree,'ShaderNodeBsdfDiffuse',reference)
 	
@@ -113,7 +139,12 @@ class BlenderDiffuseBSDFNode(BlenderNode):
 	def get_color_input(self):
 		return self.get_input('Color')
 
+		
 class BlenderGlossyBSDFNode(BlenderNode):
+	"""
+	subclass of BlenderNode object
+	Describes the glossy properties of a shading. Can be plugged into a mix shader
+	"""
 	def __init__(self, node_tree, reference=None):
 		super(BlenderGlossyBSDFNode, self).__init__(node_tree,'ShaderNodeBsdfGlossy',reference)
 	
@@ -137,6 +168,10 @@ class BlenderGlossyBSDFNode(BlenderNode):
 
 		
 class BlenderImageTextureNode(BlenderNode):
+	"""
+	subclass of BlenderNode
+	Outputs a Color based on a Vector mapping for the surface, given an image.
+	"""
 	def __init__(self, node_tree, reference=None):
 		super(BlenderImageTextureNode, self).__init__(node_tree,'ShaderNodeTexImage',reference)
 	
@@ -162,6 +197,11 @@ class BlenderImageTextureNode(BlenderNode):
 
 		
 class BlenderTexCoordNode(BlenderNode):
+	"""
+	subclass of BlenderNode
+	Outputs a mapping type (usually 'UV' or 'Generated') to be given to a Texture Node,
+	to determine the mapping of the colors onto a surface
+	"""
 	def __init__(self, node_tree, reference=None):
 		super(BlenderTexCoordNode, self).__init__(node_tree,'ShaderNodeTexCoord',reference)
 	
@@ -173,6 +213,19 @@ class BlenderTexCoordNode(BlenderNode):
 
 	
 class BlenderObject(object):
+	"""
+	This class is intended as a wrapper for all objects that can be referenced via the
+	bpy.data.objects Collection. 
+	This includes a number of items like lamps, camera, meshes, assemblies to name a few
+	
+	This class is an interface to all these objects, and is meant as an abstract class,
+	as the blender_create operation is left to the subclass to implement
+	
+	Also included are concrete implementations of methods that are common to all these
+	objects. This mostly include geometric operations like rotation, translation etc.
+	
+	Also a delete method is implemented
+	"""
 	def __init__(self, location=(0,0,0), orientation=(0,0,0,0), scale=(1,1,1), reference=None):
 		if reference is None:
 			self.blender_create_operation(location)
@@ -183,6 +236,7 @@ class BlenderObject(object):
 		self.set_scale(scale)
 	
 	def blender_create_operation(self, location, orientation):
+		# Attention: for subclass to implement
 		raise NotImplementedError
 	
 	def set_location(self, location):
@@ -202,13 +256,6 @@ class BlenderObject(object):
 		q = q*self.reference.rotation_quaternion
 		print(q)
 		self.reference.rotation_quaternion = q
-	
-	def set_diffuse_color(self,r,g,b):
-		obj_name = self.reference.name
-		if(len(self.reference.data.materials)==0):
-			mat = bpy.data.materials.new(name="Mat"+"_"+obj_name) #set new material to variable
-			self.reference.data.materials.append(mat) #add the material to the object
-		self.reference.data.materials[0].diffuse_color = (r, g, b) #change color
 	
 	def delete(self):
 		# deselect all
