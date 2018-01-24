@@ -11,6 +11,7 @@ import csv
 
 bpy.context.scene.render.engine = 'CYCLES'
 
+# path to blender library
 boop = 'D:/PycharmProjects/Lobster/src/rendering'
 
 if not (boop in sys.path):
@@ -25,12 +26,15 @@ def list_distances(L1,L2):
 # delete the initial cube
 cube = bo.BlenderCube(reference=bpy.data.objects['Cube'])
 cube.delete()
-	
-# import product obj file and instantiate object
+
+# required file paths for the script to run
 obj_path = 'D:\\PycharmProjects\\Lobster\\src\\rendering\\9562dwzzz4sg-BottleBeerCorona\\Corona\\Corona.obj'
+texture_path = 'D:\\PycharmProjects\\Lobster\\src\\rendering\\9562dwzzz4sg-BottleBeerCorona\\Corona\\BotellaText.jpg'
+csv_path = 'D:\\PycharmProjects\\Lobster\\src\\rendering\\9562dwzzz4sg-BottleBeerCorona\\Corona\\render\\camera.csv'
 	
 product = bo.BlenderImportedShape(obj_path=obj_path, location=(-1,0,-1) ,orientation=(0,0,1,0))
-product.add_image_texture('D:\\PycharmProjects\\Lobster\\src\\rendering\\9562dwzzz4sg-BottleBeerCorona\\Corona\\BotellaText.jpg')
+#give image texture path 
+product.add_image_texture(texture_path)
 product.set_diffuse(color=(1,0,0,1),rough=0.1)
 product.set_gloss(rough=0.1)
 product.set_mixer(0.6)
@@ -58,9 +62,12 @@ lamp2.set_size(5.0)
 # instantiate scene
 scene = bo.BlenderScene(bpy.data.scenes[0])
 scene.set_render()
-with open('D:\\PycharmProjects\\Lobster\\src\\rendering\\9562dwzzz4sg-BottleBeerCorona\\Corona\\render\\camera.csv','w') as csvfile:
+
+num_images = 1000
+
+with open(csv_path,'w') as csvfile:
 	coord_writer = csv.writer(csvfile, delimiter=',')
-	for i in range(1000):
+	for i in range(num_images):
 	
 		x,y,z = bo.random_shell_coords(5.0)
 		lamp.set_location((x,y,z))
