@@ -1190,13 +1190,13 @@ if __name__ == '__main__':
   parser.add_argument(
       '--output_dir',
       type=str,
-      default='./tmp/',
+      default='/vol/project/2017/530/g1753002/tmp/',
       help='Path to folders for all output files'
   )
   parser.add_argument(
       '--output_graph',
       type=str,
-      default='/output_graph.pb',
+      default='output_graph.pb',
       help='Where to save the trained graph. (relative to output_dir)'
   )
   parser.add_argument(
