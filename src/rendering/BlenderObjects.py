@@ -226,16 +226,19 @@ class BlenderObject(object):
 	
 	Also a delete method is implemented
 	"""
-	def __init__(self, location=(0,0,0), orientation=(0,0,0,0), scale=(1,1,1), reference=None):
+	def __init__(self, location=(0,0,0), orientation=(0,0,0,0), scale=(1,1,1), reference=None, **kwargs):
 		if reference is None:
-			self.blender_create_operation(location)
-			self.reference = bpy.context.active_object
+			bpy.ops.object.select_all(action='DESELECT') # deselect everything
+			self.blender_create_operation(location, **kwargs)
+			assert len(bpy.context.selected_objects)==1, "more than one selected objects!" 
+			# make sure the only selected object is the recently created object
+			self.reference = bpy.context.selected_objects[0]
 		else:
 			self.reference=reference
 		self.set_rot(*orientation)
 		self.set_scale(scale)
 	
-	def blender_create_operation(self, location, orientation):
+	def blender_create_operation(self, location):
 		# Attention: for subclass to implement
 		raise NotImplementedError
 	
@@ -352,6 +355,14 @@ class BlenderPlane(BlenderMesh):
 	def blender_create_operation(self,location):
 		bpy.ops.mesh.primitive_plane_add(location=location)
 
+class BlenderImportedShape(BlenderMesh):
+	def __init__(self, **kwargs):
+		super(BlenderImportedShape, self).__init__(**kwargs)
+	
+	def blender_create_operation(self,location,obj_path=None):
+		assert obj_path is not None, "Required keyword argument for importing shape: obj_path=[filepath]"
+		bpy.ops.import_scene.obj(filepath=obj_path)
+		
 class BlenderCamera(BlenderObject):
 	def __init__(self, reference, **kwargs):
 		super(BlenderCamera, self).__init__(reference=reference, **kwargs)

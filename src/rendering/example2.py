@@ -28,10 +28,8 @@ cube.delete()
 	
 # import product obj file and instantiate object
 obj_path = 'D:\\PycharmProjects\\Lobster\\src\\rendering\\9562dwzzz4sg-BottleBeerCorona\\Corona\\Corona.obj'
-status = bpy.ops.import_scene.obj(filepath=obj_path)
-product = bpy.context.selected_objects[0]
 	
-product = bo.BlenderCube(reference=product, location=(-1,0,-1) ,orientation=(0,0,1,0))
+product = bo.BlenderImportedShape(obj_path=obj_path, location=(-1,0,-1) ,orientation=(0,0,1,0))
 product.add_image_texture('D:\\PycharmProjects\\Lobster\\src\\rendering\\9562dwzzz4sg-BottleBeerCorona\\Corona\\BotellaText.jpg')
 product.set_diffuse(color=(1,0,0,1),rough=0.1)
 product.set_gloss(rough=0.1)
@@ -80,18 +78,23 @@ with open('D:\\PycharmProjects\\Lobster\\src\\rendering\\9562dwzzz4sg-BottleBeer
 		loc = bo.random_cartesian_coords(0.0,0.0,0.0,1.0,4.0)
 		product.set_location((loc))
 		
-		is_flip = (random.uniform(0,1)<0.5)
+		is_flip = (random.uniform(0,1)<(2./3.))
 		if is_flip:
-			product.set_rot(90,0,1,0)
-			coord_writer.writerow([x,y,z])
+			is_flip = (random.uniform(0,1)<0.5)
+			if is_flip:
+				product.set_rot(90,0,1,0)
+				coord_writer.writerow([-z,y,x])	
+			else:
+				product.set_rot(90,1,0,0)
+				coord_writer.writerow([x,z,-y])	
 		else:
 			product.set_rot(0,0,1,0)
-			coord_writer.writerow([x,-z,y])	
+			coord_writer.writerow([x,y,z])
 		
 		loc2 = loc
 
 		while(list_distances(loc, loc2) < math.sqrt(3)):
-			loc2 = bo.random_cartesian_coords(0.0,0.0,0.0,3.0,4.0)
+			loc2 = bo.random_cartesian_coords(0.0,0.0,0.0,2.0,4.0)
 
 		cube2.set_location(loc2)
 		scene.render_to_file('D:\\PycharmProjects\\Lobster\\src\\rendering\\9562dwzzz4sg-BottleBeerCorona\\Corona\\render\\render%d.png'%i)
