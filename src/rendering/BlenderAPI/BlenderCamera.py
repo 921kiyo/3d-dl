@@ -12,6 +12,11 @@ class BlenderCamera(BlenderObject):
         super(BlenderCamera, self).__init__(reference=reference, **kwargs)
 
     def spin(self, angle):
+        """
+        Spin camera at an angle about its central (focal axis)
+        :param angle: spin angle
+        :return: None
+        """
         q = self.get_rot()
         focal_origin = mathU.Vector([0, 0, -1])
         T = q.to_matrix()
@@ -20,6 +25,23 @@ class BlenderCamera(BlenderObject):
         self.rotate(angle, *focal_axis)
 
     def face_towards(self, x, y, z):
+        """
+        This function commands the camera central axis to rotate and intersect the coordinates (x,y,z).
+        Algorithm:
+            - Align camera central axis (focal axis) with -z direction (0,0,-1) - this is its original configuration
+            - Calculate target vector w.r.t camera origin: target = (x,y,z) - (x0,y0,z0)
+            - Normalize target vector and rotational origin
+            - Get rotational axis and angle : cross(rot_origin, target), dot(rot_origin, target)
+
+        Warning: given a current camera location (x0,y0,z0) when asked to rotate towards (x,y,z) the resulting spin
+        of the camera w.r.t world coordinate axes is always the same. This is because we always start from the same
+        rotational origin. To randomize the spin angle, use spin()
+
+        :param x: x coordinate of target
+        :param y: y coordinate of target
+        :param z: z coordinate of target
+        :return: None
+        """
         # vector of target w.r.t camera
         target = mathU.Vector([x, y, z]) - mathU.Vector(self.reference.location)
         target.normalize()
