@@ -10,7 +10,11 @@ import bpy
 import csv
 import os
 
-bpy.context.scene.render.engine = 'CYCLES'
+# set use GPU
+C = bpy.context
+C.user_preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
+C.user_preferences.addons['cycles'].preferences.devices[0].use = True
+C.scene.render.engine = 'CYCLES'
 
 # path to blender library
 boop = 'D:\\PycharmProjects\\Lobster\\src\\rendering\\BlenderAPI'
