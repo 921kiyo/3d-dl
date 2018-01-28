@@ -1,4 +1,4 @@
-## Introduction to the BlenderAPI
+# Introduction to the BlenderAPI
 
 The Blender API is an object-oriented based approach to using the Blender Python Library. In the Blender python library,
 Blender is controlled by using the blender python module `bpy`. One does this by importing `bpy` into a python script and
@@ -12,7 +12,7 @@ graphical interface with this method:
     blender --background --python script.py
 ```
 
-### The bpy module
+## The bpy module
 
 All of blender can be accssed throught the `bpy` module, by calling `import bpy`.
 The most important objects in the `bpy` module are:
@@ -47,7 +47,7 @@ selected = bpy.context.selected_objects
 This [StackExhange post](https://blender.stackexchange.com/questions/9353/what-is-the-difference-between-items-listed-in-bpy-ops-bpy-data-and-bpy-context)
 gives a few more examples of what you can do with the blender python API.
 
-### BlenderAPI
+## BlenderAPI
 
 This is what we are building on top of the `bpy` module. Having to reference data in the way Blender constrains users to
 do makes it no different from manipulating shapes in the graphical window, except that you can automate tasks more easily.
