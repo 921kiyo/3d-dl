@@ -12,7 +12,7 @@ import csv
 bpy.context.scene.render.engine = 'CYCLES'
 
 # path to blender library
-boop = 'D:/PycharmProjects/Lobster/src/rendering'
+boop = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/src/rendering'
 
 if not (boop in sys.path):
 	sys.path.append(boop)
@@ -28,9 +28,9 @@ cube = bo.BlenderCube(reference=bpy.data.objects['Cube'])
 cube.delete()
 
 # required file paths for the script to run
-obj_path = 'D:\\PycharmProjects\\Lobster\\src\\rendering\\9562dwzzz4sg-BottleBeerCorona\\Corona\\Corona.obj'
-texture_path = 'D:\\PycharmProjects\\Lobster\\src\\rendering\\9562dwzzz4sg-BottleBeerCorona\\Corona\\BotellaText.jpg'
-csv_path = 'D:\\PycharmProjects\\Lobster\\src\\rendering\\9562dwzzz4sg-BottleBeerCorona\\Corona\\render\\camera.csv'
+obj_path = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\images\\objects\\Corona\\Corona.obj'
+texture_path = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\images\\objects\\Corona\\BotellaText.jpg'
+csv_path = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\images\\objects\\Corona\\render\\camera.csv'
 	
 product = bo.BlenderImportedShape(obj_path=obj_path, location=(-1,0,-1) ,orientation=(0,0,1,0))
 #give image texture path 
@@ -63,7 +63,7 @@ lamp2.set_size(5.0)
 scene = bo.BlenderScene(bpy.data.scenes[0])
 scene.set_render()
 
-num_images = 1000
+num_images = 10
 
 with open(csv_path,'w') as csvfile:
 	coord_writer = csv.writer(csvfile, delimiter=',')
@@ -104,4 +104,4 @@ with open(csv_path,'w') as csvfile:
 			loc2 = bo.random_cartesian_coords(0.0,0.0,0.0,2.0,4.0)
 
 		cube2.set_location(loc2)
-		scene.render_to_file('D:\\PycharmProjects\\Lobster\\src\\rendering\\9562dwzzz4sg-BottleBeerCorona\\Corona\\render\\render%d.png'%i)
+		scene.render_to_file('D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\images\\object_poses\\render%d.png'%i)
