@@ -17,7 +17,8 @@ graphical interface with this method:
 All of blender can be accssed throught the `bpy` module, by calling `import bpy`.
 The most important objects in the `bpy` module are:
 
-* `bpy.data` - this provides an interface to all the data structures that exist in the program. This includes meshes,
+### `bpy.data` 
+This provides an interface to all the data structures that exist in the program. This includes meshes,
 cameras, scenes, user settings node trees and many more. The Blender API essentially depends on the `data` API to
 manipulate these. For example, if I wanted to change the location of a cube, I would change the cube data structure:
 
@@ -26,7 +27,8 @@ cube = bpy.data.objects['Cube'] # reference the object named 'Cube' in the progr
 cube.location = (1.0,1.0,1.0) # change location, simple as that
 ```
 
-* `bpy.ops` - this provides a programmatic way to call Blender operations commonly done via button presses in the GUI. 
+### `bpy.ops` 
+This provides a programmatic way to call Blender operations commonly done via button presses in the GUI. 
  A convenience that's provided is that operations that are associated with certain categories are listed under `bpy.ops.[cat]` 
  , where `[cat]` can be replaced by `object` for object-related operations
 ```python
@@ -35,7 +37,8 @@ bpy.ops.object.select_name('Cube') # select the object named 'Cube' in the progr
 bpy.ops.transform.translate((1.0,1.0,1.0)) # perform translation on selected object
 ```
 
-* `bpy.context` - provides information on data in the current context. It lists only a subset of data such as the 
+### `bpy.context` 
+Provides information on data in the current context. It lists only a subset of data such as the 
 current scene, the active object etc. This is an easy way to have a script work on whatever object is selected rather 
 than having to know it's name beforehand.
 ```python
@@ -46,6 +49,7 @@ selected = bpy.context.selected_objects
 
 This [StackExhange post](https://blender.stackexchange.com/questions/9353/what-is-the-difference-between-items-listed-in-bpy-ops-bpy-data-and-bpy-context)
 gives a few more examples of what you can do with the blender python API.
+
 
 ## BlenderAPI
 
