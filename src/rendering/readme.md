@@ -69,3 +69,34 @@ cube.location = (1.0,1.0,1.0) # set cube location
 ```
 
 Of course, what BlenderAPI really does is call these commands, under the hood.
+
+A quick introduction to the classes available thought BlenderAPI:
+### `BlenderObjects`
+- Definition:  `BlenderObjects.py`
+- Abstract base class to represent all objects that can be referenced via `bpy.data.objects`. These usually includes 
+  items in the scene that can be manipulated (meshes, camera, lamps, background etc)
+- Classes that subclass this : 
+    - `BlenderMesh` -- (`BlenderCube`,  `BlenderPlane`, `BlenderImportedShape`), definition in  `BlenderShapes.py`
+    - `BlenderCamera`, definition: `BlenderCamera.py`
+    - `BlenderLamp` -- (`BlenderSun`, `BlenderPoint`), definition: `BlenderLamps.py`
+
+### `BlenderNodes`
+- Definition : `BlenderNodes.py`
+- [This link](https://docs.blender.org/manual/en/dev/render/blender_render/materials/nodes/introduction.html) provides
+  an excellent introduction to the idea of material nodes. essentially, it describes it as:      
+  _Blender allows you to create a material by routing basic materials through a set of nodes. Each node performs some 
+  operation on the material, changing how it will appear when applied to the mesh, and passes it on to the next node._
+- Subclasses include nodes that right now are sufficient in capturing most material properties:
+    - `BlenderMixShaderNode`, `BlenderDiffuseBSDFNode`, `BlenderGlossyBSDFNode` etc.
+  
+     
+### `BlenderScene`
+- Definition: `BlenderScene.py`
+- Class to summarize the components within a scene. Right now, it is designed to store information such as, list of
+objects in the scene (subjects, objects, lamps and camera(s)), render settings (important), but not much else. 
+- This class is still work in progress, but future plans include:
+    - Designing the class to manage scene creation (importing all necessary objects to create required scene)
+    - Handle background mixing (Important!)
+    - Manage random variables that make a scene, right now distributions like camera angles, object scale, material 
+    mixing still have to be hand-tweaked in the script. `BlenderScene` should aim to automate this
+    - Handle complex operations like managing layers in the scene (optional).
