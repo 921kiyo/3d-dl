@@ -309,6 +309,8 @@ def run_bottleneck_on_image(sess, image_data, image_data_tensor,
   Returns:
     Numpy array of bottleneck values.
   """
+  misclassified_image_summaries(sess, test)
+
   # First decode the JPEG image, resize it, and rescale the pixel values.
   resized_input_values = sess.run(decoded_image_tensor,
                                   {image_data_tensor: image_data})
@@ -738,6 +740,67 @@ def variable_summaries(var):
     tf.summary.histogram('histogram', var)
 
 
+def misclassified_image_summaries(sess, test_filenames):
+     # init = tf.global_variables_initializer()
+     # sess.run(init)
+     # sess = tf.InteractiveSession()
+
+     # Check if directory already exists. If so, create a new one
+     if tf.gfile.Exists(FLAGS.summaries_dir + '/testing'):
+         tfself.gfile.DeleteRecursively(FLAGS.summaries_dir + '/testing')
+     tf.gfile.MakeDirs(FLAGS.summaries_dir + '/testing')
+
+     for i, test_filename in enumerate(test_filenames):
+      jpg = tf.read_file(test_filename)
+      img_raw = tf.image.decode_jpeg(jpg, channels=3)
+      img_shape = tf.shape(img_raw)
+
+     with tf.name_scope('summaries'):
+         x = tf.placeholder(tf.int64, [None], name='images')
+
+     img_reshape = tf.reshape(x, [-1, 28, 28, 1])
+
+     tf.summary.image('misclassified', tf.reshape(img_raw, [-1, img_shape[0], img_shape[1], img_shape[2]]), 1)
+
+     merged = tf.summary.merge_all()
+     summary = sess.run([merged], feed_dict={bottleneck_input: test_bottlenecks,
+                                             ground_truth_input: test_ground_truth
+                                             })
+     summary_writer = tf.summary.FileWriter(FLAGS.summaries_dir + '/testing', sess.graph)
+     summary_writer.add_summary(summary)
+     summary_writer.close()
+
+
+# def misclassified_image_summaries(sess, test_filenames):
+#      # init = tf.global_variables_initializer()
+#      # sess.run(init)
+#      # sess = tf.InteractiveSession()
+#
+#      # Check if directory already exists. If so, create a new one
+#      if tf.gfile.Exists(FLAGS.summaries_dir + '/testing'):
+#          tfself.gfile.DeleteRecursively(FLAGS.summaries_dir + '/testing')
+#      tf.gfile.MakeDirs(FLAGS.summaries_dir + '/testing')
+#
+#      for i, test_filename in enumerate(test_filenames):
+#       jpg = tf.read_file(test_filename)
+#       img_raw = tf.image.decode_jpeg(jpg, channels=3)
+#       img_shape = tf.shape(img_raw)
+#
+#      with tf.name_scope('summaries'):
+#          x = tf.placeholder(tf.int64, [None], name='images')
+#
+#      img_reshape = tf.reshape(x, [-1, 28, 28, 1])
+#
+#      tf.summary.image('misclassified', tf.reshape(img_raw, [-1, img_shape[0], img_shape[1], img_shape[2]]), 1)
+#
+#      merged = tf.summary.merge_all()
+#      summary = sess.run([merged], feed_dict={bottleneck_input: test_bottlenecks,
+#                                              ground_truth_input: test_ground_truth
+#                                              })
+#      summary_writer = tf.summary.FileWriter(FLAGS.summaries_dir + '/testing', sess.graph)
+#      summary_writer.add_summary(summary)
+#      summary_writer.close()
+
 def add_final_training_ops(class_count, final_tensor_name, bottleneck_tensor,
                            bottleneck_tensor_size, quantize_layer):
   """Adds a new softmax and fully-connected layer for training.
@@ -1157,6 +1220,8 @@ def main(_):
             FLAGS.bottleneck_dir, FLAGS.image_dir, jpeg_data_tensor,
             decoded_image_tensor, resized_image_tensor, bottleneck_tensor,
             FLAGS.architecture))
+    # Add misclassified images to Tensorboard
+    # misclassified_image_summaries(sess, jpeg_data_tensor)
     test_accuracy, predictions = sess.run(
         [evaluation_step, prediction],
         feed_dict={bottleneck_input: test_bottlenecks,
@@ -1172,26 +1237,27 @@ def main(_):
                           (test_filename,
                            list(image_lists.keys())[predictions[i]]))
 
+
     # Write out the trained graph and labels with the weights stored as
     # constants.
     save_graph_to_file(sess, graph, FLAGS.output_graph)
     with gfile.FastGFile(FLAGS.output_labels, 'w') as f:
       f.write('\n'.join(image_lists.keys()) + '\n')
 
-
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument(
       '--image_dir',
       type=str,
-      default='/home/kiyo/Desktop/Ocado/',
+      default='/home/kiyo/Desktop/Ocado',
       help='Path to folders of labeled images.'
   )
   parser.add_argument(
       '--output_dir',
       type=str,
-      default='/home/kiyo/Desktop/Ocado/tmp/',
-      # default='/vol/project/2017/530/g1753002/tmp/',
+      # default='/home/kiyo/Desktop/Ocado/tmp/',
+      # When test, use tmp_small which takes less time to train
+      default='/vol/project/2017/530/g1753002/tmp_small/',
       help='Path to folders for all output files'
   )
   parser.add_argument(
@@ -1230,7 +1296,8 @@ if __name__ == '__main__':
   parser.add_argument(
       '--how_many_training_steps',
       type=int,
-      default=4000,
+      # default=4000,
+      default=100,
       help='How many training steps to run before ending.'
   )
   parser.add_argument(
@@ -1289,7 +1356,7 @@ if __name__ == '__main__':
   )
   parser.add_argument(
       '--print_misclassified_test_images',
-      default=False,
+      default=True,
       help="""\
       Whether to print out a list of all misclassified test images.\
       """,
