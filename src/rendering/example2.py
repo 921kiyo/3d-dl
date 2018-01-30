@@ -38,7 +38,7 @@ cube.delete()
 
 """ ************* User specified stuff here ************* """
 # Specify number of images to render
-num_images = 10
+num_images = 100
 # required file paths for the script to run
 obj_path = 'D:\\PycharmProjects\\Product3\\Rubicon\\Rubicon.obj'
 texture_path = 'D:\\PycharmProjects\\Product3\\Rubicon\\Rubicon.jpg'
@@ -55,18 +55,20 @@ product.set_scale((1,1,1))
 product.toggle_smooth()
 
 # Create a cube
-cube2 = bld.BlenderCube(location = (3,3,3))
-cube2.set_scale((.5,.5,.5))
-cube2.set_diffuse(color=(0,0,1,1),rough=0.1)
-cube2.set_gloss(rough=0.1)
-cube2.set_mixer(0.3)
+cube = bld.BlenderCube(location = (3,3,3))
+cube.set_scale((.5,.5,.5))
+cube.set_diffuse(color=(0,0,1,1),rough=0.1)
+cube.set_gloss(rough=0.1)
+cube.set_mixer(0.3)
 
+Lamps = []
 # Fetch the camera and lamp
 cam = bld.BlenderCamera(bpy.data.objects['Camera'])
-lamp = bld.BlenderPoint(bpy.data.objects['Lamp'])
+Lamps.append(bld.BlenderPoint(bpy.data.objects['Lamp']))
 
-# Create a 2nd lamp
-lamp2 = bld.BlenderPoint(None)
+# Create a 2nd and 3rd lamp
+Lamps.append(bld.BlenderPoint(None))
+Lamps.append(bld.BlenderPoint(None))
 
 # instantiate scene
 scene = bld.BlenderScene(bpy.data.scenes[0])
@@ -78,14 +80,21 @@ with open(csv_path,'w') as csvfile:
 
     for i in range(num_images):
 
-        is_flip = (random.uniform(0,1)<0.5)
+        # **********************  LIGHTS **********************
+        # turn everything off
+        for lamp in Lamps:
+            lamp.turn_off()
 
-        # random locations of lamps along shell coordinates
-        x,y,z = bld.random_shell_coords(5.0)
-        lamp.set_location((x,y,z))
-        x,y,z = bld.random_shell_coords(5.0)
-        lamp2.set_location((x,y,z))
+        # set random lighting conditions
+        num_lamps = random.randint(1,3)
+        for l in range(num_lamps):
+            lamp = Lamps[l]
+            lamp.turn_on()
+            lamp.random_lighting_conditions()
+            x, y, z = bld.random_shell_coords(5.0)
+            lamp.set_location((x, y, z))
 
+        # **********************  CAMERA **********************
         # random location of camera along shell coordinates
         x,y,z = bld.random_shell_coords(7.0)
         cam.set_location((x,y,z))
@@ -96,23 +105,22 @@ with open(csv_path,'w') as csvfile:
         spin_angle = random.uniform(0.0,360.0)
         cam.spin(spin_angle)
 
+        # **********************  ACTION **********************
         loc = bld.random_cartesian_coords(0.0,0.0,0.0,1.0,4.0)
         product.set_location((loc))
 
         # flip subject 90 degrees along one axis, so every face has a 3rd chance to face the poles
-        is_flip = (random.uniform(0,1)<(2./3.))
+        is_flip = random.randint(1,3)
         disp = list_distances((x,y,z), loc)
         x = disp[0]
         y = disp[1]
         z = disp[2]
-        if is_flip:
-            is_flip = (random.uniform(0,1)<0.5)
-            if is_flip:
-                product.set_rot(90,0,1,0)
-                coord_writer.writerow([-z,y,x])
-            else:
-                product.set_rot(90,1,0,0)
-                coord_writer.writerow([x,z,-y])
+        if is_flip == 1:
+            product.set_rot(90,0,1,0)
+            coord_writer.writerow([-z,y,x])
+        elif is_flip == 2:
+            product.set_rot(90,1,0,0)
+            coord_writer.writerow([x,z,-y])
         else:
             product.set_rot(0,0,1,0)
             coord_writer.writerow([x,y,z])
@@ -121,7 +129,9 @@ with open(csv_path,'w') as csvfile:
         loc2 = loc
         while list_distances(loc, loc2).magnitude < math.sqrt(3):
             loc2 = bld.random_cartesian_coords(0.0,0.0,0.0,2.0,4.0)
-        cube2.set_location(loc2)
+        cube.set_location(loc2)
 
+        # **********************  RENDER N SAVE **********************
         render_path = os.path.join(render_folder,'render%d.png'%i)
         scene.render_to_file(render_path)
+

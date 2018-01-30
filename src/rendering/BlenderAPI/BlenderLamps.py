@@ -48,7 +48,8 @@ class BlenderLamp(BlenderObject):
     def random_lighting_conditions(self, reference_location=(0.0, 0.0, 0.0), location_variance=1.0):
         loc = random_cartesian_coords(0.0, 0.0, 0.0, location_variance, 6.0)
         self.face_towards(*loc)
-        self.set_brightness(random.gauss(self.default_brightness, 0.1 * self.default_brightness))
+        self.set_brightness(random.gauss(self.default_brightness, 0.3 * self.default_brightness))
+        self.set_size(random.gauss(self.default_size, 0.3 * self.default_size))
 
 
 class BlenderSun(BlenderLamp):
