@@ -740,7 +740,7 @@ def variable_summaries(var):
     tf.summary.histogram('histogram', var)
 
 
-def misclassified_image_summaries(sess, test_filenames):
+def misclassified_image_summaries(sess, test_bottlenecks, test_ground_truth, test_filenames):
      # init = tf.global_variables_initializer()
      # sess.run(init)
      # sess = tf.InteractiveSession()
@@ -755,17 +755,15 @@ def misclassified_image_summaries(sess, test_filenames):
       img_raw = tf.image.decode_jpeg(jpg, channels=3)
       img_shape = tf.shape(img_raw)
 
-     with tf.name_scope('summaries'):
-         x = tf.placeholder(tf.int64, [None], name='images')
+     # with tf.name_scope('summaries'):
+     #     x = tf.placeholder(tf.int64, [404, 2048], name='images')
 
-     img_reshape = tf.reshape(x, [-1, 28, 28, 1])
+     # img_reshape = tf.reshape(x, [-1, 28, 28, 1])
 
      tf.summary.image('misclassified', tf.reshape(img_raw, [-1, img_shape[0], img_shape[1], img_shape[2]]), 1)
 
      merged = tf.summary.merge_all()
-     summary = sess.run([merged], feed_dict={bottleneck_input: test_bottlenecks,
-                                             ground_truth_input: test_ground_truth
-                                             })
+     summary = sess.run([merged], feed_dict={test_bottlenecks: test_filenames[0]})
      summary_writer = tf.summary.FileWriter(FLAGS.summaries_dir + '/testing', sess.graph)
      summary_writer.add_summary(summary)
      summary_writer.close()
@@ -779,7 +777,7 @@ def misclassified_image_summaries(sess, test_filenames):
 #      # Check if directory already exists. If so, create a new one
 #      if tf.gfile.Exists(FLAGS.summaries_dir + '/testing'):
 #          tfself.gfile.DeleteRecursively(FLAGS.summaries_dir + '/testing')
-#      tf.gfile.MakeDirs(FLAGS.summaries_dir + '/testing')
+#      tf.gfile.MakeDirs(FLAGS.summaries_dir + '/testing')misclassified
 #
 #      for i, test_filename in enumerate(test_filenames):
 #       jpg = tf.read_file(test_filename)
@@ -1221,7 +1219,7 @@ def main(_):
             decoded_image_tensor, resized_image_tensor, bottleneck_tensor,
             FLAGS.architecture))
     # Add misclassified images to Tensorboard
-    # misclassified_image_summaries(sess, jpeg_data_tensor)
+    misclassified_image_summaries(sess, test_bottlenecks, test_ground_truth, test_filenames)
     test_accuracy, predictions = sess.run(
         [evaluation_step, prediction],
         feed_dict={bottleneck_input: test_bottlenecks,

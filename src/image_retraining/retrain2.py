@@ -309,7 +309,7 @@ def run_bottleneck_on_image(sess, image_data, image_data_tensor,
   Returns:
     Numpy array of bottleneck values.
   """
-  misclassified_image_summaries(sess, test)
+  # misclassified_image_summaries(sess, test)
 
   # First decode the JPEG image, resize it, and rescale the pixel values.
   resized_input_values = sess.run(decoded_image_tensor,
@@ -749,17 +749,19 @@ def misclassified_image_summaries(sess, test_filenames):
 
      # create decoding tensors
      jpeg_data = tf.placeholder(tf.string, name='DecodeJPGInput')
-     decoded_image = tf.image.decode_jpeg(jpeg_data, channels=input_depth)
+     decoded_image = tf.image.decode_jpeg(jpeg_data, channels=3)
 
      # create the summary setup
      summary_writer = tf.summary.FileWriter(FLAGS.summaries_dir + '/testing', sess.graph)
      img_summary_buffer = tf.summary.image('misclassified', tf.reshape(decoded_image, [-1, 1280, 1024, 3]), 1)
-     
-     for i, test_filename in enumerate(test_filenames):
-       jpg = tf.read_file(test_filename)
+
+     for i, test_filename in enumerate(test_filenames[0:10]):
+       print("heklj")
+       # jpg = tf.read_file(test_filename)
+       jpg = gfile.FastGFile(test_filename, 'rb').read()
        image_summary, _ = sess.run([img_summary_buffer, decoded_image], feed_dict={jpeg_data:jpg})
-       summary_writer.add_summary(summary)
-       
+       summary_writer.add_summary(image_summary )
+
      summary_writer.close()
 
 
@@ -991,7 +993,7 @@ def create_model_info(architecture):
     if is_quantized:
       data_url = 'http://download.tensorflow.org/models/mobilenet_v1_'
       data_url += version_string + '_' + size_string + '_quantized_frozen.tgz'
-      bottleneck_tensor_name = 'MobilenetV1/Predictions/Reshape:0'
+      bottleneck_tensor_name = 'MobilenetV1/Predinput_depthictions/Reshape:0'
       resized_input_tensor_name = 'Placeholder:0'
       model_dir_name = ('mobilenet_v1_' + version_string + '_' + size_string +
                         '_quantized_frozen')
@@ -1213,7 +1215,7 @@ def main(_):
             decoded_image_tensor, resized_image_tensor, bottleneck_tensor,
             FLAGS.architecture))
     # Add misclassified images to Tensorboard
-    # misclassified_image_summaries(sess, jpeg_data_tensor)
+    misclassified_image_summaries(sess, test_filenames)
     test_accuracy, predictions = sess.run(
         [evaluation_step, prediction],
         feed_dict={bottleneck_input: test_bottlenecks,
@@ -1289,7 +1291,7 @@ if __name__ == '__main__':
       '--how_many_training_steps',
       type=int,
       # default=4000,
-      default=100,
+      default=30,
       help='How many training steps to run before ending.'
   )
   parser.add_argument(
