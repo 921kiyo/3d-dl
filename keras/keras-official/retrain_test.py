@@ -23,9 +23,22 @@ from keras.callbacks import TensorBoard
 #
 # model.load_weights(model_weights_file)
 
+test_dir = '/homes/sk5317/ocado/Swen/test'
+
 model = load_model('my_model.h5')
 
-preds = model.predict(test_datagen, batch_size=16)
+pred_datagen = ImageDataGenerator()
+
+pred_generator = pred_datagen.flow_from_directory(
+        test_dir,
+        target_size=(150, 150),
+        batch_size=16,
+        class_mode=None,  # only data, no labels
+        shuffle=False)  # keep data in same order as labels
+
+# preds = model.predict(pred_generator, batch_size=16)
+preds = model.predict_generator(pred_generator, 2000)
+
 tf_session = K.get_session()
 
 print(preds)
