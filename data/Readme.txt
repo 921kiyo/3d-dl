@@ -7,3 +7,5 @@ resized_background: Database of background images resized so that the smaller di
 final_images: The final training data, merges each object pose with a ranomd resized background
 
 Each folder (apart from objects) should contain only the images specified, as the algorithm is carried out on every image in the folder. 
+
+A compressed file is present in this folder which contains currently~900 background images. This should be enough for now and will be expanded later. If you want to render images, extract the images on your local machine into the background_images folder.
