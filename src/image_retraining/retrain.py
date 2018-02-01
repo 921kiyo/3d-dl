@@ -309,6 +309,7 @@ def run_bottleneck_on_image(sess, image_data, image_data_tensor,
   Returns:
     Numpy array of bottleneck values.
   """
+
   # First decode the JPEG image, resize it, and rescale the pixel values.
   resized_input_values = sess.run(decoded_image_tensor,
                                   {image_data_tensor: image_data})
@@ -738,6 +739,30 @@ def variable_summaries(var):
     tf.summary.histogram('histogram', var)
 
 
+def misclassified_image_summaries(sess, test_filenames, test_ground_truth, predictions):
+
+     # Check if directory already exists. If so, create a new one
+     if tf.gfile.Exists(FLAGS.summaries_dir + '/testing'):
+         tfself.gfile.DeleteRecursively(FLAGS.summaries_dir + '/testing')
+     tf.gfile.MakeDirs(FLAGS.summaries_dir + '/testing')
+
+     # create decoding tensors
+     jpeg_data = tf.placeholder(tf.string, name='DecodeJPGInput')
+     decoded_image = tf.image.decode_jpeg(jpeg_data, channels=3)
+
+     # create the summary setup
+     summary_writer = tf.summary.FileWriter(FLAGS.summaries_dir + '/testing', sess.graph)
+
+     # for i, test_filename in enumerate(test_filenames[0:10]):
+     for i, test_filename in enumerate(test_filenames):
+         if predictions[i] != test_ground_truth[i]:
+           img_summary_buffer = tf.summary.image('misclassified', tf.reshape(decoded_image, [1, 1024, 1280, 3]), 1)
+           jpg = gfile.FastGFile(test_filename, 'rb').read()
+           image_summary, _ = sess.run([img_summary_buffer, decoded_image], feed_dict={jpeg_data:jpg})
+           summary_writer.add_summary(image_summary)
+
+     summary_writer.close()
+
 def add_final_training_ops(class_count, final_tensor_name, bottleneck_tensor,
                            bottleneck_tensor_size, quantize_layer):
   """Adds a new softmax and fully-connected layer for training.
@@ -936,7 +961,7 @@ def create_model_info(architecture):
     if is_quantized:
       data_url = 'http://download.tensorflow.org/models/mobilenet_v1_'
       data_url += version_string + '_' + size_string + '_quantized_frozen.tgz'
-      bottleneck_tensor_name = 'MobilenetV1/Predictions/Reshape:0'
+      bottleneck_tensor_name = 'MobilenetV1/Predinput_depthictions/Reshape:0'
       resized_input_tensor_name = 'Placeholder:0'
       model_dir_name = ('mobilenet_v1_' + version_string + '_' + size_string +
                         '_quantized_frozen')
@@ -1157,6 +1182,7 @@ def main(_):
             FLAGS.bottleneck_dir, FLAGS.image_dir, jpeg_data_tensor,
             decoded_image_tensor, resized_image_tensor, bottleneck_tensor,
             FLAGS.architecture))
+
     test_accuracy, predictions = sess.run(
         [evaluation_step, prediction],
         feed_dict={bottleneck_input: test_bottlenecks,
@@ -1164,6 +1190,8 @@ def main(_):
     tf.logging.info('Final test accuracy = %.1f%% (N=%d)' %
                     (test_accuracy * 100, len(test_bottlenecks)))
 
+    # Add misclassified images to Tensorboard
+    misclassified_image_summaries(sess, test_filenames, test_ground_truth, predictions)
     if FLAGS.print_misclassified_test_images:
       tf.logging.info('=== MISCLASSIFIED TEST IMAGES ===')
       for i, test_filename in enumerate(test_filenames):
@@ -1172,25 +1200,27 @@ def main(_):
                           (test_filename,
                            list(image_lists.keys())[predictions[i]]))
 
+
     # Write out the trained graph and labels with the weights stored as
     # constants.
     save_graph_to_file(sess, graph, FLAGS.output_graph)
     with gfile.FastGFile(FLAGS.output_labels, 'w') as f:
       f.write('\n'.join(image_lists.keys()) + '\n')
 
-
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument(
       '--image_dir',
       type=str,
-      default='',
+      default='/home/kiyo/Desktop/Ocado',
       help='Path to folders of labeled images.'
   )
   parser.add_argument(
       '--output_dir',
       type=str,
-      default='/vol/project/2017/530/g1753002/tmp/',
+      # default='/home/kiyo/Desktop/Ocado/tmp/',
+      # When test, use tmp_small which takes less time to train
+      default='/vol/project/2017/530/g1753002/tmp_small/',
       help='Path to folders for all output files'
   )
   parser.add_argument(
@@ -1229,7 +1259,8 @@ if __name__ == '__main__':
   parser.add_argument(
       '--how_many_training_steps',
       type=int,
-      default=4000,
+      # default=4000,
+      default=30,
       help='How many training steps to run before ending.'
   )
   parser.add_argument(
@@ -1288,7 +1319,7 @@ if __name__ == '__main__':
   )
   parser.add_argument(
       '--print_misclassified_test_images',
-      default=False,
+      default=True,
       help="""\
       Whether to print out a list of all misclassified test images.\
       """,
