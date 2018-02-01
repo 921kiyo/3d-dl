@@ -309,7 +309,6 @@ def run_bottleneck_on_image(sess, image_data, image_data_tensor,
   Returns:
     Numpy array of bottleneck values.
   """
-  misclassified_image_summaries(sess, test)
 
   # First decode the JPEG image, resize it, and rescale the pixel values.
   resized_input_values = sess.run(decoded_image_tensor,
@@ -740,64 +739,29 @@ def variable_summaries(var):
     tf.summary.histogram('histogram', var)
 
 
-def misclassified_image_summaries(sess, test_bottlenecks, test_ground_truth, test_filenames):
-     # init = tf.global_variables_initializer()
-     # sess.run(init)
-     # sess = tf.InteractiveSession()
+def misclassified_image_summaries(sess, test_filenames, test_ground_truth, predictions):
 
      # Check if directory already exists. If so, create a new one
      if tf.gfile.Exists(FLAGS.summaries_dir + '/testing'):
          tfself.gfile.DeleteRecursively(FLAGS.summaries_dir + '/testing')
      tf.gfile.MakeDirs(FLAGS.summaries_dir + '/testing')
 
-     for i, test_filename in enumerate(test_filenames):
-      jpg = tf.read_file(test_filename)
-      img_raw = tf.image.decode_jpeg(jpg, channels=3)
-      img_shape = tf.shape(img_raw)
+     # create decoding tensors
+     jpeg_data = tf.placeholder(tf.string, name='DecodeJPGInput')
+     decoded_image = tf.image.decode_jpeg(jpeg_data, channels=3)
 
-     # with tf.name_scope('summaries'):
-     #     x = tf.placeholder(tf.int64, [404, 2048], name='images')
-
-     # img_reshape = tf.reshape(x, [-1, 28, 28, 1])
-
-     tf.summary.image('misclassified', tf.reshape(img_raw, [-1, img_shape[0], img_shape[1], img_shape[2]]), 1)
-
-     merged = tf.summary.merge_all()
-     summary = sess.run([merged], feed_dict={test_bottlenecks: test_filenames[0]})
+     # create the summary setup
      summary_writer = tf.summary.FileWriter(FLAGS.summaries_dir + '/testing', sess.graph)
-     summary_writer.add_summary(summary)
+
+     # for i, test_filename in enumerate(test_filenames[0:10]):
+     for i, test_filename in enumerate(test_filenames):
+         if predictions[i] != test_ground_truth[i]:
+           img_summary_buffer = tf.summary.image('misclassified', tf.reshape(decoded_image, [1, 1024, 1280, 3]), 1)
+           jpg = gfile.FastGFile(test_filename, 'rb').read()
+           image_summary, _ = sess.run([img_summary_buffer, decoded_image], feed_dict={jpeg_data:jpg})
+           summary_writer.add_summary(image_summary)
+
      summary_writer.close()
-
-
-# def misclassified_image_summaries(sess, test_filenames):
-#      # init = tf.global_variables_initializer()
-#      # sess.run(init)
-#      # sess = tf.InteractiveSession()
-#
-#      # Check if directory already exists. If so, create a new one
-#      if tf.gfile.Exists(FLAGS.summaries_dir + '/testing'):
-#          tfself.gfile.DeleteRecursively(FLAGS.summaries_dir + '/testing')
-#      tf.gfile.MakeDirs(FLAGS.summaries_dir + '/testing')misclassified
-#
-#      for i, test_filename in enumerate(test_filenames):
-#       jpg = tf.read_file(test_filename)
-#       img_raw = tf.image.decode_jpeg(jpg, channels=3)
-#       img_shape = tf.shape(img_raw)
-#
-#      with tf.name_scope('summaries'):
-#          x = tf.placeholder(tf.int64, [None], name='images')
-#
-#      img_reshape = tf.reshape(x, [-1, 28, 28, 1])
-#
-#      tf.summary.image('misclassified', tf.reshape(img_raw, [-1, img_shape[0], img_shape[1], img_shape[2]]), 1)
-#
-#      merged = tf.summary.merge_all()
-#      summary = sess.run([merged], feed_dict={bottleneck_input: test_bottlenecks,
-#                                              ground_truth_input: test_ground_truth
-#                                              })
-#      summary_writer = tf.summary.FileWriter(FLAGS.summaries_dir + '/testing', sess.graph)
-#      summary_writer.add_summary(summary)
-#      summary_writer.close()
 
 def add_final_training_ops(class_count, final_tensor_name, bottleneck_tensor,
                            bottleneck_tensor_size, quantize_layer):
@@ -997,7 +961,7 @@ def create_model_info(architecture):
     if is_quantized:
       data_url = 'http://download.tensorflow.org/models/mobilenet_v1_'
       data_url += version_string + '_' + size_string + '_quantized_frozen.tgz'
-      bottleneck_tensor_name = 'MobilenetV1/Predictions/Reshape:0'
+      bottleneck_tensor_name = 'MobilenetV1/Predinput_depthictions/Reshape:0'
       resized_input_tensor_name = 'Placeholder:0'
       model_dir_name = ('mobilenet_v1_' + version_string + '_' + size_string +
                         '_quantized_frozen')
@@ -1218,8 +1182,7 @@ def main(_):
             FLAGS.bottleneck_dir, FLAGS.image_dir, jpeg_data_tensor,
             decoded_image_tensor, resized_image_tensor, bottleneck_tensor,
             FLAGS.architecture))
-    # Add misclassified images to Tensorboard
-    misclassified_image_summaries(sess, test_bottlenecks, test_ground_truth, test_filenames)
+
     test_accuracy, predictions = sess.run(
         [evaluation_step, prediction],
         feed_dict={bottleneck_input: test_bottlenecks,
@@ -1227,6 +1190,8 @@ def main(_):
     tf.logging.info('Final test accuracy = %.1f%% (N=%d)' %
                     (test_accuracy * 100, len(test_bottlenecks)))
 
+    # Add misclassified images to Tensorboard
+    misclassified_image_summaries(sess, test_filenames, test_ground_truth, predictions)
     if FLAGS.print_misclassified_test_images:
       tf.logging.info('=== MISCLASSIFIED TEST IMAGES ===')
       for i, test_filename in enumerate(test_filenames):
@@ -1295,7 +1260,7 @@ if __name__ == '__main__':
       '--how_many_training_steps',
       type=int,
       # default=4000,
-      default=100,
+      default=30,
       help='How many training steps to run before ending.'
   )
   parser.add_argument(
