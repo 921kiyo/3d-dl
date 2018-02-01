@@ -17,7 +17,7 @@ C.user_preferences.addons['cycles'].preferences.devices[0].use = True
 C.scene.render.engine = 'CYCLES'
 
 # path to blender library
-boop = 'D:\\PycharmProjects\\Lobster\\src\\rendering\\BlenderAPI'
+boop = '/vol/bitbucket/who11/CO-530/Lobster/src/rendering/BlenderAPI'
 
 
 if not (boop in sys.path):
@@ -38,11 +38,11 @@ cube.delete()
 
 """ ************* User specified stuff here ************* """
 # Specify number of images to render
-num_images = 100
+num_images = 10
 # required file paths for the script to run
-obj_path = 'D:\\PycharmProjects\\Product3\\Rubicon\\Rubicon.obj'
-texture_path = 'D:\\PycharmProjects\\Product3\\Rubicon\\Rubicon.jpg'
-render_folder = 'D:\\PycharmProjects\\Product3\\Rubicon\\render'
+obj_path = '/vol/bitbucket/who11/CO-530/data/Rubicon/Rubicon.obj'
+texture_path = '/vol/bitbucket/who11/CO-530/data/Rubicon/Rubicon.jpg'
+render_folder = '/vol/bitbucket/who11/CO-530/data/Rubicon/render'
 csv_path = os.path.join(render_folder,'camera.csv')
 
 # Import the shape, and give texture image
@@ -92,12 +92,12 @@ with open(csv_path,'w') as csvfile:
             lamp.turn_on()
             lamp.random_lighting_conditions()
             x, y, z = bld.random_shell_coords(5.0)
-            lamp.set_location((x, y, z))
+            lamp.set_location(x, y, z)
 
         # **********************  CAMERA **********************
         # random location of camera along shell coordinates
         x,y,z = bld.random_shell_coords(7.0)
-        cam.set_location((x,y,z))
+        cam.set_location(x,y,z)
         # face towards the centre
         cam.face_towards(0.0,0.0,0.0)
 
@@ -107,7 +107,7 @@ with open(csv_path,'w') as csvfile:
 
         # **********************  ACTION **********************
         loc = bld.random_cartesian_coords(0.0,0.0,0.0,1.0,4.0)
-        product.set_location((loc))
+        product.set_location(*loc)
 
         # flip subject 90 degrees along one axis, so every face has a 3rd chance to face the poles
         is_flip = random.randint(1,3)
@@ -129,7 +129,7 @@ with open(csv_path,'w') as csvfile:
         loc2 = loc
         while list_distances(loc, loc2).magnitude < math.sqrt(3):
             loc2 = bld.random_cartesian_coords(0.0,0.0,0.0,2.0,4.0)
-        cube.set_location(loc2)
+        cube.set_location(*loc2)
 
         # **********************  RENDER N SAVE **********************
         render_path = os.path.join(render_folder,'render%d.png'%i)

@@ -6,10 +6,20 @@ import itertools
 
 
 def random_color():
+    """
+    utility function for random color, returns a 3-tuple, each element in [0,1]
+    :return: 3-tuple representing a color
+    """
     return random.random(), random.random(), random.random()
 
 
 def rotate(vector, quaternion):
+    """
+    utility function to rotate a vector, given a rotation in the form of a quaternion
+    :param vector: vector to rotate
+    :param quaternion: rotation in the form of quaternion
+    :return : rotated vector
+    """
     vecternion = mathU.Quaternion([0, vector[0], vector[1], vector[2]])
     quanjugate = quaternion.copy()
     quanjugate.conjugate()
@@ -17,6 +27,14 @@ def rotate(vector, quaternion):
 
 
 def to_quaternion(w, x, y, z):
+    """
+    utility function, given a rotation axis vector x,y,z and and angle w, return the corresponding quaternion
+    :param w: angle to rotate
+    :param x: x component of the axis vector
+    :param y: y component of the axis vector
+    :param z: z component of the axis vector
+    :return: 4-tuple quaternion
+    """
     m = math.sqrt(x ** 2 + y ** 2 + z ** 2)
     w = math.pi * w / 180.0
     if m == 0:
@@ -27,6 +45,11 @@ def to_quaternion(w, x, y, z):
 
 
 def random_shell_coords(radius):
+    """
+    given a shell radius, return a random shell coordinate centred around (0,0,0)
+    :param radius: radius of shell
+    :return: 3-tuple shell coordinate
+    """
     theta = math.radians(random.uniform(0.0, 360.0))
     phi = math.radians(random.uniform(0.0, 360.0))
     x = radius * math.cos(theta) * math.sin(phi)
@@ -36,6 +59,16 @@ def random_shell_coords(radius):
 
 
 def random_cartesian_coords(mux, muy, muz, sigma, lim):
+    """
+    given a centre (mux, muy, muz), a standard deviation sigma, and a cube width lim,
+    generate a gaussian-distributed random coordinate within the cube centered at (mux,muy,muz)
+    :param mux: x centre
+    :param muy: y centre
+    :param muz: z centre
+    :param sigma: standard deviation
+    :param lim: cube limit width
+    :return: 3-tuple gaussian random coordinate
+    """
     x = min(random.gauss(mux, sigma), lim)
     y = min(random.gauss(muy, sigma), lim)
     z = min(random.gauss(muz, sigma), lim)
@@ -44,18 +77,18 @@ def random_cartesian_coords(mux, muy, muz, sigma, lim):
 
 class BlenderObject(object):
     """
-	This class is intended as a wrapper for all objects that can be referenced via the
-	bpy.data.objects Collection.
-	This includes a number of items like lamps, camera, meshes, assemblies to name a few
-
-	This class is an interface to all these objects, and is meant as an abstract class,
-	as the blender_create operation is left to the subclass to implement
-
-	Also included are concrete implementations of methods that are common to all these
-	objects. This mostly include geometric operations like rotation, translation etc.
-
-	Also a delete method is implemented
-	"""
+    This class is intended as a wrapper for all objects that can be referenced via the
+    bpy.data.objects Collection.
+    This includes a number of items like lamps, camera, meshes, assemblies to name a few
+    
+    This class is an interface to all these objects, and is meant as an abstract class,
+    as the blender_create operation is left to the subclass to implement
+    
+    Also included are concrete implementations of methods that are common to all these
+    objects. This mostly include geometric operations like rotation, translation etc.
+    
+    Also a delete method is implemented
+    """
 
     def __init__(self, location=(0, 0, 0), orientation=(0, 0, 0, 0), scale=(1, 1, 1), reference=None, **kwargs):
         if reference is None:
@@ -70,10 +103,10 @@ class BlenderObject(object):
         self.set_scale(scale)
 
     def blender_create_operation(self, location):
-        # Attention: for subclass to implement
+        # Attention: Pure virtual, for subclass to implement
         raise NotImplementedError
 
-    def set_location(self, location):
+    def set_location(self, x, y, z):
         self.reference.location = location
 
     def set_scale(self, scale):
