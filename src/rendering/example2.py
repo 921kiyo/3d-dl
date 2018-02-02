@@ -40,9 +40,9 @@ cube.delete()
 # Specify number of images to render
 num_images = 10
 # required file paths for the script to run
-obj_path = '/vol/bitbucket/who11/CO-530/data/Rubicon/Rubicon.obj'
-texture_path = '/vol/bitbucket/who11/CO-530/data/Rubicon/Rubicon.jpg'
-render_folder = '/vol/bitbucket/who11/CO-530/data/Rubicon/render'
+obj_path = '/vol/bitbucket/who11/CO-530/data/Clinique/Clinique.obj'
+texture_path = '/vol/bitbucket/who11/CO-530/data/Clinique/Clinique.jpg'
+render_folder = '/vol/bitbucket/who11/CO-530/data/Clinique/render'
 csv_path = os.path.join(render_folder,'camera.csv')
 
 # Import the shape, and give texture image
@@ -51,7 +51,7 @@ product.add_image_texture(texture_path)
 product.set_diffuse(color=(1,0,0,1),rough=0.1)
 product.set_gloss(rough=0.1)
 product.set_mixer(0.3)
-product.set_scale((1,1,1))
+product.set_scale((.025,.025,.025))
 product.toggle_smooth()
 
 # Create a cube

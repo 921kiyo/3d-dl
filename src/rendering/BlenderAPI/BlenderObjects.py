@@ -107,20 +107,42 @@ class BlenderObject(object):
         raise NotImplementedError
 
     def set_location(self, x, y, z):
-        self.reference.location = location
+        """
+        set location of current 
+        """
+        self.reference.location = (x,y,z)
 
     def set_scale(self, scale):
+        """
+        set the scale of current object
+        :param scale: 3-tuple specifying scale of the x,y,z axes
+        """
         self.reference.scale = scale
 
     def set_rot(self, w, x, y, z):
+        """
+        set rotation of object, w.r.t to initial pose
+        :param w: angle
+        :param x: x component of rotation vector
+        :param y: y component of rotation vector
+        :param z: z component of rotation vector
+        """
         self.reference.rotation_mode = 'QUATERNION'
         q = to_quaternion(w, x, y, z)
         self.reference.rotation_quaternion = q
 
     def get_rot(self):
+        """
+        get rotation of object, w.r.t to initial pose
+        :return: 4-tuple quternion
+        """
         return self.reference.rotation_quaternion
 
     def rotate(self, w, x, y, z):
+        """
+        rotate object, w.r.t to current pose
+        :return: None
+        """
         self.reference.rotation_mode = 'QUATERNION'
         q = to_quaternion(w, x, y, z)
         q = q * self.reference.rotation_quaternion
@@ -128,6 +150,9 @@ class BlenderObject(object):
         self.reference.rotation_quaternion = q
 
     def delete(self):
+        """
+        delete current object, by deleting its reference
+        """
         # deselect all
         bpy.ops.object.select_all(action='DESELECT')
         # selection
