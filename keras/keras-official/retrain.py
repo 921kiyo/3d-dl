@@ -4,6 +4,7 @@ from keras.models import Model
 from keras.layers import Dense, GlobalAveragePooling2D
 from keras import backend as K
 from time import *
+import os
 
 # many parts come from here: https://keras.io/applications/ see Fine-tune InceptionV3 on a new set of classes
 # some code from here: https://blog.keras.io/building-powerful-image-classification-models-using-very-little-data.html
