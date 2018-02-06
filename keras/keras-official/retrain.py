@@ -19,9 +19,9 @@ from keras.callbacks import TensorBoard
 
 batch_size = 16
 class_count = 2
-train_data_dir = '/homes/sk5317/ocado/Swen/train'
-validation_data_dir = '/homes/sk5317/ocado/Swen/validation'
-test_dir = '/homes/sk5317/ocado/Swen/test'
+train_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/train'
+validation_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
+test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
 
 # augmentation configuration for training
 # need to add salt&pepper noise, rotation, light

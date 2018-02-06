@@ -23,7 +23,7 @@ from keras.callbacks import TensorBoard
 #
 # model.load_weights(model_weights_file)
 
-test_dir = '/homes/sk5317/ocado/Swen/test'
+test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
 
 model = load_model('my_model.h5')
 
