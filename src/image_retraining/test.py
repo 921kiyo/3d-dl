@@ -19,6 +19,8 @@ from tensorflow.python.framework import tensor_shape
 from tensorflow.python.platform import gfile
 from sklearn.manifold import TSNE
 
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from skimage import exposure, img_as_float, img_as_ubyte
 import json
@@ -27,6 +29,7 @@ import itertools
 from sklearn.metrics import confusion_matrix
 import matplotlib
 import io
+import pickle
 
 def create_label_lists(label_path):
     """
@@ -62,6 +65,8 @@ def get_test_files(filedir, label2idx, n=5):
     count_labels = 0
 
     for (dirpath, dirnames, filenames) in os.walk(filedir):
+        if dirpath == filedir:
+            continue
         num_files = len(filenames)
         if num_files > n:
             num_files = n
@@ -251,6 +256,7 @@ def plot_confusion_matrix(cm, classes, normalize=False,
     buf.seek(0)
     image = tf.image.decode_png(buf.getvalue(), channels=4)
     image = tf.expand_dims(image, 0)
+    plt.clf()
 
     return image
 
@@ -269,6 +275,28 @@ def compute_precision(cm):
     for i in range(len(precision)):
         precision[i] = cm[i,i]/relevant[i]
     return precision
+
+def plot_bar(x,heights, heights2=None, title='Bar Chart', xlabel='X', ylabel='Y'):
+    bar_width = 0.4
+    x = np.array(x)
+    plt.bar(x,heights,bar_width)
+    if heights2 is not None:
+        plt.bar(x-bar_width,heights2,bar_width)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+        
+    plt.tight_layout()
+    
+    # convert to tf image
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    image = tf.image.decode_png(buf.getvalue(), channels=4)
+    image = tf.expand_dims(image, 0)
+    plt.clf()
+
+    return image
+
 
 def summarize_results(sess, label2idx, per_class_test_results):
     # Check if directory already exists. If so, create a new one
@@ -299,82 +327,108 @@ def summarize_results(sess, label2idx, per_class_test_results):
             summary_writer.add_summary(confidences_summary,i)
 
     # Confusion Matrix Plot
+    
     cm = confusion_matrix(truth, predictions)
+    
     cm_img = plot_confusion_matrix(cm, classes=label2idx.keys())
-    summary_op = tf.summary.image("plot", cm_img)
+    summary_op = tf.summary.image("Confusion_Matrix", cm_img)
     confusion_summary = sess.run(summary_op)
     summary_writer.add_summary(confusion_summary)
+
     sensitivity = compute_sensitivity(cm)
-    print('Sensitivity: ',sensitivity)
     precision = compute_precision(cm)
+    """
+    sens_img = plot_bar(range(c), sensitivity , title='Class Sensitivities', xlabel='Class', ylabel='Sensitivity')
+    summary_op = tf.summary.image("Sensitivity", sens_img)
+    sens_summary = sess.run(summary_op)
+    summary_writer.add_summary(sens_summary)
+    print('Sensitivity: ',sensitivity) 
+
+    prec_img = plot_bar(range(c), precision, title='Class Precision', xlabel='Class', ylabel='Precision')
+    summary_op = tf.summary.image("Precision", prec_img)
+    prec_summary = sess.run(summary_op)
+    summary_writer.add_summary(prec_summary)
+    print('Precision: ',precision)
+    """
+
+    prec_img = plot_bar(range(c), precision,  sensitivity  , title='Class Precision', xlabel='Class', ylabel='Precision and Sensitivity')
+    summary_op = tf.summary.image("Precision", prec_img)
+    prec_summary = sess.run(summary_op)
+    summary_writer.add_summary(prec_summary)
     print('Precision: ',precision)
 
     summary_writer.close()
 
 
 def main(_):
-  # Needed to make sure the logging output is visible.
-  # See https://github.com/tensorflow/tensorflow/issues/3047
-  tf.logging.set_verbosity(tf.logging.INFO)
+    # Needed to make sure the logging output is visible.
+    # See https://github.com/tensorflow/tensorflow/issues/3047
+    tf.logging.set_verbosity(tf.logging.INFO)
 
-  # Gather information about the model architecture we'll be using.
-  model_info = create_model_info(FLAGS.model_source_dir)
+    # Gather information about the model architecture we'll be using.
+    model_info = create_model_info(FLAGS.model_source_dir)
+    
+    graph, resized_input_tensor, bottleneck_tensor, result_tensor = create_model_graph(model_info)
+    
+    # Look at the folder structure, and create lists of all the images.
+    label2idx, idx2label = create_label_lists(FLAGS.label_path)
+    test_data = get_test_files(FLAGS.test_file_dir, label2idx, n=FLAGS.num_test)
+    
+    with tf.Session(graph=graph) as sess:
+        if FLAGS.test_result_file is None:
 
-  graph, resized_input_tensor, bottleneck_tensor, result_tensor = create_model_graph(model_info)
+            # set up jpeg decoding network
+            jpeg_data_tensor, resized_image_tensor, decoded_jpeg_tensor = add_jpeg_decoding(
+                model_info['input_width'], model_info['input_height'],
+                model_info['input_depth'], model_info['input_mean'],
+                model_info['input_std'])
 
-  # Look at the folder structure, and create lists of all the images.
-  label2idx, idx2label = create_label_lists(FLAGS.label_path)
-  test_data = get_test_files(FLAGS.test_file_dir, label2idx, n=FLAGS.num_test)
+            # Set up all our weights to their initial default values.
+            init = tf.global_variables_initializer()
+            sess.run(init)
 
-  with tf.Session(graph=graph) as sess:
+            per_class_test_results = {}
+            for label in label2idx:
+                per_class_test_results[label] = []
+                features = []
 
-    # set up jpeg decoding network
-    jpeg_data_tensor, resized_image_tensor, decoded_jpeg_tensor = add_jpeg_decoding(
-        model_info['input_width'], model_info['input_height'],
-        model_info['input_depth'], model_info['input_mean'],
-        model_info['input_std'])
+                count = 0
 
-    # Set up all our weights to their initial default values.
-    init = tf.global_variables_initializer()
-    sess.run(init)
-
-    per_class_test_results = {}
-    for label in label2idx:
-        per_class_test_results[label] = []
-    features = []
-
-    count = 0
-
-    for test_datum in test_data:
-        if(count%FLAGS.notify_interval == 0):
-            print('processed {0}, {1} more to go'.format(count,len(test_data)-count) )
-
-        test_result = {}
-
-        # read in image data
-        image_data = gfile.FastGFile(test_datum[2], 'rb').read()
-        ground_truth = test_datum[1]
-
-        # fetch resized image from the resizing network
-        resized_image_data, decoded_jpeg_data = run_resize_data(
-            sess, image_data, jpeg_data_tensor, resized_image_tensor, decoded_jpeg_tensor)
-
-        # feed resized image into Inception network, output result
-        result, bottleneck = sess.run(
-            [result_tensor, bottleneck_tensor],
-            feed_dict={resized_input_tensor: resized_image_data}
-        )
-
-        # decode result tensor here since we don't have access to the prediction tensor
-        test_result['prediction'], test_result['correct_label'], test_result['predicted_label'] = \
-            eval_result(result, ground_truth, idx2label)
-        test_result['class_confidences'] = result
-        test_result['features'] = bottleneck[0]
-        per_class_test_results[test_result['correct_label']].append(test_result)
-        features.append(bottleneck[0])
-
-        count += 1
-    summarize_results(sess ,label2idx, per_class_test_results)
+            for test_datum in test_data:
+                if(count%FLAGS.notify_interval == 0):
+                    print('processed {0}, {1} more to go'.format(count,len(test_data)-count) )
+                    
+                    test_result = {}
+                    
+                    # read in image data
+                    image_data = gfile.FastGFile(test_datum[2], 'rb').read()
+                    ground_truth = test_datum[1]
+                    
+                    # fetch resized image from the resizing network
+                    resized_image_data, decoded_jpeg_data = run_resize_data(
+                        sess, image_data, jpeg_data_tensor, resized_image_tensor, decoded_jpeg_tensor)
+                    
+                    # feed resized image into Inception network, output result
+                    result, bottleneck = sess.run(
+                        [result_tensor, bottleneck_tensor],
+                        feed_dict={resized_input_tensor: resized_image_data}
+                    )
+                    
+                    # decode result tensor here since we don't have access to the prediction tensor
+                    test_result['prediction'], test_result['correct_label'], test_result['predicted_label'] = \
+                        eval_result(result, ground_truth, idx2label)
+                    test_result['class_confidences'] = result
+                    test_result['features'] = bottleneck[0]
+                    per_class_test_results[test_result['correct_label']].append(test_result)
+                    features.append(bottleneck[0])
+                        
+                    count += 1
+        else:
+            print('Pre supplied test result file found, loading ... ')
+            pickled_test_result = open(FLAGS.test_result_file,'rb')  
+            per_class_test_results = pickle.load(pickled_test_result)
+                
+        summarize_results(sess ,label2idx, per_class_test_results)
     #
     # features = np.array(features)
     # print('feature shape: ', features.shape)
@@ -423,8 +477,6 @@ def main(_):
     #     plt.scatter(x,y,color=label2col[result['correct_label']], label=result['correct_label'])
     # plt.title('2D visualization of features via TSNE reduction')
 
-    import pickle
-
     with open(FLAGS.test_result_path, 'wb') as f:  # Python 3: open(..., 'wb')
         pickle.dump(per_class_test_results, f)
 
@@ -460,6 +512,14 @@ if __name__ == '__main__':
       '--test_result_path',
       type=str,
       default='./tmp/training_results.pkl',
+      help="""\
+              directory to store the test results.\
+              """)
+  
+  parser.add_argument(
+      '--test_result_file',
+      type=str,
+      default=None,
       help="""\
               directory to store the test results.\
               """)
