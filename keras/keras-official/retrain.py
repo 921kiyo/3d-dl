@@ -58,7 +58,7 @@ validation_generator = test_datagen.flow_from_directory(
 # generator for test data
 # similar to above but based on different augmentation function (above)
 test_generator = test_datagen.flow_from_directory(
-        validation_data_dir,
+        test_dir,
         target_size=(150, 150),
         batch_size=16,
         class_mode='categorical')
