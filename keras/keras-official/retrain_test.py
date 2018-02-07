@@ -29,10 +29,10 @@ test_generator = test_datagen.flow_from_directory(
 
 print("calculating ...")
 
-evaluate = model.evaluate_generator(test_generator)
+score = model.evaluate_generator(test_generator)
 
-print("accuracy:")
-print(evaluate)
+print('Test loss:', score[0])
+print('Test accuracy:', score[1])
 
 
 # generator for predictions, if needed
