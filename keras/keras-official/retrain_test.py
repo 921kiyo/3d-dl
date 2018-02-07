@@ -15,30 +15,33 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import TensorBoard
 
 
-# model = define_top_model()
-# model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
-
-# load model and make prediction then
-# model_weights_file = 'first_try.h5'
-#
-# model.load_weights(model_weights_file)
-
 test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
 
 model = load_model('my_model.h5')
 
-pred_datagen = ImageDataGenerator()
+test_datagen = ImageDataGenerator(rescale=1./255)
 
-pred_generator = pred_datagen.flow_from_directory(
+test_generator = test_datagen.flow_from_directory(
         test_dir,
         target_size=(150, 150),
         batch_size=16,
-        class_mode=None,  # only data, no labels
-        shuffle=False)  # keep data in same order as labels
+        class_mode='categorical')
 
-# preds = model.predict(pred_generator, batch_size=16)
-preds = model.predict_generator(pred_generator, 2000)
+print("calculating ...")
 
-tf_session = K.get_session()
+evaluate = model.evaluate_generator(test_generator)
 
-print(preds)
+print("accuracy:")
+print(evaluate)
+
+
+# generator for predictions, if needed
+
+# pred_datagen = ImageDataGenerator()
+#
+# pred_generator = pred_datagen.flow_from_directory(
+#         test_dir,
+#         target_size=(150, 150),
+#         batch_size=16,
+#         class_mode=None,  # only data, no labels
+#         shuffle=False)  # keep data in same order as labels
