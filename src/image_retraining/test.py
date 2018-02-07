@@ -24,7 +24,6 @@ from skimage import exposure, img_as_float, img_as_ubyte
 import json
 import re
 import itertools
-# import tfplot
 from sklearn.metrics import confusion_matrix
 import matplotlib
 import io
@@ -255,6 +254,21 @@ def plot_confusion_matrix(cm, classes, normalize=False,
 
     return image
 
+def compute_sensitivity(cm):
+    cm = np.array(cm)
+    relevant = np.sum(cm,axis=1)
+    sensitivity = np.zeros(relevant.shape)
+    for i in range(len(sensitivity)):
+        sensitivity[i] = cm[i,i]/relevant[i]
+    return sensitivity
+
+def compute_precision(cm):
+    cm = np.array(cm)
+    relevant = np.sum(cm,axis=0)
+    precision = np.zeros(relevant.shape)
+    for i in range(len(precision)):
+        precision[i] = cm[i,i]/relevant[i]
+    return precision
 
 def summarize_results(sess, label2idx, per_class_test_results):
     # Check if directory already exists. If so, create a new one
@@ -290,6 +304,10 @@ def summarize_results(sess, label2idx, per_class_test_results):
     summary_op = tf.summary.image("plot", cm_img)
     confusion_summary = sess.run(summary_op)
     summary_writer.add_summary(confusion_summary)
+    sensitivity = compute_sensitivity(cm)
+    print('Sensitivity: ',sensitivity)
+    precision = compute_precision(cm)
+    print('Precision: ',precision)
 
     summary_writer.close()
 
