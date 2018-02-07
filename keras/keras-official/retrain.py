@@ -4,6 +4,7 @@ from keras.models import Model
 from keras.layers import Dense, GlobalAveragePooling2D
 from keras import backend as K
 from time import *
+import os
 
 # many parts come from here: https://keras.io/applications/ see Fine-tune InceptionV3 on a new set of classes
 # some code from here: https://blog.keras.io/building-powerful-image-classification-models-using-very-little-data.html
@@ -18,7 +19,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import TensorBoard
 
 batch_size = 16
-class_count = 2
+class_count = len(next(os.walk('/vol/project/2017/530/g1753002/keras_test_data/train'))[1])
 train_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/train'
 validation_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
 test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
@@ -54,6 +55,14 @@ validation_generator = test_datagen.flow_from_directory(
         batch_size=16,
         class_mode='categorical')
 
+# generator for test data
+# similar to above but based on different augmentation function (above)
+test_generator = test_datagen.flow_from_directory(
+        validation_data_dir,
+        target_size=(150, 150),
+        batch_size=16,
+        class_mode='categorical')
+
 # base pre-trained model
 base_model = InceptionV3(weights='imagenet', include_top=False)
 
@@ -73,7 +82,7 @@ for layer in base_model.layers:
     layer.trainable = False
 
 # compile the model (*after* setting layers to non-trainable)
-model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
+model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
 
 # log everything in tensorboard
 tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
@@ -82,7 +91,7 @@ tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 model.fit_generator(
         train_generator,
         steps_per_epoch=2000 // batch_size,
-        epochs=50,
+        epochs=5,
         validation_data=validation_generator,
         validation_steps=800 // batch_size,
         callbacks = [tensorboard])
@@ -91,28 +100,32 @@ model.fit_generator(
 model.save_weights('first_try.h5')  # always save your weights after training or during training
 model.save('my_model.h5')
 
+score = model.evaluate_generator(test_generator)
+print('Test loss:', score[0])
+print('Test accuracy:', score[1])
+
 # How to do predictions: https://datascience.stackexchange.com/questions/13894/how-to-get-predictions-with-predict-generator-on-streaming-test-data-in-keras
 
-# predictions
-print("==== Predictions ====")
-# since we dont have the test data loaded yet, we use a generator (again) to load it in one by one and make a prediction for each
-# see https://keras.io/models/sequential/#sequential-model-methods
-# we cannot use the standard predict function, which only takes in one data point and makes a prediction for it
-pred_datagen = ImageDataGenerator()
-
-pred_generator = pred_datagen.flow_from_directory(
-        test_dir,
-        target_size=(150, 150),
-        batch_size=16,
-        class_mode=None,  # only data, no labels
-        shuffle=False)  # keep data in same order as labels
-
-probabilities = model.predict_generator(pred_generator, 2000)
-
-print("==== Test Accuracy ====")
-print(probabilities)
-
-# calculate accuracy
+# # predictions
+# print("==== Predictions ====")
+# # since we dont have the test data loaded yet, we use a generator (again) to load it in one by one and make a prediction for each
+# # see https://keras.io/models/sequential/#sequential-model-methods
+# # we cannot use the standard predict function, which only takes in one data point and makes a prediction for it
+# pred_datagen = ImageDataGenerator()
+#
+# pred_generator = pred_datagen.flow_from_directory(
+#         test_dir,
+#         target_size=(150, 150),
+#         batch_size=16,
+#         class_mode=None,  # only data, no labels
+#         shuffle=False)  # keep data in same order as labels
+#
+# probabilities = model.predict_generator(pred_generator, 2000)
+#
+# print("==== Test Accuracy ====")
+# print(probabilities)
+#
+# # calculate accuracy
 
 
 
