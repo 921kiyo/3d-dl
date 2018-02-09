@@ -1,4 +1,4 @@
-function [img] = random_metaball(image_row, image_col, n_balls)
+function [img] = random_metaball(image_row, image_col, n_balls, size)
 
 % Given number of balls, and an image size, generate random metaballs in
 % the image
@@ -42,7 +42,7 @@ for i = 1:n_balls
     ball(i,:) = [ r x y p ];
 end
 
-img = metaball(image_row, image_col , ball, 0.5);
+img = metaball(image_row, image_col , ball, size);
 
 end
 
