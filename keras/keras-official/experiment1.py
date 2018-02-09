@@ -21,7 +21,7 @@ from keras.callbacks import TensorBoard
 batch_size = 16
 class_count = len(next(os.walk('/vol/project/2017/530/g1753002/keras_test_data/train'))[1])
 train_data_dir = '/homes/mzw17/Downloads/train'
-validation_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
+validation_data_dir = '/homes/mzw17/Downloads/train'
 test_dir = '/vol/project/2017/530/g1753002/v02liberte-halloumi'
 
 # augmentation configuration for training
@@ -92,7 +92,7 @@ model.fit_generator(
         train_generator,
         steps_per_epoch=2000 // batch_size,
         epochs=5,
-        validation_split=0.1,
+        validation_data=validation_generator,
         validation_steps=800 // batch_size,
         callbacks = [tensorboard])
 
