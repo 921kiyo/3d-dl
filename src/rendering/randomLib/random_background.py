@@ -31,7 +31,7 @@ def random_image(size):
     r = np.random.uniform()
     if r>0.5:
         return random_color(size)
-    return turbulence.turbulence_rgb(size)
+    return turbulence.turbulence_rgb(size)*np.random.uniform(0,2.0)
 
 def rand_background(N, size):
     T = random_image(size)
@@ -46,5 +46,7 @@ start = time.time()
 for i in range(100):
     print('generated image: ', i)
     img = rand_background(np.random.randint(2,4),300)
+    plt.imshow(img)
+    plt.show()
 end = time.time()
 print('time per img = ', (end-start)/100)

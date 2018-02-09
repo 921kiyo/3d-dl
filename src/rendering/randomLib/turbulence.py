@@ -26,9 +26,10 @@ def smoothNoise(noise, scale):
     return smoothed
 
 
-def turbulence(N,D):
+def turbulence(N,D,initial_size=1):
     size = 2
     Noise = generate_noise(N)
+    Noise = smoothNoise(Noise,initial_size)
     Turb = Noise/(D)
     for i in range(1,D):
         Turb += smoothNoise(Noise,size)/float(D-i)
@@ -39,9 +40,9 @@ def turbulence(N,D):
 
 
 def turbulence_rgb(N):
-    min_depth = 2;
-    max_depth = 6;
+    min_depth = 3;
+    max_depth = 8;
     img = np.zeros([N,N,3])
     for i in range(3):
-        img[:,:,i] = turbulence(N,np.random.randint(min_depth,max_depth))
+        img[:,:,i] = turbulence(N,np.random.randint(min_depth,max_depth), np.random.randint(1,4))
     return img
