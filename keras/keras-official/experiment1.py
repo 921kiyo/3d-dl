@@ -114,7 +114,7 @@ for layer in model.layers[249:]:
 # we need to recompile the model for these modifications to take effect
 # we use SGD with a low learning rate
 from keras.optimizers import SGD
-model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy')
+model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy'])
 
 # we train our model again (this time fine-tuning the top 2 inception blocks
 # alongside the top Dense layers
@@ -130,6 +130,7 @@ model.save_weights('first_try.h5')  # always save your weights after training or
 model.save('experimental_model_1.h5')
 
 score = model.evaluate_generator(test_generator)
+print(score)
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
 
