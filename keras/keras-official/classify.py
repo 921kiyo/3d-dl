@@ -14,7 +14,6 @@ from keras.preprocessing.image import img_to_array
 from keras.preprocessing.image import load_img
 import numpy as np
 import argparse
-import cv2
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
