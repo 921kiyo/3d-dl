@@ -23,7 +23,7 @@ batch_size = 16
 class_count = len(next(os.walk('/vol/project/2017/530/g1753002/keras_test_data/train'))[1])
 train_data_dir = '/homes/mzw17/Downloads/train'
 validation_data_dir = '/homes/mzw17/Downloads/train'
-test_dir = '/vol/project/2017/530/g1753002/experiment1'
+test_dir = '/vol/project/2017/530/g1753002/experiment2'
 
 # augmentation configuration for training
 # need to add salt&pepper noise, rotation, light
