@@ -94,7 +94,7 @@ tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 model.fit_generator(
         train_generator,
         steps_per_epoch=2000 // batch_size,
-        epochs=5,
+        epochs=20,
         validation_data=validation_generator,
         validation_steps=800 // batch_size,
         callbacks = [tensorboard])
