@@ -8,101 +8,129 @@ import math
 import mathutils
 import bpy
 import csv
+import os
 
-bpy.context.scene.render.engine = 'CYCLES'
+# set use GPU
+C = bpy.context
+C.user_preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
+C.user_preferences.addons['cycles'].preferences.devices[0].use = True
+C.scene.render.engine = 'CYCLES'
 
 # path to blender library
-boop = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/src/rendering'
-#boop = 'C:\Users\Pavel\AppData\Roaming\Microsoft\Windows\Start Menu/Programs/Blender'
+boop = '/vol/bitbucket/who11/CO-530/Lobster/src/rendering/BlenderAPI'
+
 
 if not (boop in sys.path):
-	sys.path.append(boop)
+    sys.path.append(boop)
 
-import BlenderObjects as bo
+
+import BlenderAPI as bld
+
 
 def list_distances(L1,L2):
-	V = mathutils.Vector(L1) - mathutils.Vector(L2)
-	return V.magnitude
+    V = mathutils.Vector(L1) - mathutils.Vector(L2)
+    return V
+
 
 # delete the initial cube
-cube = bo.BlenderCube(reference=bpy.data.objects['Cube'])
+cube = bld.BlenderCube(reference=bpy.data.objects['Cube'])
 cube.delete()
 
+""" ************* User specified stuff here ************* """
+# Specify number of images to render
+num_images = 10
 # required file paths for the script to run
-obj_path = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\objects\\Corona\\Corona.obj'
-texture_path = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\objects\\Corona\\BotellaText.jpg'
-csv_path = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\objects\\Corona\\render\\camera.csv'
-	
-product = bo.BlenderImportedShape(obj_path=obj_path, location=(-1,0,-1) ,orientation=(0,0,1,0))
-#give image texture path 
+obj_path = '/vol/bitbucket/who11/CO-530/data/Clinique/Clinique.obj'
+texture_path = '/vol/bitbucket/who11/CO-530/data/Clinique/Clinique.jpg'
+render_folder = '/vol/bitbucket/who11/CO-530/data/Clinique/render'
+csv_path = os.path.join(render_folder,'camera.csv')
+
+# Import the shape, and give texture image
+product = bld.BlenderImportedShape(obj_path=obj_path, location=(-1,0,-1) ,orientation=(0,0,1,0))
 product.add_image_texture(texture_path)
 product.set_diffuse(color=(1,0,0,1),rough=0.1)
 product.set_gloss(rough=0.1)
-product.set_mixer(0.6)
-product.set_scale((.1,.1,.1))
+product.set_mixer(0.3)
+product.set_scale((.025,.025,.025))
 product.toggle_smooth()
 
 # Create a cube
-cube2 = bo.BlenderCube(location = (3,3,3))
-cube2.set_scale((.5,.5,.5))
-cube2.set_diffuse(color=(0,0,1,1),rough=0.1)
-cube2.set_gloss(rough=0.1)
-cube2.set_mixer(0.3)
+cube = bld.BlenderCube(location = (3,3,3))
+cube.set_scale((.5,.5,.5))
+cube.set_diffuse(color=(0,0,1,1),rough=0.1)
+cube.set_gloss(rough=0.1)
+cube.set_mixer(0.3)
 
+Lamps = []
 # Fetch the camera and lamp
-cam = bo.BlenderCamera(bpy.data.objects['Camera'])
-lamp = bo.BlenderLamp(bpy.data.objects['Lamp'])
+cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+Lamps.append(bld.BlenderPoint(bpy.data.objects['Lamp']))
 
-# Create a 2nd lamp
-lamp2 = bo.BlenderLamp(None)
-lamp.set_brightness(500.00)
-lamp.set_size(5.0)
-lamp2.set_brightness(500.00)
-lamp2.set_size(5.0)
+# Create a 2nd and 3rd lamp
+Lamps.append(bld.BlenderPoint(None))
+Lamps.append(bld.BlenderPoint(None))
 
 # instantiate scene
-scene = bo.BlenderScene(bpy.data.scenes[0])
+scene = bld.BlenderScene(bpy.data.scenes[0])
 scene.set_render()
 
-num_images = 150
-
 with open(csv_path,'w') as csvfile:
-	coord_writer = csv.writer(csvfile, delimiter=',')
-	for i in range(num_images):
-	
-		x,y,z = bo.random_shell_coords(5.0)
-		lamp.set_location((x,y,z))
 
-		x,y,z = bo.random_shell_coords(5.0)
-		lamp2.set_location((x,y,z))
+    coord_writer = csv.writer(csvfile, delimiter=',')
 
-		scene.add_object_unfixed(product)
-		scene.add_object_unfixed(cube2)
+    for i in range(num_images):
 
-		x,y,z = bo.random_shell_coords(7.0)
-		cam.set_location((x,y,z))
-		cam.face_towards(0.0,0.0,0.0)
+        # **********************  LIGHTS **********************
+        # turn everything off
+        for lamp in Lamps:
+            lamp.turn_off()
 
-		loc = bo.random_cartesian_coords(0.0,0.0,0.0,1.0,4.0)
-		product.set_location((loc))
-		
-		is_flip = (random.uniform(0,1)<(2./3.))
-		if is_flip:
-			is_flip = (random.uniform(0,1)<0.5)
-			if is_flip:
-				product.set_rot(90,0,1,0)
-				coord_writer.writerow([-z,y,x])	
-			else:
-				product.set_rot(90,1,0,0)
-				coord_writer.writerow([x,z,-y])	
-		else:
-			product.set_rot(0,0,1,0)
-			coord_writer.writerow([x,y,z])
-		
-		loc2 = loc
+        # set random lighting conditions
+        num_lamps = random.randint(1,3)
+        for l in range(num_lamps):
+            lamp = Lamps[l]
+            lamp.turn_on()
+            lamp.random_lighting_conditions()
+            x, y, z = bld.random_shell_coords(5.0)
+            lamp.set_location(x, y, z)
 
-		while(list_distances(loc, loc2) < math.sqrt(3)):
-			loc2 = bo.random_cartesian_coords(0.0,0.0,0.0,2.0,4.0)
+        # **********************  CAMERA **********************
+        # random location of camera along shell coordinates
+        x,y,z = bld.random_shell_coords(7.0)
+        cam.set_location(x,y,z)
+        # face towards the centre
+        cam.face_towards(0.0,0.0,0.0)
 
-		cube2.set_location(loc2)
-		scene.render_to_file('D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\object_poses\\render%d.png'%i)
+        # randomize spin of camera
+        spin_angle = random.uniform(0.0,360.0)
+        cam.spin(spin_angle)
+
+        # **********************  ACTION **********************
+        loc = bld.random_cartesian_coords(0.0,0.0,0.0,1.0,4.0)
+        product.set_location(*loc)
+
+        # flip subject 90 degrees along one axis, so every face has a 3rd chance to face the poles
+        is_flip = random.randint(1,3)
+        disp = list_distances((x,y,z), loc)
+        x = disp[0]
+        y = disp[1]
+        z = disp[2]
+        if is_flip == 1:
+            product.set_rot(90,0,1,0)
+            coord_writer.writerow([-z,y,x])
+        elif is_flip == 2:
+            product.set_rot(90,1,0,0)
+            coord_writer.writerow([x,z,-y])
+        else:
+            product.set_rot(0,0,1,0)
+            coord_writer.writerow([x,y,z])
+
+        # position cube close to subject
+        loc2 = loc
+        while list_distances(loc, loc2).magnitude < math.sqrt(3):
+            loc2 = bld.random_cartesian_coords(0.0,0.0,0.0,2.0,4.0)
+        cube.set_location(*loc2)
+
+        # **********************  RENDER N SAVE **********************
+        render_path = os.path.join(render_folder,'render%d.png'%i)
+        scene.render_to_file(render_path)

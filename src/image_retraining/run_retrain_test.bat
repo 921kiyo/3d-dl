@@ -1,0 +1,1 @@
+python ./test.py --model_source_dir D:\\PycharmProjects\\Lobster\\data --label_path D:\\PycharmProjects\\Lobster\\data\\output_labels.txt --test_file_dir D:\\PycharmProjects\\CFC_Products\\ --test_result_path D:\\PycharmProjects\\Lobster\\data\\test_results.pkl --num_test 5
