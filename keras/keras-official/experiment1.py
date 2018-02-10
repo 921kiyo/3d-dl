@@ -83,9 +83,9 @@ for layer in base_model.layers:
     layer.trainable = False
 
 
-#adam = optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+adam = optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 # compile the model (*after* setting layers to non-trainable)
-model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
+model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy'])
 
 # log everything in tensorboard
 tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
