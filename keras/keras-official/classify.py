@@ -15,6 +15,9 @@ from keras.preprocessing.image import load_img
 import numpy as np
 import argparse
 
+from decimal import *
+getcontext().prec = 3
+
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--image", required=True,
@@ -52,3 +55,5 @@ image = preprocess(image)
 print("[INFO] classifying image")
 preds = model.predict(image)
 print(preds)
+print("Cheese: " + preds[0][0]*100 + "%")
+print("Yogurt: " + preds[0][1]*100 + "%")
