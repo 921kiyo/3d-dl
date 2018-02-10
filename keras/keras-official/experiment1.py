@@ -3,6 +3,7 @@ from keras.preprocessing import image
 from keras.models import Model
 from keras.layers import Dense, GlobalAveragePooling2D
 from keras import backend as K
+from keras import optimizers
 from time import *
 import os
 
@@ -82,7 +83,7 @@ for layer in base_model.layers:
     layer.trainable = False
 
 
-adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+adam = optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 # compile the model (*after* setting layers to non-trainable)
 model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy'])
 
