@@ -44,7 +44,7 @@ test_datagen = ImageDataGenerator(rescale=1./255)
 # (instead of loading all images directly into GPU memory)
 train_generator = train_datagen.flow_from_directory(
         train_data_dir,  # this is the target directory
-        target_size=(150, 150),  # all images will be resized to 150x150
+        target_size=(199, 199),  # all images will be resized to 150x150
         batch_size=16,
         class_mode='categorical')
 
@@ -60,7 +60,7 @@ validation_generator = test_datagen.flow_from_directory(
 # similar to above but based on different augmentation function (above)
 test_generator = test_datagen.flow_from_directory(
         test_dir,
-        target_size=(150, 150),
+        target_size=(199, 199),
         batch_size=16,
         class_mode='categorical')
 
