@@ -78,7 +78,7 @@ def predict2():
     # file = request.files['my_image']
     # file.save(os.path.join(app.config['UPLOAD_FOLDER'], 'image.jpg'))
     #image = load_img('/home/mforcexvi1/Lobster/keras/keras-official/image.jpg', target_size=inputShape)
-    image = load_img('/homes/mzw17/Lobster/keras/keras-official', target_size=inputShape)
+    image = load_img('/homes/mzw17/Lobster/keras/keras-official/image.jpg', target_size=inputShape)
     image = img_to_array(image)
 
     # our input image is now represented as a NumPy array of shape
