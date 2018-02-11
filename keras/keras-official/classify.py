@@ -15,8 +15,8 @@ from keras.preprocessing.image import load_img
 import numpy as np
 import argparse
 
-from decimal import *
-getcontext().prec = 3
+from scipy.misc import imresize
+from PIL import Image
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -36,8 +36,11 @@ model = load_model('production_model_1.h5')
 # the image is resized to `inputShape`, the required input dimensions
 # for the ImageNet pre-trained network
 print("[INFO] loading and pre-processing image...")
-image = load_img(args["image"], target_size=inputShape)
-image = img_to_array(image)
+#image = load_img(args["image"], target_size=inputShape)
+#image = img_to_array(image)
+
+image = Image.open(args["image"])
+resized_image = imresize(image, (224, 224)) / 255.0
 
 # our input image is now represented as a NumPy array of shape
 # (inputShape[0], inputShape[1], 3) however we need to expand the
@@ -47,7 +50,7 @@ image = np.expand_dims(image, axis=0)
 
 # pre-process the image using the appropriate function based on the
 # model that has been loaded (i.e., mean subtraction, scaling, etc.)
-image = preprocess(image)
+#image = preprocess(image)
 
 
 
