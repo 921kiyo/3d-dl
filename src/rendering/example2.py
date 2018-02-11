@@ -17,7 +17,7 @@ C.user_preferences.addons['cycles'].preferences.devices[0].use = True
 C.scene.render.engine = 'CYCLES'
 
 # path to blender library
-boop = '/vol/bitbucket/who11/CO-530/Lobster/src/rendering/BlenderAPI'
+boop = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/src/rendering/BlenderAPI'
 
 
 if not (boop in sys.path):
@@ -38,11 +38,12 @@ cube.delete()
 
 """ ************* User specified stuff here ************* """
 # Specify number of images to render
-num_images = 10
+num_images = 1300
 # required file paths for the script to run
-obj_path = '/vol/bitbucket/who11/CO-530/data/Clinique/Clinique.obj'
-texture_path = '/vol/bitbucket/who11/CO-530/data/Clinique/Clinique.jpg'
-render_folder = '/vol/bitbucket/who11/CO-530/data/Clinique/render'
+obj_path = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\objects\\Halloumi\\Halloumi.obj'
+texture_path = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\objects\\Halloumi\\Halloumi.jpg'
+render_folder = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\object_poses\\Halloumi'
+#render_folder = '/vol/bitbucket/who11/CO-530/data/Clinique/render'
 csv_path = os.path.join(render_folder,'camera.csv')
 
 # Import the shape, and give texture image
@@ -51,16 +52,17 @@ product.add_image_texture(texture_path)
 product.set_diffuse(color=(1,0,0,1),rough=0.1)
 product.set_gloss(rough=0.1)
 product.set_mixer(0.3)
-product.set_scale((.025,.025,.025))
+product.set_scale((1.025,1.025,1.025))
 product.toggle_smooth()
 
 # Create a cube
+"""
 cube = bld.BlenderCube(location = (3,3,3))
 cube.set_scale((.5,.5,.5))
 cube.set_diffuse(color=(0,0,1,1),rough=0.1)
 cube.set_gloss(rough=0.1)
 cube.set_mixer(0.3)
-
+"""
 Lamps = []
 # Fetch the camera and lamp
 cam = bld.BlenderCamera(bpy.data.objects['Camera'])
@@ -129,7 +131,7 @@ with open(csv_path,'w') as csvfile:
         loc2 = loc
         while list_distances(loc, loc2).magnitude < math.sqrt(3):
             loc2 = bld.random_cartesian_coords(0.0,0.0,0.0,2.0,4.0)
-        cube.set_location(*loc2)
+        #cube.set_location(*loc2)
 
         # **********************  RENDER N SAVE **********************
         render_path = os.path.join(render_folder,'render%d.png'%i)

@@ -8,7 +8,7 @@ from scipy.misc import imresize
 import turbulence
 import metaballs
 import matplotlib.pyplot as plt
-
+from PIL import Image
 
 def random_color(L):
     img = np.ones([L,L,3])
@@ -43,10 +43,13 @@ def rand_background(N, size):
 import time
 
 start = time.time()
-for i in range(100):
+for i in range(500,5000):
     print('generated image: ', i)
     img = rand_background(np.random.randint(2,4),300)
-    plt.imshow(img)
-    plt.show()
+    scaled = img*256
+    true_img = Image.fromarray(scaled.astype('uint8'))
+    true_img.save('D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\resized_background\\backgrond%d.png'%i)
+    #plt.imshow(img)
+    #plt.show()
 end = time.time()
 print('time per img = ', (end-start)/100)

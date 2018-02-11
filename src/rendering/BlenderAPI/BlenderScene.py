@@ -75,9 +75,9 @@ class BlenderScene(object):
         self.data.cycles.device = 'GPU'
         self.data.render.tile_x = 512
         self.data.render.tile_y = 512
-        self.data.render.resolution_x = 720
-        self.data.render.resolution_y = 720
-        self.data.render.resolution_percentage = 85
+        self.data.render.resolution_x = 300
+        self.data.render.resolution_y = 300
+        self.data.render.resolution_percentage = 100
 
     def render_to_file(self, filepath):
         self.data.render.filepath = filepath
