@@ -28,10 +28,12 @@ model = load_model('production_model_1.h5')
 
 UPLOAD_FOLDER = '/home/mforcexvi1/mysite'
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-
+@app.route('/image')
+def root():
+    return app.send_static_file('image.jpg')
 
 @app.route('/hello')
 def predict1():
@@ -72,7 +74,7 @@ def predict():
     print("Cheese: " + cheese_value + "%")
     print("Yogurt: " + yogurt_value + "%")
     #return "Cheese: " + cheese_value + "% and " + "Yogurt: " + yogurt_value + "%"
-    return '<!DOCTYPE html> <html> <body> Cheese: ' + cheese_value + '% <br> Yogurt: ' + yogurt_value + '% <br> <img src="image.jpg" width="500" height="500"> </body> </html>' 
+    return '<!DOCTYPE html> <html> <body> Cheese: ' + cheese_value + '% <br> Yogurt: ' + yogurt_value + '% <br> <img src="image" width="500" height="500"> </body> </html>'
 
 @app.route('/123')
 def predict2():
