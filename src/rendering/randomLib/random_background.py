@@ -20,8 +20,7 @@ def mix(img1, img2, size):
     mask = np.zeros([size, size, 3])
     ball_size = np.random.uniform(0.1,0.5)
 
-    small_mask = metaballs.random_metaball(150,150,4,ball_size)
-    mask[:,:,0] = imresize(small_mask,[size,size])/255.
+    mask[:,:,0] = metaballs.random_metaball(size,size,4,ball_size)
     mask[:,:,1] = mask[:,:,0]
     mask[:,:,2] = mask[:,:,0]
 
@@ -43,7 +42,11 @@ def rand_background(N, size):
 import time
 
 start = time.time()
+<<<<<<< HEAD
 for i in range(500,5000):
+=======
+for i in range(10):
+>>>>>>> 7740d591983906cae302d5cd2e037deccf972e4e
     print('generated image: ', i)
     img = rand_background(np.random.randint(2,4),300)
     scaled = img*256
@@ -52,4 +55,4 @@ for i in range(500,5000):
     #plt.imshow(img)
     #plt.show()
 end = time.time()
-print('time per img = ', (end-start)/100)
+print('time per img = ', (end-start)/10)

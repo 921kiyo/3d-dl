@@ -136,4 +136,3 @@ with open(csv_path,'w') as csvfile:
         # **********************  RENDER N SAVE **********************
         render_path = os.path.join(render_folder,'render%d.png'%i)
         scene.render_to_file(render_path)
-
