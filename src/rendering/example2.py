@@ -47,11 +47,11 @@ csv_path = os.path.join(render_folder,'camera.csv')
 
 # Import the shape, and give texture image
 product = bld.BlenderImportedShape(obj_path=obj_path, location=(-1,0,-1) ,orientation=(0,0,1,0))
+product.set_mesh_bbvol(8.0) # size of original cube
 product.add_image_texture(texture_path)
 product.set_diffuse(color=(1,0,0,1),rough=0.1)
 product.set_gloss(rough=0.1)
 product.set_mixer(0.3)
-product.set_scale((.025,.025,.025))
 product.toggle_smooth()
 
 # Create a cube
