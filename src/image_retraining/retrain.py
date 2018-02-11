@@ -743,7 +743,7 @@ def misclassified_image_summaries(sess, test_filenames, test_ground_truth, predi
 
      # Check if directory already exists. If so, create a new one
      if tf.gfile.Exists(FLAGS.summaries_dir + '/testing'):
-         tfself.gfile.DeleteRecursively(FLAGS.summaries_dir + '/testing')
+         tf.gfile.DeleteRecursively(FLAGS.summaries_dir + '/testing')
      tf.gfile.MakeDirs(FLAGS.summaries_dir + '/testing')
 
      # create decoding tensors
