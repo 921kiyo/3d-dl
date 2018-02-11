@@ -35,7 +35,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route('/hello')
 def predict1():
-    return "hello"
+    return '<!DOCTYPE html> <html> <body> <form action="/predict" method="POST" enctype="multipart/form-data"> <input type="file" name="my_image" accept="image/*"> <input type="submit"> </form> </body> </html>'
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -49,7 +49,7 @@ def predict():
 
     # file = request.files['my_image']
     # file.save(os.path.join(app.config['UPLOAD_FOLDER'], 'image.jpg'))
-    image = load_img('/home/mforcexvi1/Lobster/keras/keras-official/image.jpg', target_size=inputShape)
+    image = load_img('/homes/mzw17/Lobster/keras/keras-official/image.jpg', target_size=inputShape)
     image = img_to_array(image)
 
     # our input image is now represented as a NumPy array of shape
@@ -71,7 +71,8 @@ def predict():
 
     print("Cheese: " + cheese_value + "%")
     print("Yogurt: " + yogurt_value + "%")
-    return "Cheese: " + cheese_value + "% and " + "Yogurt: " + yogurt_value + "%"
+    #return "Cheese: " + cheese_value + "% and " + "Yogurt: " + yogurt_value + "%"
+    return '<!DOCTYPE html> <html> <body> Cheese: ' + cheese_value + '% <br> Yogurt: ' + yogurt_value + '% <br> <img src="image.jpg" width="500" height="500"> </body> </html>' 
 
 @app.route('/123')
 def predict2():
@@ -101,5 +102,3 @@ def predict2():
     print("Cheese: " + cheese_value + "%")
     print("Yogurt: " + yogurt_value + "%")
     return "Cheese: " + cheese_value + "% and " + "Yogurt: " + yogurt_value + "%"
-
-
