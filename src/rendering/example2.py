@@ -40,9 +40,9 @@ cube.delete()
 # Specify number of images to render
 num_images = 1300
 # required file paths for the script to run
-obj_path = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\objects\\Halloumi\\Halloumi.obj'
-texture_path = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\objects\\Halloumi\\Halloumi.jpg'
-render_folder = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\object_poses\\Halloumi'
+obj_path = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\objects\\Liberte\\LiberteSide.obj'
+texture_path = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\objects\\Liberte\\LiberteSide.jpg'
+render_folder = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\object_poses\\Liberte'
 #render_folder = '/vol/bitbucket/who11/CO-530/data/Clinique/render'
 csv_path = os.path.join(render_folder,'camera.csv')
 
@@ -52,7 +52,7 @@ product.add_image_texture(texture_path)
 product.set_diffuse(color=(1,0,0,1),rough=0.1)
 product.set_gloss(rough=0.1)
 product.set_mixer(0.3)
-product.set_scale((1.025,1.025,1.025))
+product.set_scale((.25,.25,.25))
 product.toggle_smooth()
 
 # Create a cube

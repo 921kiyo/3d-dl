@@ -16,7 +16,7 @@ Image_height = 360
 Image_width = 360
 base_address= "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/data/"
 SUN_images_dir = "E:/LabelMeToolbox/real_data/images/"
-resized_address = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/images/resized_backgrounds/"
+#final_address = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/images/resized_background/"
 
 
 def add_background(foreground_name, background_name, save_as):
@@ -57,4 +57,4 @@ def generate_for_all_objects(objects_folder, background_folder, final_folder):
         
         
 
-generate_for_all_objects("object_poses", "resized_background", "final_images")
+generate_for_all_objects("object_poses/Liberte", "resized_background", "final_images/Liberte")

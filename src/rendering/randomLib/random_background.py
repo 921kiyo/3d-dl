@@ -42,11 +42,8 @@ def rand_background(N, size):
 import time
 
 start = time.time()
-<<<<<<< HEAD
+
 for i in range(500,5000):
-=======
-for i in range(10):
->>>>>>> 7740d591983906cae302d5cd2e037deccf972e4e
     print('generated image: ', i)
     img = rand_background(np.random.randint(2,4),300)
     scaled = img*256
