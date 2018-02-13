@@ -120,14 +120,14 @@ def create_model_info(data_url):
     ValueError: If architecture name is unknown.
   """
   model_file_name = 'output_graph.pb'
-  result_tensor_name = 'final_result:0'
-  resized_input_tensor_name = 'Mul:0'
+  result_tensor_name = 'output_node0:0'
+  resized_input_tensor_name = 'input_1:0'
   input_width = 299
   input_height = 299
   input_depth = 3
   input_mean = 128
   input_std = 128
-  bottleneck_tensor_name = 'pool_3/_reshape:0'
+  bottleneck_tensor_name = 'global_average_pooling2d_1/Mean:0'
   bottleneck_tensor_size = 2048
   return {
       'data_url': data_url,
