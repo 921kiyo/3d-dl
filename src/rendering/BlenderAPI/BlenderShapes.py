@@ -4,8 +4,8 @@ import random
 import mathutils as mathU
 import itertools
 
-from BlenderObjects import *
-from BlenderNodes import *
+from rendering.BlenderAPI.BlenderObjects import *
+from rendering.BlenderAPI.BlenderNodes import *
 
 
 class BlenderMesh(BlenderObject):

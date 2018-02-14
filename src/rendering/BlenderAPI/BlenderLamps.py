@@ -4,7 +4,7 @@ import random
 import mathutils as mathU
 import itertools
 
-from BlenderObjects import *
+from rendering.BlenderAPI.BlenderObjects import *
 
 
 class BlenderLamp(BlenderObject):
@@ -71,19 +71,6 @@ class BlenderLamp(BlenderObject):
         rot_angle = math.degrees(math.acos(rot_origin.dot(target)))
         # set rotation quaternion
         self.set_rot(rot_angle, rot_axis[0], rot_axis[1], rot_axis[2])
-
-    def random_lighting_conditions(self, reference_location=(0.0, 0.0, 0.0), location_variance=1.0):
-        """
-        choose a random coordinate to face
-        choose a random brightness and size
-        both according to a gaussian distribution with mean (0,0,0), default brightness and size
-        and variance being 30% of mean (negative values of brightness and size will be evaluated
-        to zero)
-        """
-        loc = random_cartesian_coords(0.0, 0.0, 0.0, location_variance, 6.0)
-        self.face_towards(*loc)
-        self.set_brightness(random.gauss(self.default_brightness, 0.3 * self.default_brightness))
-        self.set_size(random.gauss(self.default_size, 0.3 * self.default_size))
 
 
 class BlenderSun(BlenderLamp):
