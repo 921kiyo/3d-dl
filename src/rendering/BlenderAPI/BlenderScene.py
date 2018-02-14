@@ -1,11 +1,11 @@
 import bpy
 import math
-import rendering.randomLib
+import random
 import mathutils as mathU
 import itertools
 
-from rendering.BlenderAPI.BlenderObjects import *
-from rendering.BlenderAPI.BlenderShapes import *
+from BlenderObjects import *
+from BlenderShapes import *
 
 class BlenderRoom(object):
     def __init__(self, radius):
@@ -30,7 +30,7 @@ class BlenderRoom(object):
 
 class BlenderScene(object):
     def __init__(self, data):
-        self.lamps = []
+        self.lamp = None
         self.background = None
         self.objects_fixed = []
         self.objects_unfixed = []
@@ -54,7 +54,7 @@ class BlenderScene(object):
         self.objects_unfixed.append(object)
 
     def add_lamp(self, lamp):
-        self.lamp.append(lamp)
+        self.lamp = lamp
 
     def delete_all(self):
         for obj in self.objects_fixed:

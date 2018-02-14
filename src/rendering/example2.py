@@ -17,14 +17,14 @@ C.user_preferences.addons['cycles'].preferences.devices[0].use = True
 C.scene.render.engine = 'CYCLES'
 
 # path to blender library
-boop = 'D:/PycharmProjects/Lobster/src/'
+boop = '/vol/bitbucket/who11/CO-530/Lobster/src/rendering/BlenderAPI'
 
 
 if not (boop in sys.path):
     sys.path.append(boop)
 
-import rendering.BlenderAPI as bld
-import rendering.randomLib.random_render as rnd
+
+import BlenderAPI as bld
 
 
 def list_distances(L1,L2):
@@ -38,11 +38,11 @@ cube.delete()
 
 """ ************* User specified stuff here ************* """
 # Specify number of images to render
-num_images = 1
+num_images = 10
 # required file paths for the script to run
-obj_path = 'D:\\PycharmProjects\\3DModels\\Tea\\Tea.obj'
-texture_path = 'D:\\PycharmProjects\\3DModels\\Tea\\Tea.jpg'
-render_folder = 'D:\\PycharmProjects\\3DModels\\Tea\\render'
+obj_path = '/vol/bitbucket/who11/CO-530/data/Clinique/Clinique.obj'
+texture_path = '/vol/bitbucket/who11/CO-530/data/Clinique/Clinique.jpg'
+render_folder = '/vol/bitbucket/who11/CO-530/data/Clinique/render'
 csv_path = os.path.join(render_folder,'camera.csv')
 
 # Import the shape, and give texture image
@@ -90,13 +90,13 @@ with open(csv_path,'w') as csvfile:
         for l in range(num_lamps):
             lamp = Lamps[l]
             lamp.turn_on()
-            rnd.random_lighting_conditions(lamp)
-            x, y, z = rnd.random_shell_coords(5.0)
+            lamp.random_lighting_conditions()
+            x, y, z = bld.random_shell_coords(5.0)
             lamp.set_location(x, y, z)
 
         # **********************  CAMERA **********************
         # random location of camera along shell coordinates
-        x,y,z = rnd.random_shell_coords(7.0)
+        x,y,z = bld.random_shell_coords(7.0)
         cam.set_location(x,y,z)
         # face towards the centre
         cam.face_towards(0.0,0.0,0.0)
@@ -106,7 +106,7 @@ with open(csv_path,'w') as csvfile:
         cam.spin(spin_angle)
 
         # **********************  ACTION **********************
-        loc = rnd.random_cartesian_coords(0.0,0.0,0.0,1.0,4.0)
+        loc = bld.random_cartesian_coords(0.0,0.0,0.0,1.0,4.0)
         product.set_location(*loc)
 
         # flip subject 90 degrees along one axis, so every face has a 3rd chance to face the poles
@@ -128,7 +128,7 @@ with open(csv_path,'w') as csvfile:
         # position cube close to subject
         loc2 = loc
         while list_distances(loc, loc2).magnitude < math.sqrt(3):
-            loc2 = rnd.random_cartesian_coords(0.0,0.0,0.0,2.0,4.0)
+            loc2 = bld.random_cartesian_coords(0.0,0.0,0.0,2.0,4.0)
         cube.set_location(*loc2)
 
         # **********************  RENDER N SAVE **********************

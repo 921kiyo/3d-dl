@@ -1,7 +1,17 @@
 import bpy
 import math
+import random
 import mathutils as mathU
 import itertools
+
+
+def random_color():
+    """
+    utility function for random color, returns a 3-tuple, each element in [0,1]
+    :return: 3-tuple representing a color
+    """
+    return random.random(), random.random(), random.random()
+
 
 def rotate(vector, quaternion):
     """
@@ -32,6 +42,37 @@ def to_quaternion(w, x, y, z):
     else:
         q = mathU.Quaternion([x / m, y / m, z / m], w)
     return q
+
+
+def random_shell_coords(radius):
+    """
+    given a shell radius, return a random shell coordinate centred around (0,0,0)
+    :param radius: radius of shell
+    :return: 3-tuple shell coordinate
+    """
+    theta = math.radians(random.uniform(0.0, 360.0))
+    phi = math.radians(random.uniform(0.0, 360.0))
+    x = radius * math.cos(theta) * math.sin(phi)
+    y = radius * math.sin(theta) * math.sin(phi)
+    z = radius * math.cos(phi)
+    return x, y, z
+
+
+def random_cartesian_coords(mux, muy, muz, sigma, lim):
+    """
+    given a centre (mux, muy, muz), a standard deviation sigma, and a cube width lim,
+    generate a gaussian-distributed random coordinate within the cube centered at (mux,muy,muz)
+    :param mux: x centre
+    :param muy: y centre
+    :param muz: z centre
+    :param sigma: standard deviation
+    :param lim: cube limit width
+    :return: 3-tuple gaussian random coordinate
+    """
+    x = min(random.gauss(mux, sigma), lim)
+    y = min(random.gauss(muy, sigma), lim)
+    z = min(random.gauss(muz, sigma), lim)
+    return x, y, z
 
 
 class BlenderObject(object):
