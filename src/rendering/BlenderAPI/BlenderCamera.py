@@ -4,7 +4,7 @@ import random
 import mathutils as mathU
 import itertools
 
-from BlenderObjects import *
+from rendering.BlenderAPI.BlenderObjects import *
 
 
 class BlenderCamera(BlenderObject):
