@@ -11,7 +11,11 @@ graphical interface with this method:
 ```
     blender --background --python script.py
 ```
-
+* To import BlenderAPI classes, simply type:
+```
+    # all the individual imports are done inside BlenderAPI's __init__
+    import rendering.BlenderAPI as bld
+```
 ## The bpy module
 
 All of blender can be accssed throught the `bpy` module, by calling `import bpy`.
