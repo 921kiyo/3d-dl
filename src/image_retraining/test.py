@@ -120,14 +120,14 @@ def create_model_info(data_url):
     ValueError: If architecture name is unknown.
   """
   model_file_name = 'output_graph.pb'
-  result_tensor_name = 'output_node0:0' # tflow -- 'pool_3/_reshape:0'
-  resized_input_tensor_name = 'input_1:0' # tflow -- 'Mul:0'
+  result_tensor_name = 'final_result:0' #keras -- 'output_node0:0' # tflow -- 'final_result:0'
+  resized_input_tensor_name = 'Mul:0' # keras -- 'input_1:0' # tflow -- 'Mul:0'
   input_width = 299
   input_height = 299
   input_depth = 3
   input_mean = 128
   input_std = 128
-  bottleneck_tensor_name = 'global_average_pooling2d_1/Mean:0' #tflow -- 'final_training_ops/final_result:0'
+  bottleneck_tensor_name = 'pool_3/_reshape:0' # keras -- 'global_average_pooling2d_1/Mean:0' #tflow -- 'pool_3/_reshape:0'
   bottleneck_tensor_size = 2048
   return {
       'data_url': data_url,
@@ -199,6 +199,7 @@ def eval_result(result_tensor, ground_truth, idx2label):
     prediction = (ground_truth==result[0])
     correct_label = idx2label[ground_truth]
     predicted_label = idx2label[result[0]]
+    print('predicted: ', predicted_label, ' correct: ', correct_label)
     return prediction, correct_label, predicted_label
 
 
@@ -337,19 +338,6 @@ def summarize_results(sess, label2idx, per_class_test_results):
 
     sensitivity = compute_sensitivity(cm)
     precision = compute_precision(cm)
-    """
-    sens_img = plot_bar(range(c), sensitivity , title='Class Sensitivities', xlabel='Class', ylabel='Sensitivity')
-    summary_op = tf.summary.image("Sensitivity", sens_img)
-    sens_summary = sess.run(summary_op)
-    summary_writer.add_summary(sens_summary)
-    print('Sensitivity: ',sensitivity) 
-
-    prec_img = plot_bar(range(c), precision, title='Class Precision', xlabel='Class', ylabel='Precision')
-    summary_op = tf.summary.image("Precision", prec_img)
-    prec_summary = sess.run(summary_op)
-    summary_writer.add_summary(prec_summary)
-    print('Precision: ',precision)
-    """
 
     prec_img = plot_bar(range(c), precision,  sensitivity  , title='Class Precision', xlabel='Class', ylabel='Precision and Sensitivity')
     summary_op = tf.summary.image("Precision", prec_img)
@@ -398,31 +386,31 @@ def main(_):
                 if(count%FLAGS.notify_interval == 0):
                     print('processed {0}, {1} more to go'.format(count,len(test_data)-count) )
                     
-                    test_result = {}
+                test_result = {}
                     
-                    # read in image data
-                    image_data = gfile.FastGFile(test_datum[2], 'rb').read()
-                    ground_truth = test_datum[1]
+                # read in image data
+                image_data = gfile.FastGFile(test_datum[2], 'rb').read()
+                ground_truth = test_datum[1]
+                
+                # fetch resized image from the resizing network
+                resized_image_data, decoded_jpeg_data = run_resize_data(
+                    sess, image_data, jpeg_data_tensor, resized_image_tensor, decoded_jpeg_tensor)
+                
+                # feed resized image into Inception network, output result
+                result, bottleneck = sess.run(
+                    [result_tensor, bottleneck_tensor],
+                    feed_dict={resized_input_tensor: resized_image_data}
+                )
                     
-                    # fetch resized image from the resizing network
-                    resized_image_data, decoded_jpeg_data = run_resize_data(
-                        sess, image_data, jpeg_data_tensor, resized_image_tensor, decoded_jpeg_tensor)
-                    
-                    # feed resized image into Inception network, output result
-                    result, bottleneck = sess.run(
-                        [result_tensor, bottleneck_tensor],
-                        feed_dict={resized_input_tensor: resized_image_data}
-                    )
-                    
-                    # decode result tensor here since we don't have access to the prediction tensor
-                    test_result['prediction'], test_result['correct_label'], test_result['predicted_label'] = \
-                        eval_result(result, ground_truth, idx2label)
-                    test_result['class_confidences'] = result
-                    test_result['features'] = bottleneck[0]
-                    per_class_test_results[test_result['correct_label']].append(test_result)
-                    features.append(bottleneck[0])
+                # decode result tensor here since we don't have access to the prediction tensor
+                test_result['prediction'], test_result['correct_label'], test_result['predicted_label'] = \
+                    eval_result(result, ground_truth, idx2label)
+                test_result['class_confidences'] = result
+                test_result['features'] = bottleneck[0]
+                per_class_test_results[test_result['correct_label']].append(test_result)
+                features.append(bottleneck[0])
                         
-                    count += 1
+                count += 1
         else:
             print('Pre supplied test result file found, loading ... ')
             pickled_test_result = open(FLAGS.test_result_file,'rb')  
