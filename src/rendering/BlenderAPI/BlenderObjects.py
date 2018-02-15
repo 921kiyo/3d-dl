@@ -105,7 +105,6 @@ class BlenderObject(object):
         self.reference.rotation_mode = 'QUATERNION'
         q = to_quaternion(w, x, y, z)
         q = q * self.reference.rotation_quaternion
-        print(q)
         self.reference.rotation_quaternion = q
 
     def delete(self):
@@ -118,3 +117,11 @@ class BlenderObject(object):
         self.reference.select = True
         # remove it
         bpy.ops.object.delete()
+        self.reference = None
+
+class BlenderTestObject(BlenderObject):
+    def __init__(self, location=(0, 0, 0), orientation=(0, 0, 0, 0), scale=(1, 1, 1), reference=None, **kwargs):
+        super(BlenderTestObject, self).__init__(location, orientation, scale, reference)
+
+    def blender_create_operation(self, location):
+        bpy.ops.object.add()
