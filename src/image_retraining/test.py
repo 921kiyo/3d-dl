@@ -31,6 +31,8 @@ import matplotlib
 import io
 import pickle
 
+FLAGS = None
+
 def create_label_lists(label_path):
     """
     creates a label to encoding dict and a reverse dict via an output
@@ -266,6 +268,9 @@ def compute_sensitivity(cm):
     relevant = np.sum(cm,axis=1)
     sensitivity = np.zeros(relevant.shape)
     for i in range(len(sensitivity)):
+        if relevant[i] == 0:
+            sensitivity[i] = 1
+            continue
         sensitivity[i] = cm[i,i]/relevant[i]
     return sensitivity
 
@@ -274,6 +279,9 @@ def compute_precision(cm):
     relevant = np.sum(cm,axis=0)
     precision = np.zeros(relevant.shape)
     for i in range(len(precision)):
+        if relevant[i] == 0:
+            precision[i] = 1
+            continue
         precision[i] = cm[i,i]/relevant[i]
     return precision
 
