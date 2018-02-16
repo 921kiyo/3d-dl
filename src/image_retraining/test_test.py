@@ -1,6 +1,6 @@
 from tensorflow.python.framework import test_util
 import tensorflow as tf
-from ..test import *
+from test import *
 
 
 class TestTest(test_util.TensorFlowTestCase):
@@ -40,8 +40,11 @@ class TestTest(test_util.TensorFlowTestCase):
     #     pass
 
     def test_add_jpeg_decoding(self):
-        # Ong
-        pass
+        with tf.Graph().as_default():
+            jpeg_data, mul_image, decoded_image = add_jpeg_decoding(10, 10, 3, 0, 255)
+            self.assertIsNotNone(jpeg_data)
+            self.assertIsNotNone(mul_image)
+            self.assertIsNotNone(decoded_image)
 
     def test_run_resize_data(self):
         # Kiyo
@@ -57,19 +60,29 @@ class TestTest(test_util.TensorFlowTestCase):
         pass
 
     def test_extract_summary_tensors(self):
-        # Ong
+        test_results = [
+            {'class_confidences' : np.array([[0.6, 0.4]]), 'predicted_label': '0', 'correct_label': '1'},
+            {'class_confidences' : np.array([[0.51, 0.49]]), 'predicted_label': '0', 'correct_label': '1'},
+        ]
+        label2idx = {'0':0, '1':1}
+        confidences, predictions, truth = extract_summary_tensors(test_results, label2idx)
+        self.assertAllEqual(confidences, np.array([[0.6, 0.4],[0.51, 0.49]]))
+        self.assertAllEqual(predictions, np.array([0,0]))
+        self.assertAllEqual(truth, np.array([1,1]))
         pass
 
     def test_plot_confusion_matrix(self):
-        # Ong
+        cm = np.array([[1,0],[0,1]])
+        image = plot_confusion_matrix(cm, ['0','1'])
+        self.assertIsNotNone(image)
         pass
 
     def test_get_test_files(self):
         # Kiyo
         pass
 
-    def test_compute_sensitivity(self):
-        # Ong
+    def test_compute_sensitivity(self):        
+        cm = np.array([[1,0],[0,1]])
         pass
 
     def test_compute_precision(self):
