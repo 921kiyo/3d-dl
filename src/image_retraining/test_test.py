@@ -1,6 +1,7 @@
 from tensorflow.python.framework import test_util
 import tensorflow as tf
 from test import *
+import test
 
 
 class TestTest(test_util.TensorFlowTestCase):
@@ -93,20 +94,55 @@ class TestTest(test_util.TensorFlowTestCase):
         self.assertIsNotNone(image)
         pass
 
+    def test_get_test_files(self):
+        # Kiyo
+        pass
+
     def test_compute_sensitivity(self):
+
+        cm = np.array([[1]])
+        sens = compute_sensitivity(cm)
+        self.assertAllClose(sens, np.array([1.]))
+
         cm = np.array([[1,0],[0,1]])
+        sens = compute_sensitivity(cm)
+        self.assertAllClose(sens, np.array([1., 1.]))
+
+        cm = np.array([[1,1],[0,1]])
+        sens = compute_sensitivity(cm)
+        self.assertAllClose(sens, np.array([.5, 1.]))
         pass
 
     def test_compute_precision(self):
-        # Ong
+
+        cm = np.array([[1]])
+        prec = compute_sensitivity(cm)
+        self.assertAllClose(prec, np.array([1.]))
+
+        cm = np.array([[1,0],[0,1]])
+        prec = compute_sensitivity(cm)
+        self.assertAllClose(prec, np.array([1., 1.]))
+
+        cm = np.array([[1,1],[0,1]])
+        prec = compute_precision(cm)
+        self.assertAllClose(prec, np.array([1., .5]))
+
         pass
 
     def test_plot_bar(self):
         # Ong
         pass
 
-    def test_summarize_results(self):
-        # Ong
+    @tf.test.mock.patch.object(test, 'FLAGS', model_source_dir='./')
+    def test_summarize_results(self, flags_mock):
+        label2idx = {'0':0, '1':1}
+        per_class_test_results = {'0':[{'class_confidences' : np.array([[0.6, 0.4]]), 'predicted_label': '0', 'correct_label': '1'},],
+            '1':[{'class_confidences' : np.array([[0.51, 0.49]]), 'predicted_label': '0', 'correct_label': '1'}]
+        }
+        with tf.Session() as sess:
+            test.summarize_results(sess, label2idx, per_class_test_results)
+            self.assertTrue(tf.gfile.Exists(test.FLAGS.model_source_dir + '/test_results'))
+            tf.gfile.DeleteRecursively(test.FLAGS.model_source_dir + '/test_results')
         pass
 
 if __name__ == '__main__':
