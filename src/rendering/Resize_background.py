@@ -16,32 +16,10 @@ from PIL import Image
 from resizeimage import resizeimage
 
 #the below should point to the file containing the alphabet letter folders
-SUN_images_dir = "E:/LabelMeToolbox/real_data/images/"
+SUN_images_dir = "E:/LabelMeToolbox/real_data/images/m/"
 # The below folder will contain the resized images
-resized_address = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/images/resized_backgrounds/"
-
-
-#def filter_and_resize(min_pixels):
-#    """
-#    #Older function that no longer works but contains some useful file navigation.
-#    #Will eventually if not needed.
-#    """
-#    count = 0
-#    for letter_folder in os.listdir(SUN_images_dir):
-#        subfolder_name = SUN_images_dir+letter_folder+"/"
-#        for category in os.listdir(subfolder_name):
-#            category_name = subfolder_name+category+"/"
-#            for image_name in os.listdir(category_name):
-#                with Image.open(category_name+image_name) as tested_image:
-#                    width, height = tested_image.size
-#                    if(width>=min_pixels and height>= min_pixels):                        
-#                        cover = resizeimage.resize_cover(tested_image, [min_pixels, min_pixels])
-#                        cover.save(resized_address+image_name, 'JPEG')
-#                    
-#                    count +=1    
-#                    if(count>=100):
-#                        return
-      
+resized_address = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/data/resized_background/SUN_back/"
+  
 
 def resize_and_crop(image_address, output_address, f_widht, f_height):
     """
@@ -65,9 +43,9 @@ def resize_and_crop(image_address, output_address, f_widht, f_height):
                 cover.save(output_address, image.format)
             else:
                 print("Image too small to be resized")
-           
 
-def find_all_files(min_pixels):
+
+def find_all_files(min_pixels, origin_folder, target_folder):
     """
     Function that searches all subfolders of given folder.
     This function assumes that all files in that folder are image files
@@ -87,19 +65,20 @@ def find_all_files(min_pixels):
     Returns: 
         void: does not return anything
     """
-    count = 0
-    for root, dirs, files in os.walk(SUN_images_dir):
+    #count = 0
+    for root, dirs, files in os.walk(origin_folder):
         if(len(files)>0):
             for image_name in files:
+                print(root, dirs, image_name)
                 with Image.open(root+"/"+ image_name) as tested_image:
                         width, height = tested_image.size
                         if(width>=min_pixels and height>= min_pixels):                        
                             cover = resizeimage.resize_cover(tested_image, [min_pixels, min_pixels])
-                            cover.save(resized_address+image_name, 'JPEG')
+                            cover.convert('RGB').save(target_folder+image_name, 'JPEG')
            
-        count +=1
-        if(count>5):
-            return files
-    return files
+        #count +=1
+        #if(count>5):
+            #return 
+    return root
 
-roots= find_all_files(360)
+#roots= find_all_files(300,SUN_images_dir, resized_address)

@@ -50,11 +50,13 @@ def generate_for_all_objects(objects_folder, background_folder, final_folder):
     Returns:
         Nothing
     """
-    all_backgrounds = os.listdir(base_address+background_folder)
-    for object_image in os.listdir(base_address+objects_folder):
+    all_backgrounds = os.listdir(background_folder)
+    for object_image in os.listdir(objects_folder):
         one_object = random.choice(all_backgrounds)
-        add_background(base_address+objects_folder+"/"+object_image, base_address+background_folder+"/"+one_object, base_address+final_folder+"/"+object_image)
+        just_name = os.path.splitext(object_image)[0]
+        add_background(objects_folder+"/"+object_image, background_folder+"/"+one_object, final_folder+"/"+just_name+".jpg")
         
         
 
-generate_for_all_objects("object_poses/Liberte", "resized_background", "final_images/Liberte")
+#generate_for_all_objects(base_address+"object_poses/Liberte_white", base_address+"resized_background/white_back", base_address+"final_images/white/liberte/train")
+#generate_for_all_objects(base_address+"object_poses/Halloumi_white", base_address+"resized_background/white_back", base_address+"final_images/white/halloumi/train")

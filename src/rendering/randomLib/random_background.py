@@ -43,12 +43,12 @@ import time
 
 start = time.time()
 
-for i in range(500,5000):
+for i in range(5000):
     print('generated image: ', i)
     img = rand_background(np.random.randint(2,4),300)
     scaled = img*256
-    true_img = Image.fromarray(scaled.astype('uint8'))
-    true_img.save('D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\resized_background\\backgrond%d.png'%i)
+    true_img = Image.fromarray(scaled.astype('uint8'), mode = "RGB")
+    true_img.save('D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\resized_background\\random_back\\background%d.png'%i)
     #plt.imshow(img)
     #plt.show()
 end = time.time()
