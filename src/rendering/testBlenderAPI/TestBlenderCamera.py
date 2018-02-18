@@ -2,7 +2,9 @@ import bpy
 import sys
 import mathutils as mathU
 
-boop = 'D:/PycharmProjects/Lobster/src/'
+# boop = 'D:/PycharmProjects/Lobster/src/'
+
+boop = "/Users/maxbaylis/Lobster/src/"
 if not (boop in sys.path):
     sys.path.append(boop)
 

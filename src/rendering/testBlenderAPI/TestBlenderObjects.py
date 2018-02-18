@@ -2,7 +2,7 @@ import bpy
 import sys
 import mathutils as mathU
 
-boop = 'D:/PycharmProjects/Lobster/src/'
+boop = "/Users/maxbaylis/Lobster/src/"
 if not (boop in sys.path):
     sys.path.append(boop)
 
@@ -75,4 +75,4 @@ class BlenderObjectTest(unittest.TestCase):
 
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(BlenderObjectTest)
-    success = unittest.TextTestRunner().run(suite).wasSuccessful()
+    success = unittest.TextTestRunner(verbosity=True).run(suite).wasSuccessful()
