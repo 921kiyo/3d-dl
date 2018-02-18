@@ -3,12 +3,16 @@ import sys
 import mathutils as mathU
 
 boop = 'D:/PycharmProjects/Lobster/src/'
+ext = 'D:/Anaconda3/envs/tensorflow/Lib/site-packages/'
 if not (boop in sys.path):
     sys.path.append(boop)
+if not (ext in sys.path):
+    sys.path.append(ext)
 
 import rendering.BlenderAPI.BlenderObjects as bld
 
 import unittest
+import coverage
 
 class BlenderObjectTest(unittest.TestCase):
 
@@ -74,5 +78,11 @@ class BlenderObjectTest(unittest.TestCase):
         self.assertEqual(num_objects_after, 0)
 
 if __name__ == '__main__':
+    cov = coverage.Coverage()
+    cov.start()
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(BlenderObjectTest)
     success = unittest.TextTestRunner().run(suite).wasSuccessful()
+    cov.stop()
+    cov.save()
+    cov.html_report()
+
