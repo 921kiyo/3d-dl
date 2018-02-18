@@ -1,11 +1,16 @@
+# TODO For the relative path to work, you have to append the absolute path of your comment
+# import sys
+# print("Sys.path ", sys.path)
+# sys.path.append("/homes/kk3317/Desktop/Ocado/Lobster/src")
 from tensorflow.python.framework import test_util
 import tensorflow as tf
-from image_retraining.test import *
-import image_retraining.test as test
 
 import os
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
+
+from image_retraining.test import *
+import image_retraining.test as test
 
 class TestTest(test_util.TensorFlowTestCase):
     def test_create_label_lists(self):
@@ -56,7 +61,6 @@ class TestTest(test_util.TensorFlowTestCase):
             self.assertIsNotNone(decoded_image)
 
     def test_run_resize_data(self):        # Build jpeg decoding and give it to run resized data
-        #
         with tf.Graph().as_default():
             with tf.Session() as sess:
                 jpeg_data, mul_image, decoded_image = add_jpeg_decoding(10, 10, 3, 0, 255)
@@ -73,10 +77,13 @@ class TestTest(test_util.TensorFlowTestCase):
         pass
 
     def test_eval_result(self):
-        # Kiyo
-        # result_tensor is numpy array, ground_truth scalar between 0 and N-1
-        # N is the length of result tensor softmax confidence, highest
-        # prediction is boolean value true if argmax(result_tensor) == ground_truth
+        result_tensor = [[0.5180032,  0.48199683]]
+        ground_truth = 0
+        idx2label = {0: 'yogurt', 1: 'cheese'}
+        prediction, correct_label, predicted_label = eval_result(result_tensor, ground_truth, idx2label)
+        self.assertEqual(True, prediction)
+        self.assertEqual('yogurt', correct_label)
+        self.assertEqual('yogurt', predicted_label)
         pass
 
     def test_extract_summary_tensors(self):
@@ -98,7 +105,14 @@ class TestTest(test_util.TensorFlowTestCase):
         pass
 
     def test_get_test_files(self):
-        # Kiyo
+        with tf.Graph().as_default():
+            with tf.Session() as sess:
+                jpeg_data, mul_image, decoded_image = add_jpeg_decoding(10, 10, 3, 0, 255)
+                label_path = os.path.join(current_dir, "test.txt")
+                label2idx, idx2label = create_label_lists(label_path)
+                file_dir = os.path.join(current_dir, "test_images/")
+                test_data = get_test_files(file_dir, label2idx, 1)
+                self.assertTrue(len(test_data) > 0)
         pass
 
     def test_compute_sensitivity(self):
@@ -138,13 +152,13 @@ class TestTest(test_util.TensorFlowTestCase):
 
     @tf.test.mock.patch.object(test, 'FLAGS', model_source_dir=os.path.join(current_dir, "outputs/"))
     def test_summarize_results(self, flags_mock):
-        
+
         label2idx = {'0':0, '1':1}
         per_class_test_results = {
             '1':[{'class_confidences' : np.array([[0.6, 0.4]]), 'predicted_label': '0', 'correct_label': '1'},],
             '1':[{'class_confidences' : np.array([[0.51, 0.49]]), 'predicted_label': '0', 'correct_label': '1'}]
         }
-        
+
         with tf.Session() as sess:
             test.summarize_results(sess, label2idx, per_class_test_results)
             self.assertTrue(tf.gfile.Exists(test.FLAGS.model_source_dir + '/test_results'))
