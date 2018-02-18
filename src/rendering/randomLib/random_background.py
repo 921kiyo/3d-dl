@@ -5,8 +5,8 @@ metballs!
 import numpy as np
 from scipy.interpolate import interp2d
 from scipy.misc import imresize
-import turbulence
-import metaballs
+import rendering.randomLib.turbulence
+import rendering.randomLib.metaballs
 import matplotlib.pyplot as plt
 from PIL import Image
 

@@ -157,6 +157,7 @@ def create_image_lists(image_dir, testing_percentage, validation_percentage):
       is_root_dir = False
       continue
     extensions = ['jpg', 'jpeg', 'JPG', 'JPEG']
+    #extensions = ['png', 'PNG']
     file_list = []
     dir_name = os.path.basename(sub_dir)
     if dir_name == image_dir:
@@ -798,44 +799,69 @@ def add_final_training_ops(class_count, final_tensor_name, bottleneck_tensor,
 
   # Organizing the following ops as `final_training_ops` so they're easier
   # to see in TensorBoard
-  layer_name = 'final_training_ops'
+  layer_name = 'final_training_ops_0'
+  hidden_layer_size = np.int32((class_count  + bottleneck_tensor_size)/2.)
+  #   layer_weights = tf.layers.dropout(inputs=layer_weights, rate = dropout_rate, training=True)
+  #   logits = tf.matmul(bottleneck_input, layer_weights) + layer_biases
+  #   tf.summary.histogram('pre_activations_0', logits)
+
   with tf.name_scope(layer_name):
-    with tf.name_scope('weights'):
+    with tf.name_scope('weights_0'):
+        initial_value = tf.truncated_normal(
+            [bottleneck_tensor_size, hidden_layer_size], stddev=0.001)
+        layer_weights = tf.Variable(initial_value, name='final_weights_0')
+        if quantize_layer:
+          quantized_layer_weights = quant_ops.MovingAvgQuantize(
+              layer_weights, is_training=True)
+          variable_summaries(quantized_layer_weights)
+
+        variable_summaries(layer_weights)
+    with tf.name_scope('biases_0'):
+        layer_biases = tf.Variable(tf.zeros([hidden_layer_size]), name='final_biases_0')
+        if quantize_layer:
+          quantized_layer_biases = quant_ops.MovingAvgQuantize(
+              layer_biases, is_training=True)
+          variable_summaries(quantized_layer_biases)
+
+        variable_summaries(layer_biases)
+
+    with tf.name_scope('Wx_plus_b_0'):
+        if quantize_layer:
+          logits = tf.matmul(bottleneck_input,
+                             quantized_layer_weights) + quantized_layer_biases
+          logits = quant_ops.MovingAvgQuantize(
+              logits,
+              init_min=-32.0,
+              init_max=32.0,
+              is_training=True,
+              num_bits=8,
+              narrow_range=False,
+              ema_decay=0.5)
+          tf.summary.histogram('pre_activations_0', logits)
+        else:
+          logits = tf.matmul(bottleneck_input, layer_weights) + layer_biases
+          tf.summary.histogram('pre_activations_0', logits)
+
+    with tf.name_scope('ReLU_activation'):
+        hidden_layer_output = tf.nn.relu(logits)
+
+  
+  layer_name = 'final_training_ops_1'
+
+  with tf.name_scope(layer_name):
+    with tf.name_scope('weights_1'):
       initial_value = tf.truncated_normal(
-          [bottleneck_tensor_size, class_count], stddev=0.001)
-      layer_weights = tf.Variable(initial_value, name='final_weights')
-      if quantize_layer:
-        quantized_layer_weights = quant_ops.MovingAvgQuantize(
-            layer_weights, is_training=True)
-        variable_summaries(quantized_layer_weights)
-
+          [hidden_layer_size, class_count], stddev=0.001)
+      layer_weights = tf.Variable(initial_value, name='final_weights_1')
       variable_summaries(layer_weights)
-    with tf.name_scope('biases'):
-      layer_biases = tf.Variable(tf.zeros([class_count]), name='final_biases')
-      if quantize_layer:
-        quantized_layer_biases = quant_ops.MovingAvgQuantize(
-            layer_biases, is_training=True)
-        variable_summaries(quantized_layer_biases)
-
+    with tf.name_scope('biases_1'):
+      layer_biases = tf.Variable(tf.zeros([class_count]), name='final_biases_1')
       variable_summaries(layer_biases)
 
-    with tf.name_scope('Wx_plus_b'):
-      if quantize_layer:
-        logits = tf.matmul(bottleneck_input,
-                           quantized_layer_weights) + quantized_layer_biases
-        logits = quant_ops.MovingAvgQuantize(
-            logits,
-            init_min=-32.0,
-            init_max=32.0,
-            is_training=True,
-            num_bits=8,
-            narrow_range=False,
-            ema_decay=0.5)
-        tf.summary.histogram('pre_activations', logits)
-      else:
-        logits = tf.matmul(bottleneck_input, layer_weights) + layer_biases
-        tf.summary.histogram('pre_activations', logits)
-
+    with tf.name_scope('Wx_plus_b_1'):
+      logits = tf.matmul(hidden_layer_output, layer_weights) + layer_biases
+      tf.summary.histogram('pre_activations', logits)
+  
   final_tensor = tf.nn.softmax(logits, name=final_tensor_name)
 
   tf.summary.histogram('activations', final_tensor)
@@ -1089,6 +1115,11 @@ def main(_):
                         bottleneck_tensor, FLAGS.architecture)
 
     # Add the new layer that we'll be training.
+    # (train_step, cross_entropy, bottleneck_input, ground_truth_input,
+    #  final_tensor) = add_final_training_ops(
+    #      len(image_lists.keys()), FLAGS.final_tensor_name, bottleneck_tensor,
+    #      model_info['bottleneck_tensor_size'], model_info['quantize_layer'])
+
     (train_step, cross_entropy, bottleneck_input, ground_truth_input,
      final_tensor) = add_final_training_ops(
          len(image_lists.keys()), FLAGS.final_tensor_name, bottleneck_tensor,
@@ -1191,6 +1222,7 @@ def main(_):
                     (test_accuracy * 100, len(test_bottlenecks)))
 
     # Add misclassified images to Tensorboard
+    """
     misclassified_image_summaries(sess, test_filenames, test_ground_truth, predictions)
     if FLAGS.print_misclassified_test_images:
       tf.logging.info('=== MISCLASSIFIED TEST IMAGES ===')
@@ -1199,7 +1231,7 @@ def main(_):
           tf.logging.info('%70s  %s' %
                           (test_filename,
                            list(image_lists.keys())[predictions[i]]))
-
+    """
 
     # Write out the trained graph and labels with the weights stored as
     # constants.
@@ -1259,8 +1291,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--how_many_training_steps',
       type=int,
-      # default=4000,
-      default=30,
+      default=4000,
       help='How many training steps to run before ending.'
   )
   parser.add_argument(
@@ -1307,7 +1338,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--validation_batch_size',
       type=int,
-      default=100,
+      default=-1,
       help="""\
       How many images to use in an evaluation batch. This validation set is
       used much more often than the test set, and is an early indicator of how
@@ -1319,7 +1350,7 @@ if __name__ == '__main__':
   )
   parser.add_argument(
       '--print_misclassified_test_images',
-      default=True,
+      default=False,
       help="""\
       Whether to print out a list of all misclassified test images.\
       """,
@@ -1384,6 +1415,14 @@ if __name__ == '__main__':
       input pixels up or down by.\
       """
   )
+  parser.add_argument(
+      '--dropout_rate',
+      type=int,
+      default=0.9,
+      help="""\
+      Specifying dropout rate for the fully connected layer\
+      """
+   )
   parser.add_argument(
       '--architecture',
       type=str,

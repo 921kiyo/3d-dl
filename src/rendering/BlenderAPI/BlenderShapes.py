@@ -4,8 +4,8 @@ import random
 import mathutils as mathU
 import itertools
 
-from BlenderObjects import *
-from BlenderNodes import *
+from rendering.BlenderAPI.BlenderObjects import *
+from rendering.BlenderAPI.BlenderNodes import *
 
 
 class BlenderMesh(BlenderObject):
@@ -105,6 +105,18 @@ class BlenderMesh(BlenderObject):
     def toggle_smooth(self):
         for poly in self.reference.data.polygons:
             poly.use_smooth = True
+
+    def compute_mesh_bbvol(self):
+        VX = [v.co[0] for v in self.reference.data.vertices]
+        VY = [v.co[1] for v in self.reference.data.vertices]
+        VZ = [v.co[2] for v in self.reference.data.vertices]
+        return (max(VX) - min(VX))*(max(VY) - min(VY))*(max(VZ) - min(VZ))
+
+    def set_mesh_bbvol(self, VReq):
+        self.set_scale((1.0,1.0,1.0))
+        VNom = self.compute_mesh_bbvol()
+        scale = math.pow(VReq/VNom, 1./3.)
+        self.set_scale((scale, scale, scale))
 
 
 class BlenderCube(BlenderMesh):

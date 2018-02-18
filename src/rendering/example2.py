@@ -17,14 +17,18 @@ C.user_preferences.addons['cycles'].preferences.devices[0].use = True
 C.scene.render.engine = 'CYCLES'
 
 # path to blender library
-boop = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/src/rendering/BlenderAPI'
+
+#boop = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/src/rendering/BlenderAPI'
+# above is for Pavel so he does not have to set it every time
+boop = 'D:/PycharmProjects/Lobster/src/'
+
 
 
 if not (boop in sys.path):
     sys.path.append(boop)
 
-
-import BlenderAPI as bld
+import rendering.BlenderAPI as bld
+import rendering.randomLib.random_render as rnd
 
 
 def list_distances(L1,L2):
@@ -38,21 +42,30 @@ cube.delete()
 
 """ ************* User specified stuff here ************* """
 # Specify number of images to render
-num_images = 1000
+
+#below is settings for Pavel
+#num_images = 1000
+## required file paths for the script to run
+#obj_path = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\objects\\Halloumi\\Halloumi.obj'
+#texture_path = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\objects\\Halloumi\\Halloumi.jpg'
+#render_folder = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\object_poses\\Halloumi_white'
+##render_folder = '/vol/bitbucket/who11/CO-530/data/Clinique/render'
+
+num_images = 1
 # required file paths for the script to run
-obj_path = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\objects\\Halloumi\\Halloumi.obj'
-texture_path = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\objects\\Halloumi\\Halloumi.jpg'
-render_folder = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\object_poses\\Halloumi_white'
-#render_folder = '/vol/bitbucket/who11/CO-530/data/Clinique/render'
+obj_path = 'D:\\PycharmProjects\\3DModels\\Tea\\Tea.obj'
+texture_path = 'D:\\PycharmProjects\\3DModels\\Tea\\Tea.jpg'
+render_folder = 'D:\\PycharmProjects\\3DModels\\Tea\\render'
+
 csv_path = os.path.join(render_folder,'camera.csv')
 
 # Import the shape, and give texture image
 product = bld.BlenderImportedShape(obj_path=obj_path, location=(-1,0,-1) ,orientation=(0,0,1,0))
+product.set_mesh_bbvol(8.0) # size of original cube
 product.add_image_texture(texture_path)
 product.set_diffuse(color=(1,0,0,1),rough=0.1)
 product.set_gloss(rough=0.1)
 product.set_mixer(0.3)
-product.set_scale((1.,1.,1.))
 product.toggle_smooth()
 
 # Create a cube
@@ -92,13 +105,13 @@ with open(csv_path,'w') as csvfile:
         for l in range(num_lamps):
             lamp = Lamps[l]
             lamp.turn_on()
-            lamp.random_lighting_conditions()
-            x, y, z = bld.random_shell_coords(5.0)
+            rnd.random_lighting_conditions(lamp)
+            x, y, z = rnd.random_shell_coords(5.0)
             lamp.set_location(x, y, z)
 
         # **********************  CAMERA **********************
         # random location of camera along shell coordinates
-        x,y,z = bld.random_shell_coords(7.0)
+        x,y,z = rnd.random_shell_coords(7.0)
         cam.set_location(x,y,z)
         # face towards the centre
         cam.face_towards(0.0,0.0,0.0)
@@ -108,7 +121,7 @@ with open(csv_path,'w') as csvfile:
         cam.spin(spin_angle)
 
         # **********************  ACTION **********************
-        loc = bld.random_cartesian_coords(0.0,0.0,0.0,1.0,4.0)
+        loc = rnd.random_cartesian_coords(0.0,0.0,0.0,1.0,4.0)
         product.set_location(*loc)
 
         # flip subject 90 degrees along one axis, so every face has a 3rd chance to face the poles
@@ -130,6 +143,7 @@ with open(csv_path,'w') as csvfile:
         # position cube close to subject
         loc2 = loc
         while list_distances(loc, loc2).magnitude < math.sqrt(3):
+
             loc2 = bld.random_cartesian_coords(0.0,0.0,0.0,2.0,4.0)
         #cube.set_location(*loc2)
 
