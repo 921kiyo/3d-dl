@@ -229,11 +229,6 @@ def plot_confusion_matrix(cm, classes, normalize=False,
     """
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-        print("Normalized confusion matrix")
-    else:
-        print('Confusion matrix, without normalization')
-
-    print(cm)
 
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title)
@@ -269,7 +264,7 @@ def compute_sensitivity(cm):
     sensitivity = np.zeros(relevant.shape)
     for i in range(len(sensitivity)):
         if relevant[i] == 0:
-            sensitivity[i] = 1
+            sensitivity[i] = -1
             continue
         sensitivity[i] = cm[i,i]/relevant[i]
     return sensitivity
@@ -280,7 +275,7 @@ def compute_precision(cm):
     precision = np.zeros(relevant.shape)
     for i in range(len(precision)):
         if relevant[i] == 0:
-            precision[i] = 1
+            precision[i] = -1
             continue
         precision[i] = cm[i,i]/relevant[i]
     return precision
@@ -307,7 +302,7 @@ def plot_bar(x,heights, heights2=None, title='Bar Chart', xlabel='X', ylabel='Y'
     return image
 
 
-def summarize_results(sess, label2idx, per_class_test_results):
+def summarize_results(sess, label2idx, per_class_test_results, print_results=False):
     # Check if directory already exists. If so, create a new one
     if tf.gfile.Exists(FLAGS.model_source_dir + '/test_results'):
         tf.gfile.DeleteRecursively(FLAGS.model_source_dir + '/test_results')
@@ -338,7 +333,7 @@ def summarize_results(sess, label2idx, per_class_test_results):
     # Confusion Matrix Plot
     
     cm = confusion_matrix(truth, predictions)
-    
+
     cm_img = plot_confusion_matrix(cm, classes=label2idx.keys())
     summary_op = tf.summary.image("Confusion_Matrix", cm_img)
     confusion_summary = sess.run(summary_op)
@@ -351,7 +346,10 @@ def summarize_results(sess, label2idx, per_class_test_results):
     summary_op = tf.summary.image("Precision", prec_img)
     prec_summary = sess.run(summary_op)
     summary_writer.add_summary(prec_summary)
-    print('Precision: ',precision)
+    if print_results:
+        print('Confusion Matrix: ', cm)
+        print('Sensitivity: ', sensitivity)
+        print('Precision: ',precision)
 
     summary_writer.close()
 
@@ -424,7 +422,7 @@ def main(_):
             pickled_test_result = open(FLAGS.test_result_file,'rb')  
             per_class_test_results = pickle.load(pickled_test_result)
                 
-        summarize_results(sess ,label2idx, per_class_test_results)
+        summarize_results(sess ,label2idx, per_class_test_results, print=True)
     #
     # features = np.array(features)
     # print('feature shape: ', features.shape)

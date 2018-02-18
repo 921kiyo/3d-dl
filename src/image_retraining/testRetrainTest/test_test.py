@@ -1,23 +1,26 @@
 from tensorflow.python.framework import test_util
 import tensorflow as tf
-from test import *
-import test
+from image_retraining.test import *
+import image_retraining.test as test
 
+import os
+
+current_dir = os.path.dirname(os.path.realpath(__file__))
 
 class TestTest(test_util.TensorFlowTestCase):
     def test_create_label_lists(self):
-        label_path = "test.txt"
+        label_path = os.path.join(current_dir, "test.txt")
         label2idx, idx2label = create_label_lists(label_path)
         self.assertEqual({'apple': 0, 'banana': 1}, label2idx)
         self.assertEqual({0: 'apple', 1: 'banana'}, idx2label)
         pass
 
     def test_get_test_files(self):
-        label_path = "test.txt"
+        label_path = os.path.join(current_dir, "test.txt")
         label2idx, idx2label = create_label_lists(label_path)
-        filedir = "/homes/kk3317/Desktop/Ocado/Lobster/src/image_retraining/testRetrainTest"
+        filedir = os.path.join(current_dir, "test_images/")
         test_files = get_test_files(filedir, label2idx, 1)
-        self.assertEqual([('banana', 1, '/homes/kk3317/Desktop/Ocado/Lobster/src/image_retraining/testRetrainTest/banana/trump.jpg')], test_files)
+        self.assertEqual([('banana', 1, os.path.join(current_dir, '/banana/trump.jpg'))], test_files)
         pass
 
     def test_create_model_graph(self):
@@ -52,16 +55,16 @@ class TestTest(test_util.TensorFlowTestCase):
             self.assertIsNotNone(mul_image)
             self.assertIsNotNone(decoded_image)
 
-    def test_run_resize_data(self):
-        # Build jpeg decoding and give it to run resized data
+    def test_run_resize_data(self):        # Build jpeg decoding and give it to run resized data
         #
         with tf.Graph().as_default():
             with tf.Session() as sess:
                 jpeg_data, mul_image, decoded_image = add_jpeg_decoding(10, 10, 3, 0, 255)
-                label_path = "test.txt"
+                label_path = os.path.join(current_dir, "test.txt")
                 label2idx, idx2label = create_label_lists(label_path)
-                file_dir = "/homes/kk3317/Desktop/Ocado/Lobster/src/image_retraining/testRetrainTest"
+                file_dir = os.path.join(current_dir, "test_images/")
                 test_data = get_test_files(file_dir, label2idx, 1)
+                self.assertTrue(len(test_data) > 0)
                 for test_datum in test_data:
                     image_data = gfile.FastGFile(test_datum[2], 'rb').read()
                     resized_input_values, decoded_jpeg_data = run_resize_data(sess, image_data, jpeg_data, mul_image, decoded_image)
@@ -133,12 +136,12 @@ class TestTest(test_util.TensorFlowTestCase):
         # Ong
         pass
 
-    @tf.test.mock.patch.object(test, 'FLAGS', model_source_dir='./')
+    @tf.test.mock.patch.object(test, 'FLAGS', model_source_dir=os.path.join(current_dir, "outputs/"))
     def test_summarize_results(self, flags_mock):
         
         label2idx = {'0':0, '1':1}
         per_class_test_results = {
-            '0':[{'class_confidences' : np.array([[0.6, 0.4]]), 'predicted_label': '0', 'correct_label': '1'},],
+            '1':[{'class_confidences' : np.array([[0.6, 0.4]]), 'predicted_label': '0', 'correct_label': '1'},],
             '1':[{'class_confidences' : np.array([[0.51, 0.49]]), 'predicted_label': '0', 'correct_label': '1'}]
         }
         
