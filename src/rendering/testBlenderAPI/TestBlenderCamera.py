@@ -3,13 +3,17 @@ import sys
 import mathutils as mathU
 
 boop = 'D:/PycharmProjects/Lobster/src/'
+ext = 'D:/Anaconda3/envs/tensorflow/Lib/site-packages/'
 if not (boop in sys.path):
     sys.path.append(boop)
+if not (ext in sys.path):
+    sys.path.append(ext)
 
 from rendering.BlenderAPI.BlenderObjects import to_quaternion
 import rendering.BlenderAPI as bld
 
 import unittest
+import coverage
 
 class BlenderCameraTest(unittest.TestCase):
 
@@ -69,5 +73,11 @@ class BlenderCameraTest(unittest.TestCase):
         self.assertAlmostEqual(cam_loc_norm[2], -focal_axis[2], places=5)
 
 if __name__ == '__main__':
+    cov = coverage.Coverage()
+    cov.start()
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(BlenderCameraTest)
     success = unittest.TextTestRunner().run(suite).wasSuccessful()
+    cov.stop()
+    cov.save()
+
+    cov.html_report()
