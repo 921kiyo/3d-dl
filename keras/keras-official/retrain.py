@@ -89,27 +89,33 @@ def assemble_model():
 
     return model
 
-model = assemble_model()
+def train_model(model):
+    # log everything in tensorboard
+    tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 
-# log everything in tensorboard
-tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
+    # train the model on the new data for a few epochs
+    model.fit_generator(
+            train_generator,
+            steps_per_epoch=2000 // batch_size,
+            epochs=5,
+            validation_data=validation_generator,
+            validation_steps=800 // batch_size,
+            callbacks = [tensorboard])
 
-# train the model on the new data for a few epochs
-model.fit_generator(
-        train_generator,
-        steps_per_epoch=2000 // batch_size,
-        epochs=5,
-        validation_data=validation_generator,
-        validation_steps=800 // batch_size,
-        callbacks = [tensorboard])
+def predict(model):
+    score = model.evaluate_generator(test_generator)
+    print('Test loss:', score[0])
+    print('Test accuracy:', score[1])
 
 
-model.save_weights('first_try.h5')  # always save your weights after training or during training
-model.save('my_model.h5')
+def main():
+    model = assemble_model()
+    train_model(model)
+    predict(model)
+    model.save_weights('first_try.h5')  # always save your weights after training or during training
+    model.save('my_model.h5')
 
-score = model.evaluate_generator(test_generator)
-print('Test loss:', score[0])
-print('Test accuracy:', score[1])
+main()
 
 # How to do predictions: https://datascience.stackexchange.com/questions/13894/how-to-get-predictions-with-predict-generator-on-streaming-test-data-in-keras
 
