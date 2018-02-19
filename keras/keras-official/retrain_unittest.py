@@ -10,8 +10,8 @@ class TestKerasRetrain(unittest.TestCase):
         # TODO: Can be generalized: take an argument "number of top layers", include
         # them in a for loop and store weights in list
 
-        train_data_dir = 'unit_test_images/'
-        validation_data_dir = 'unit_test_images/'
+        train_dir = 'unit_test_images/'
+        validation_dir = 'unit_test_images/'
         test_dir = 'unit_test_images/'
 
         model = rt.assemble_model()
@@ -21,7 +21,7 @@ class TestKerasRetrain(unittest.TestCase):
         before_dense = model.layers[-2].get_weights()
 
         # train
-        rt.train_model(model,epochs=1)
+        rt.train_model(model,epochs=1,train_dir=train_dir,validation_dir=validation_dir)
 
         # store weights after
         after_softmax = model.layers[-1].get_weights()
@@ -36,8 +36,8 @@ class TestKerasRetrain(unittest.TestCase):
     # tests if the model stays stable for the layers we want it to be stable
     def test_base_model_stable(self):
         # dummy directories with black/white images
-        train_data_dir = 'unit_test_images/'
-        validation_data_dir = 'unit_test_images/'
+        train_dir = 'unit_test_images/'
+        validation_dir = 'unit_test_images/'
         test_dir = 'unit_test_images/'
 
         # TODO delete
@@ -59,7 +59,7 @@ class TestKerasRetrain(unittest.TestCase):
         print(count)
 
         # train
-        rt.train_model(model,epochs=1)
+        rt.train_model(model,epochs=1,train_dir=train_dir,validation_dir=validation_dir)
 
         # store all weights after
         for layer_bm, layer_fm in zip(base_model.layers,model.layers):
@@ -75,17 +75,17 @@ class TestKerasRetrain(unittest.TestCase):
     # better than random on a test set after 15 minutes of training
     def test_full_training(self):
         # dummy directories with black/white images
-        train_data_dir = 'unit_test_images/'
-        validation_data_dir = 'unit_test_images/'
+        train_dir = 'unit_test_images/'
+        validation_dir = 'unit_test_images/'
         test_dir = 'unit_test_images/'
 
         # train
         model = rt.assemble_model()
-        rt.train_model(model,epochs=1)
+        rt.train_model(model,epochs=1,train_dir=train_dir,validation_dir=validation_dir)
 
         # evaluate
         # TODO: how many images does this generate
-        score = rt.evaluate(model)
+        score = rt.evaluate(model,test_dir=test_dir)
 
         print("accuracy on b/w images")
         print(score[1])

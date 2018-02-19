@@ -19,9 +19,9 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import TensorBoard
 
 batch_size = 16
-train_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/train'
-validation_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
-test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
+global_train_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/train'
+global_validation_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
+global_test_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
 input_dim = 150
 
 class_count = len(next(os.walk(train_data_dir))[1])
@@ -63,7 +63,16 @@ def assemble_model():
 
     return model
 
-def train_model(model,epochs=5):
+def train_model(model,epochs=5,train_dir=None,validation_dir=None):
+    if train_dir != None:
+        train_data_dir = train_dir
+    else:
+        train_data_dir = global_train_data_dir
+
+    if validation_dir != None:
+        validation_data_dir = validation_dir
+    else:
+        validation_data_dir = global_validation_data_dir
     # this is a generator that will read pictures found in
     # subfolers of train_data_dir, and indefinitely generate
     # batches of augmented image data and
@@ -95,15 +104,20 @@ def train_model(model,epochs=5):
             validation_steps=800 // batch_size,
             callbacks = [tensorboard])
 
-def evaluate(model):
+def evaluate(model,test_dir=None):
+    if test_dir != None:
+        test_data_dir = test_dir
+    else:
+        test_data_dir = global_test_data_dir
+
     # generator for test data
     # similar to above but based on different augmentation function (above)
     test_generator = test_datagen.flow_from_directory(
-            test_dir,
+            test_data_dir,
             target_size=(input_dim, input_dim),
             batch_size=16,
             class_mode='categorical')
-    
+
     score = model.evaluate_generator(test_generator)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
