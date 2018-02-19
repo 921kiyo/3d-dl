@@ -45,7 +45,7 @@ def metaball(rows, cols, balls, thres):
     # compute the sum_inverse_distance over the coordinates, using numpy matrix operations
     f = sum_inverse_distance(X,Y,balls)
     filled = f > thres
-
+    print("filled is", filled.shape)
     return filled
 
 

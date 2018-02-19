@@ -2,15 +2,24 @@
 metballs!
 """
 
+
 import numpy as np
 from scipy.interpolate import interp2d
 from scipy.misc import imresize
-import rendering.randomLib.turbulence
-import rendering.randomLib.metaballs
+import turbulence 
+import metaballs 
 import matplotlib.pyplot as plt
 from PIL import Image
 
 def random_color(L):
+    """
+    Creates a L*L*3 array of random values between 0 and 1
+    Arguments:
+        L (int): the size of the arra
+        
+    Returns:
+        L*L*3 array of values in range (0,1)
+    """
     img = np.ones([L,L,3])
     for i in range(3):
         img[:,:,i] = np.random.uniform()*img[:,:,i]
@@ -41,15 +50,17 @@ def rand_background(N, size):
 
 import time
 
-start = time.time()
-
-for i in range(5000):
-    print('generated image: ', i)
-    img = rand_background(np.random.randint(2,4),300)
-    scaled = img*256
-    true_img = Image.fromarray(scaled.astype('uint8'), mode = "RGB")
-    true_img.save('D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\resized_background\\random_back\\background%d.png'%i)
-    #plt.imshow(img)
-    #plt.show()
-end = time.time()
-print('time per img = ', (end-start)/10)
+#start = time.time()
+def generate_background(n_of_images, ofset =0):
+    for i in range(ofset, n_of_images+ofset):
+        #print('generated image: ', i)
+        img = rand_background(np.random.randint(2,4),300)
+        scaled = img*256
+        true_img = Image.fromarray(scaled.astype('uint8'), mode = "RGB")
+        #true_img.save('D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\resized_background\\random_back\\background%d.png'%i)
+        plt.imshow(true_img)
+        plt.show()
+    #end = time.time()
+    #print('time per img = ', (end-start)/10)
+    
+generate_background(1,0)

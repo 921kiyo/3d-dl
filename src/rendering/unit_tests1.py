@@ -26,13 +26,14 @@ import numpy as np
 class TestResizeImages(unittest.TestCase):
     
     def test_full_resize(self):
-        # should find seven images and resize them.
-        # One of them is too small and so should be ignored
-        # Final folder should have 6 images
-        # Tests that all images are found in any subfolder
-        # That too small images are ignored
-        # And the remaining images are of the right format
-        
+        """
+        should find seven images and resize them.
+        One of them is too small and so should be ignored
+        Final folder should have 6 images
+        Tests that all images are found in any subfolder
+        That too small images are ignored
+        And the remaining images are of the right format
+        """
         
         number_of_pixels = 300
         destination = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/testing_folder/rendering_tests/resized_images/'
