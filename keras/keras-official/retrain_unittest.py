@@ -1,5 +1,6 @@
 import unittest
 import retrain as rt
+import numpy as np
 
 class TestKerasRetrain(unittest.TestCase):
 
