@@ -21,7 +21,7 @@ class TestKerasRetrain(unittest.TestCase):
         before_dense = model.layers[-2].get_weights()
 
         # train
-        rt.train_model(model)
+        rt.train_model(model,epochs=1)
 
         # store weights after
         after_softmax = model.layers[-1].get_weights()
@@ -59,7 +59,7 @@ class TestKerasRetrain(unittest.TestCase):
         print(count)
 
         # train
-        rt.train_model(model)
+        rt.train_model(model,epochs=1)
 
         # store all weights after
         for layer_bm, layer_fm in zip(base_model.layers,model.layers):
@@ -81,7 +81,7 @@ class TestKerasRetrain(unittest.TestCase):
 
         # train
         model = rt.assemble_model()
-        rt.train_model(model)
+        rt.train_model(model,epochs=1)
 
         # evaluate
         # TODO: how many images does this generate
