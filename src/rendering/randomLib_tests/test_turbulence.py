@@ -10,9 +10,13 @@ Unit tests for the functions contained within the randomLib.turbulence module
 import unittest
 
 import numpy as np
-import os
-os.chdir(os.pardir)
-import randomLib.turbulence as tb
+import sys
+boop = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/src"
+if not (boop in sys.path):
+    sys.path.append(boop)
+
+
+import rendering.randomLib.turbulence as tb
 
 class Testturbulence(unittest.TestCase):
     
