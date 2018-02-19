@@ -20,7 +20,7 @@ class TestKerasRetrain(unittest.TestCase):
         before_dense = model.layers[:-2].get_weights()
 
         # train
-        train_model(model)
+        rt.train_model(model)
 
         # store weights after
         after_softmax = model.layers[:-1].get_weights()
@@ -45,7 +45,7 @@ class TestKerasRetrain(unittest.TestCase):
         after_transferred_weights = []
 
         # store all weights before
-        base_model = InceptionV3(weights='imagenet', include_top=False)
+        base_model = rt.InceptionV3(weights='imagenet', include_top=False)
         model = rt.assemble_model()
 
         for layer_bm, layer_fm in zip(base_model,model):
@@ -81,7 +81,7 @@ class TestKerasRetrain(unittest.TestCase):
 
         # evaluate
         # TODO: how many images does this generate
-        score = evaluate(model)
+        score = rt.evaluate(model)
 
         print("accuracy on b/w images")
         print(score[1])
