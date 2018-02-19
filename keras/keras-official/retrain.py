@@ -38,32 +38,6 @@ train_datagen = ImageDataGenerator(
 # augmentation configuration for testing: only rescaling
 test_datagen = ImageDataGenerator(rescale=1./255)
 
-# this is a generator that will read pictures found in
-# subfolers of train_data_dir, and indefinitely generate
-# batches of augmented image data and
-# rescales images to the specified target_size and splits them into batches
-# (instead of loading all images directly into GPU memory)
-train_generator = train_datagen.flow_from_directory(
-        train_data_dir,  # this is the target directory
-        target_size=(input_dim, input_dim),  # all images will be resized to input_dimxinput_dim
-        batch_size=16,
-        class_mode='categorical')
-
-# generator for validation data
-# similar to above but based on different augmentation function (above)
-validation_generator = test_datagen.flow_from_directory(
-        validation_data_dir,
-        target_size=(input_dim, input_dim),
-        batch_size=16,
-        class_mode='categorical')
-
-# generator for test data
-# similar to above but based on different augmentation function (above)
-test_generator = test_datagen.flow_from_directory(
-        test_dir,
-        target_size=(input_dim, input_dim),
-        batch_size=16,
-        class_mode='categorical')
 
 def assemble_model():
     # base pre-trained model
@@ -89,7 +63,26 @@ def assemble_model():
 
     return model
 
-def train_model(model):
+def train_model(model,epochs=5):
+    # this is a generator that will read pictures found in
+    # subfolers of train_data_dir, and indefinitely generate
+    # batches of augmented image data and
+    # rescales images to the specified target_size and splits them into batches
+    # (instead of loading all images directly into GPU memory)
+    train_generator = train_datagen.flow_from_directory(
+            train_data_dir,  # this is the target directory
+            target_size=(input_dim, input_dim),  # all images will be resized to input_dimxinput_dim
+            batch_size=16,
+            class_mode='categorical')
+
+    # generator for validation data
+    # similar to above but based on different augmentation function (above)
+    validation_generator = test_datagen.flow_from_directory(
+            validation_data_dir,
+            target_size=(input_dim, input_dim),
+            batch_size=16,
+            class_mode='categorical')
+
     # log everything in tensorboard
     tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 
@@ -97,12 +90,20 @@ def train_model(model):
     model.fit_generator(
             train_generator,
             steps_per_epoch=2000 // batch_size,
-            epochs=5,
+            epochs=epochs,
             validation_data=validation_generator,
             validation_steps=800 // batch_size,
             callbacks = [tensorboard])
 
 def evaluate(model):
+    # generator for test data
+    # similar to above but based on different augmentation function (above)
+    test_generator = test_datagen.flow_from_directory(
+            test_dir,
+            target_size=(input_dim, input_dim),
+            batch_size=16,
+            class_mode='categorical')
+    
     score = model.evaluate_generator(test_generator)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
