@@ -19,11 +19,12 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import TensorBoard
 
 batch_size = 16
-class_count = len(next(os.walk('/vol/project/2017/530/g1753002/keras_test_data/train'))[1])
 train_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/train'
 validation_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
 test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
 input_dim = 150
+
+class_count = len(next(os.walk(train_data_dir))[1])
 
 # augmentation configuration for training
 # need to add salt&pepper noise, rotation, light
