@@ -1,5 +1,5 @@
 import unittest
-import .retrain as rt
+import retrain as rt
 
     # make sure the input is an image
 
