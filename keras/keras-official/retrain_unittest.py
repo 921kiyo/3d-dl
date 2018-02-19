@@ -27,8 +27,10 @@ class TestKerasRetrain(unittest.TestCase):
         after_dense = model.layers[-2].get_weights()
 
         # check that something has changed
-        self.assertTrue( (before_softmax != after_softmax).any() )
-        self.assertTrue( (before_dense != after_dense).any() )
+        self.assertTrue( !np.array_equal(before_softmax,after_softmax) )
+        self.assertTrue( !np.array_equal(before_dense,after_dense) )
+        # self.assertTrue( (before_softmax != after_softmax).any() )
+        # self.assertTrue( (before_dense != after_dense).any() )
 
     # tests if the model stays stable for the layers we want it to be stable
     def test_base_model_stable(self):
@@ -64,7 +66,8 @@ class TestKerasRetrain(unittest.TestCase):
 
         # check that nothing changed for any of the layers
         for b, a in zip(before_transferred_weights,after_transferred_weights):
-            self.assertTrue( (b == a).all() )
+            self.assertTrue( np.array_equal(b,a) )
+            # self.assertTrue( (b == a).all() )
 
 
     # tests if model can be trained on two classes and perform significantly
