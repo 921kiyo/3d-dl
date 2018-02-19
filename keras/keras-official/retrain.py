@@ -64,6 +64,8 @@ def assemble_model():
     return model
 
 def train_model(model,epochs=5,train_dir=None,validation_dir=None):
+    # if directories are provided, use them
+    # else, assume to use the global variable
     if train_dir != None:
         train_data_dir = train_dir
     else:
@@ -73,6 +75,9 @@ def train_model(model,epochs=5,train_dir=None,validation_dir=None):
         validation_data_dir = validation_dir
     else:
         validation_data_dir = global_validation_data_dir
+
+    print("using for training: ",train_data_dir)
+    print("using for validation: ",validation_data_dir)
     # this is a generator that will read pictures found in
     # subfolers of train_data_dir, and indefinitely generate
     # batches of augmented image data and
@@ -105,10 +110,14 @@ def train_model(model,epochs=5,train_dir=None,validation_dir=None):
             callbacks = [tensorboard])
 
 def evaluate(model,test_dir=None):
+    # if directories are provided, use them
+    # else, assume to use the global variable
     if test_dir != None:
         test_data_dir = test_dir
     else:
         test_data_dir = global_test_data_dir
+
+    print("using for test: ",test_data_dir)
 
     # generator for test data
     # similar to above but based on different augmentation function (above)
