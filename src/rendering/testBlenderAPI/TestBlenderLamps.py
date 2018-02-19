@@ -36,12 +36,12 @@ class BlenderLampsTest(unittest.TestCase):
 
     def test_create_lamp_reference(self):
         # add objects manually
-        bpy.ops.object.add()
+        bpy.ops.object.add_lamp(type='POINT')
         obj_reference = bpy.data.objects[0]
 
         # create object with reference
         num_objects_before = len(bpy.data.objects)
-        obj = bld.BlenderLamp(obj_reference)
+        obj = bld.BlenderLamp(obj_reference) # TODO: use subclasses, or create a dummy subclass
 
         num_objects_after = len(bpy.data.objects)
 
@@ -52,12 +52,12 @@ class BlenderLampsTest(unittest.TestCase):
 
     def test_delete_lamp(self):
         # add objects manually
-        bpy.ops.object.add()
+        bpy.ops.object.add() # TODO: 
         obj_reference = bpy.data.objects[0]
 
         num_objects_before = len(bpy.data.objects)
 
-        lamp = bld.BlenderLamp(obj_reference)
+        lamp = bld.BlenderLamp(obj_reference) # TODO: use subclasses, or create a dummy subclass
         lamp.delete()
 
         num_objects_after = len(bpy.data.objects)
@@ -75,12 +75,15 @@ class BlenderLampsTest(unittest.TestCase):
 
 
     def test_turn_off(self):
-        lamp = bld.BlenderPoint(None)
+        lamp = bpy.ops.lamp_add(type='POINT')
+        lamp_reference = bpy.data.objects[0]
+                
+        lamp = bld.BlenderPoint(lamp_reference)
 
         lamp.turn_off()
 
-        self.assertEquals(lamp.reference.layers[1], True)
-        self.assertEquals(lamp.reference.layers[0], False)
+        self.assertEquals(lamp_reference.layers[1], True)
+        self.assertEquals(lamp_reference.layers[0], False)
 
     def test_turn_on(self):
         lamp = bld.BlenderPoint(None)
