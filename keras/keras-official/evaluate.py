@@ -16,6 +16,7 @@ from keras.callbacks import TensorBoard
 
 
 test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
+input_dim = 150
 
 model = load_model('my_model.h5')
 
@@ -23,7 +24,7 @@ test_datagen = ImageDataGenerator(rescale=1./255)
 
 test_generator = test_datagen.flow_from_directory(
         test_dir,
-        target_size=(150, 150),
+        target_size=(input_dim, input_dim),
         batch_size=16,
         class_mode='categorical')
 
@@ -33,15 +34,3 @@ score = model.evaluate_generator(test_generator)
 
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
-
-
-# generator for predictions, if needed
-
-# pred_datagen = ImageDataGenerator()
-#
-# pred_generator = pred_datagen.flow_from_directory(
-#         test_dir,
-#         target_size=(150, 150),
-#         batch_size=16,
-#         class_mode=None,  # only data, no labels
-#         shuffle=False)  # keep data in same order as labels
