@@ -23,6 +23,7 @@ class_count = len(next(os.walk('/vol/project/2017/530/g1753002/keras_test_data/t
 train_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/train'
 validation_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
 test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
+input_dim = 150
 
 # augmentation configuration for training
 # need to add salt&pepper noise, rotation, light
@@ -38,12 +39,12 @@ test_datagen = ImageDataGenerator(rescale=1./255)
 
 # this is a generator that will read pictures found in
 # subfolers of train_data_dir, and indefinitely generate
-# batches of augmented image data
-# it also rescales images to 150x150 and splits them into batches
+# batches of augmented image data and
+# rescales images to the specified target_size and splits them into batches
 # (instead of loading all images directly into GPU memory)
 train_generator = train_datagen.flow_from_directory(
         train_data_dir,  # this is the target directory
-        target_size=(150, 150),  # all images will be resized to 150x150
+        target_size=(input_dim, input_dim),  # all images will be resized to input_dimxinput_dim
         batch_size=16,
         class_mode='categorical')
 
@@ -51,7 +52,7 @@ train_generator = train_datagen.flow_from_directory(
 # similar to above but based on different augmentation function (above)
 validation_generator = test_datagen.flow_from_directory(
         validation_data_dir,
-        target_size=(150, 150),
+        target_size=(input_dim, input_dim),
         batch_size=16,
         class_mode='categorical')
 
@@ -59,7 +60,7 @@ validation_generator = test_datagen.flow_from_directory(
 # similar to above but based on different augmentation function (above)
 test_generator = test_datagen.flow_from_directory(
         test_dir,
-        target_size=(150, 150),
+        target_size=(input_dim, input_dim),
         batch_size=16,
         class_mode='categorical')
 
@@ -115,7 +116,7 @@ print('Test accuracy:', score[1])
 #
 # pred_generator = pred_datagen.flow_from_directory(
 #         test_dir,
-#         target_size=(150, 150),
+#         target_size=(input_dim, input_dim),
 #         batch_size=16,
 #         class_mode=None,  # only data, no labels
 #         shuffle=False)  # keep data in same order as labels
