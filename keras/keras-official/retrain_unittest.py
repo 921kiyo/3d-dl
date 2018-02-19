@@ -27,8 +27,8 @@ class TestKerasRetrain(unittest.TestCase):
         after_dense = model.layers[-2].get_weights()
 
         # check that something has changed
-        self.assertTrue( !np.array_equal(before_softmax,after_softmax) )
-        self.assertTrue( !np.array_equal(before_dense,after_dense) )
+        self.assertFalse( np.array_equal(before_softmax,after_softmax) )
+        self.assertFalse( np.array_equal(before_dense,after_dense) )
         # self.assertTrue( (before_softmax != after_softmax).any() )
         # self.assertTrue( (before_dense != after_dense).any() )
 
