@@ -65,26 +65,31 @@ test_generator = test_datagen.flow_from_directory(
         batch_size=16,
         class_mode='categorical')
 
-# base pre-trained model
-base_model = InceptionV3(weights='imagenet', include_top=False)
+def assemble_model():
+    # base pre-trained model
+    base_model = InceptionV3(weights='imagenet', include_top=False)
 
-# global spatial average pooling layer
-x = base_model.output
-x = GlobalAveragePooling2D()(x)
-# fully-connected layer
-x = Dense(1024, activation='relu')(x)
-# logistic layer
-predictions = Dense(class_count, activation='softmax')(x)
+    # global spatial average pooling layer
+    x = base_model.output
+    x = GlobalAveragePooling2D()(x)
+    # fully-connected layer
+    x = Dense(1024, activation='relu')(x)
+    # logistic layer
+    predictions = Dense(class_count, activation='softmax')(x)
 
-# this is the model we will train
-model = Model(inputs=base_model.input, outputs=predictions)
+    # this is the model we will train
+    model = Model(inputs=base_model.input, outputs=predictions)
 
-# we want to train top layers only
-for layer in base_model.layers:
-    layer.trainable = False
+    # we want to train top layers only
+    for layer in base_model.layers:
+        layer.trainable = False
 
-# compile the model (*after* setting layers to non-trainable)
-model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
+    # compile the model (*after* setting layers to non-trainable)
+    model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
+
+    return model
+
+model = assemble_model()
 
 # log everything in tensorboard
 tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
