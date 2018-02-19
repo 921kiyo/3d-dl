@@ -1,24 +1,14 @@
 import unittest
 import retrain as rt
 
-    # make sure the input is an image
-
-    # assert that if i call fit on the model,
-    # the last layers changed but the first x layers didnt change
-    # for each layer, make sure its weights are not the same as initialization values
-
-    # check that loss is never zero
-
-    # function which takes a model, runs a bunch of training steps on it
-
-    # longer test: train model on two classes, accuracy has to be >60%, significantly better than random
-
-
 class TestKerasRetrain(unittest.TestCase):
-    # tests if the model trains the layers we want it to train
-    # TODO: Can be generalized: take an argument "number of top layers", include
-    # them in a for loop and store weights in list
+
+    # assert that if i call fit on the model, the last layers change
+    # (= are not the same as initial values)
     def training_last_layers_test(self):
+        # TODO: Can be generalized: take an argument "number of top layers", include
+        # them in a for loop and store weights in list
+
         train_data_dir = 'unit_test_images/'
         validation_data_dir = 'unit_test_images/'
         test_dir = 'unit_test_images/'
@@ -96,6 +86,8 @@ class TestKerasRetrain(unittest.TestCase):
         print(score[1])
         # check if significantly better than random
         self.assertTrue( score[1] > 0.7 )
+
+    # TODO: write test that loss is never zero
 
 
 if __name__ == '__main__':
