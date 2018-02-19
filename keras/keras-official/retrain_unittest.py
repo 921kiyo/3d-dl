@@ -57,7 +57,7 @@ class TestKerasRetrain(unittest.TestCase):
         # store all weights before
         for layer_bm, layer_fm in zip(base_model,model):
             before_transferred_weights.append(layer_fm.get_weights())
-            count++
+            count += 1
 
         # TODO delete
         print(count)
