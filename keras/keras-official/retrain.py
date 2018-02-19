@@ -102,16 +102,17 @@ def train_model(model):
             validation_steps=800 // batch_size,
             callbacks = [tensorboard])
 
-def predict(model):
+def evaluate(model):
     score = model.evaluate_generator(test_generator)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
+    return score
 
 
 def main():
     model = assemble_model()
     train_model(model)
-    predict(model)
+    evaluate(model)
     model.save_weights('first_try.h5')  # always save your weights after training or during training
     model.save('my_model.h5')
 
