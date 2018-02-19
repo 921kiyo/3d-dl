@@ -16,15 +16,15 @@ class TestKerasRetrain(unittest.TestCase):
         model = rt.assemble_model()
 
         # store weights before
-        before_softmax = model[:-1].get_weights()
-        before_dense = model[:-2].get_weights()
+        before_softmax = model.layers[:-1].get_weights()
+        before_dense = model.layers[:-2].get_weights()
 
         # train
         train_model(model)
 
         # store weights after
-        after_softmax = model[:-1].get_weights()
-        after_dense = model[:-2].get_weights()
+        after_softmax = model.layers[:-1].get_weights()
+        after_dense = model.layers[:-2].get_weights()
 
         # check that something has changed
         self.assertTrue( (before_softmax != after_softmax).any() )
@@ -45,6 +45,9 @@ class TestKerasRetrain(unittest.TestCase):
         after_transferred_weights = []
 
         # store all weights before
+        base_model = InceptionV3(weights='imagenet', include_top=False)
+        model = rt.assemble_model()
+
         for layer_bm, layer_fm in zip(base_model,model):
             before_transferred_weights.append(layer_fm.get_weights())
             count += 1
@@ -53,9 +56,7 @@ class TestKerasRetrain(unittest.TestCase):
         print(count)
 
         # train
-        base_model = InceptionV3(weights='imagenet', include_top=False)
-        model = rt.assemble_model()
-        train_model(model)
+        rt.train_model(model)
 
         # store all weights after
         for layer_bm, layer_fm in zip(base_model,model):
@@ -76,7 +77,7 @@ class TestKerasRetrain(unittest.TestCase):
 
         # train
         model = rt.assemble_model()
-        train_model(model)
+        rt.train_model(model)
 
         # evaluate
         # TODO: how many images does this generate
