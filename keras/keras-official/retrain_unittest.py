@@ -5,7 +5,7 @@ class TestKerasRetrain(unittest.TestCase):
 
     # assert that if i call fit on the model, the last layers change
     # (= are not the same as initial values)
-    def training_last_layers_test(self):
+    def test_training_last_layers(self):
         # TODO: Can be generalized: take an argument "number of top layers", include
         # them in a for loop and store weights in list
 
@@ -31,7 +31,7 @@ class TestKerasRetrain(unittest.TestCase):
         self.assertTrue( (before_dense != after_dense).any() )
 
     # tests if the model stays stable for the layers we want it to be stable
-    def base_model_stable_test(self):
+    def test_base_model_stable(self):
         # dummy directories with black/white images
         train_data_dir = 'unit_test_images/'
         validation_data_dir = 'unit_test_images/'
@@ -68,7 +68,7 @@ class TestKerasRetrain(unittest.TestCase):
 
     # tests if model can be trained on two classes and perform significantly
     # better than random on a test set after 15 minutes of training
-    def full_training_test(self):
+    def test_full_training(self):
         # dummy directories with black/white images
         train_data_dir = 'unit_test_images/'
         validation_data_dir = 'unit_test_images/'
