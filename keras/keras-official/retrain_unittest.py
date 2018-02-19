@@ -78,7 +78,7 @@ class TestKerasRetrain(unittest.TestCase):
 
     # tests if model can be trained on two classes and perform significantly
     # better than random on a test set after 15 minutes of training
-    def full_training_test():
+    def full_training_test(self):
         # dummy directories with black/white images
         train_data_dir = 'unit_test_images/'
         validation_data_dir = 'unit_test_images/'
