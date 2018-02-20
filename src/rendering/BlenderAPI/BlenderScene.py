@@ -54,14 +54,16 @@ class BlenderScene(object):
         self.objects_unfixed.append(object)
 
     def add_lamp(self, lamp):
-        self.lamp.append(lamp)
+        self.lamps.append(lamp)
 
     def delete_all(self):
         for obj in self.objects_fixed:
             obj.delete()
         for obj in self.objects_unfixed:
             obj.delete()
-        self.subject.delete()
+        if self.subject is not None:
+            self.subject.delete()
+            self.subject = None
         self.objects_fixed = []
         self.objects_unfixed = []
 
