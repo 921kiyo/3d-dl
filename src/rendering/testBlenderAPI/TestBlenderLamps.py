@@ -36,6 +36,12 @@ class BlenderLampsTest(unittest.TestCase):
 
     def test_create_lamp_reference(self):
         # add objects manually
+        # if feed API
+        """
+        1. put right ob in blender
+        2.
+
+        """
         bpy.ops.object.add()
         obj_reference = bpy.data.objects[0]
 
@@ -48,6 +54,8 @@ class BlenderLampsTest(unittest.TestCase):
         self.assertEqual(num_objects_after, num_objects_before, 'Number of objects changed!')
         self.assertEqual(obj.reference, obj_reference)
         self.assertTrue('Empty' in bpy.data.objects.keys())
+    #     when blender creates an ob, key of ob is name of type o fob.
+
 
 
     def test_delete_lamp(self):
@@ -128,8 +136,10 @@ class BlenderAreaTest(unittest.TestCase):
     def setUp(self):
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.object.delete()
+    #     check follows multiple changes
 
     def tearDown(self):
+        # create lamp, pass to belnderpoint,
         # delete all objects
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.object.delete()
