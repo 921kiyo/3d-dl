@@ -2,7 +2,6 @@ import bpy
 import sys
 import unittest
 
-
 boop = "/Users/maxbaylis/Lobster/src/"
 if not (boop in sys.path):
     sys.path.append(boop)
