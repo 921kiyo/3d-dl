@@ -1,5 +1,5 @@
 [run]
 include =
     # omit this single file
-    rendering/BlenderAPI/*.py
-	rendering/testBlenderAPI/*.py
+    BlenderAPI/*.py
+	testBlenderAPI/*.py
