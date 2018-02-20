@@ -111,6 +111,8 @@ class BlenderObject(object):
         """
         delete current object, by deleting its reference
         """
+        if self.reference is None:
+            return # object reference already deleted
         # deselect all
         bpy.ops.object.select_all(action='DESELECT')
         # selection
