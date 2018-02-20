@@ -5,7 +5,9 @@ metballs!
 import numpy as np
 
 def norm(x,y,p):
-    n = np.power(np.power(np.abs(x),p) + np.power(np.abs(y),p), 1./p)
+    #the constant factor is to ensure that norm is never 0 as it is used 
+    # as divisor
+    n = np.power(np.power(np.abs(x),p) + np.power(np.abs(y),p), 1./p)+1e-08
     return n
 
 class ball:
@@ -20,6 +22,9 @@ class ball:
 
 
 def sum_inverse_distance(x,y,balls):
+    if(x.shape!=y.shape):
+        raise IndexError("The x and y parameters don't have the same shape")
+    
     f = np.zeros(x.shape)
     for ball in balls:
         f += ball.inverse_distance(x,y)

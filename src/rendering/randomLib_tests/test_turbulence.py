@@ -5,6 +5,8 @@ Created on Mon Feb 19 17:08:34 2018
 @author: Pavel
 
 Unit tests for the functions contained within the randomLib.turbulence module
+TODO: think about doing the random tests like 100* times so that it tests
+the randomness truly properly
 """
 
 import unittest
