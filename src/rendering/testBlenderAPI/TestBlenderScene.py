@@ -19,7 +19,7 @@ import rendering.BlenderAPI as bld
 from rendering.BlenderAPI.BlenderScene import BlenderScene
 from rendering.BlenderAPI.BlenderScene import BlenderRoom
 from rendering.BlenderAPI.BlenderCamera import BlenderCamera
-from rendering.BlenderAPI.BlenderLamps import BlenderLamp, BlenderSun
+from rendering.BlenderAPI.BlenderLamps import BlenderLamp, BlenderSun, BlenderPoint
 
 
 
@@ -35,14 +35,23 @@ class BlenderSceneTest(unittest.TestCase):
 
 
     def setUp(self):
-        self.my_room = BlenderRoom(10)
-        self.my_scene = BlenderScene(bpy.data)
+        # delete all objects
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+        self.my_scene = BlenderScene(bpy.data.scenes[0])
+
+    def tearDown(self):
+        # delete all objects
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
 
     def test_room_has_correct_number_of_walls(self):
+        self.my_room = BlenderRoom(10)
         number_of_walls = len(self.my_room.walls)
         self.assertEqual(number_of_walls, 6, "Room does not have 6 walls!")
 
     def test_room_deletes_properly(self):
+        self.my_room = BlenderRoom(10)
         self.my_room.delete()
         walls_post_deletion = self.my_room.walls
         self.assertEqual(walls_post_deletion, [], "Walls were not deleted properly!")
@@ -54,7 +63,7 @@ class BlenderSceneTest(unittest.TestCase):
         self.assertEqual(self.my_scene.objects_unfixed, [])
         self.assertEqual(self.my_scene.camera, None)
         self.assertEqual(self.my_scene.subject, None)
-        self.assertEqual(self.my_scene.data, bpy.data)
+        self.assertEqual(self.my_scene.data, bpy.data.scenes[0])
 
     def test_add_camera(self):
         new_camera = BlenderCamera()
@@ -64,11 +73,12 @@ class BlenderSceneTest(unittest.TestCase):
     #Currently failing this test because line 57 in BlenderScene should be self.lamps
     def test_add_lamps(self):
         # Add one lamp and check that it is successfully added
-        new_lamp_sun = BlenderSun(bpy.data.objects['Lamp'])
+        new_lamp_sun = BlenderSun()
         self.my_scene.add_lamp(new_lamp_sun)
         self.assertEqual(self.my_scene.lamps[0], new_lamp_sun, "Lamp (sun) was not successfully added to scene!")
         # Add another lamp of a different type and check that it is successfully added; also verify that previous lamp is still in position
-        new_lamp_point = BlenderPoint(bpy.data.objects['Lamp'])
+        new_lamp_point = BlenderPoint()
+        self.my_scene.add_lamp(new_lamp_point)
         self.assertEqual(self.my_scene.lamps[0], new_lamp_sun, "Lamp (sun) was not retained when new lamp was added to scene!")
         self.assertEqual(self.my_scene.lamps[1], new_lamp_point, "Lamp (point) was not successfully added to scene!")
 
@@ -83,7 +93,8 @@ class BlenderSceneTest(unittest.TestCase):
         self.assertEqual(self.my_scene.objects_unfixed, [])
         self.assertEqual(self.my_scene.camera, None)
         self.assertEqual(self.my_scene.subject, None)
-        self.assertEqual(self.my_scene.data, bpy.data)
+        self.assertEqual(self.my_scene.data, bpy.data.scenes[0])
+        self.assertEqual(len(bpy.data.objects.keys()), 0) # TODO fix this!
 
     # def test_add_background(self):
     #     new_background = TODO
@@ -91,12 +102,12 @@ class BlenderSceneTest(unittest.TestCase):
     #     self.assertEqual(self.my_scene.background, new_background, "Background was not successfully added to scene!")
 
     def test_add_subject(self):
-        new_subject_cube = bld.BlenderCube(reference=bpy.data.objects['Cube'])
+        new_subject_cube = bld.BlenderCube()
         self.my_scene.add_subject(new_subject_cube)
         self.assertEqual(self.my_scene.subject, new_subject_cube, "Subject (cube) was not successfully added to scene!")
 
     def test_add_object_fixed(self):
-        new_room = BlenderRoom(10);
+        new_room = BlenderRoom(10)
         self.my_scene.add_object_fixed(new_room)
         # Check that room was successfully added
         self.assertTrue(self.my_scene.objects_fixed[0] == new_room, "Fixed object (room) was not successfully added to scene!")
@@ -104,7 +115,7 @@ class BlenderSceneTest(unittest.TestCase):
         self.assertEqual(len(self.my_scene.objects_fixed), 1, "Incorrect number of elements in objects_fixed list")
 
     def test_add_object_unfixed(self):
-        new_object_cube = bld.BlenderCube(reference=bpy.data.objects['Cube'])
+        new_object_cube = bld.BlenderCube()
         self.my_scene.add_object_unfixed(new_object_cube)
         # Check that the cube was successfully added
         self.assertEqual(self.my_scene.objects_unfixed[0], new_object_cube, "Subject (cube) was not successfully added to scene!")
