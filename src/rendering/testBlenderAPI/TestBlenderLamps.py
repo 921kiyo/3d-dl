@@ -1,6 +1,7 @@
 import bpy
 import sys
-import mathutils as mathU
+import unittest
+
 
 boop = "/Users/maxbaylis/Lobster/src/"
 if not (boop in sys.path):
@@ -8,7 +9,6 @@ if not (boop in sys.path):
 
 import rendering.BlenderAPI as bld
 
-import unittest
 
 class BlenderLampsTest(unittest.TestCase):
 
@@ -35,41 +35,33 @@ class BlenderLampsTest(unittest.TestCase):
         self.assertGreater(num_objects_after, num_objects_before, 'Number of objects did not increase!')
 
     def test_create_lamp_reference(self):
-        # add objects manually
-
-        # if feed API
         """
         1. put right ob in blender
         2.
 
         """
         bpy.ops.object.add()
-#added by ong point
-        bpy.ops.object.add_lamp(type='POINT')
-
         obj_reference = bpy.data.objects[0]
 
-        # create object with reference
         num_objects_before = len(bpy.data.objects)
-        obj = bld.BlenderLamp(obj_reference) # TODO: use subclasses, or create a dummy subclass
+
+        obj = bld.BlenderTestLamp(obj_reference)
 
         num_objects_after = len(bpy.data.objects)
 
         self.assertEqual(num_objects_after, num_objects_before, 'Number of objects changed!')
         self.assertEqual(obj.reference, obj_reference)
+
+        # when blender creates an object, the key of object is its type
         self.assertTrue('Empty' in bpy.data.objects.keys())
-    #     when blender creates an ob, key of ob is name of type o fob.
-
-
 
     def test_delete_lamp(self):
-        # add objects manually
-        bpy.ops.object.add() # TODO:
+        bpy.ops.object.lamp_add(type='POINT')
         obj_reference = bpy.data.objects[0]
 
         num_objects_before = len(bpy.data.objects)
 
-        lamp = bld.BlenderLamp(obj_reference) # TODO: use subclasses, or create a dummy subclass
+        lamp = bld.BlenderTestLamp(obj_reference)
         lamp.delete()
 
         num_objects_after = len(bpy.data.objects)
@@ -77,36 +69,39 @@ class BlenderLampsTest(unittest.TestCase):
         self.assertLess(num_objects_after, num_objects_before)
 
     def test_create_operation(self):
-        pass
-        # Note clear exactly what this is meant to do
-        # num_objects_before = len(bpy.data.objects)
-        #
-        # num_objects_after = len(bpy.data.objects)
-        #
-        # self.assertGreater(num_objects_after, num_objects_before, 'Number of objects did not increase!')
+        num_objects_before = len(bpy.data.objects)
 
+        lamp = bld.BlenderLamp(None)
+        lamp.blender_create_operation((1, 1, 1))
+
+        num_objects_after = len(bpy.data.objects)
+
+        self.assertGreater(num_objects_after, num_objects_before, 'Number of objects did not increase!')
 
     def test_turn_off(self):
-        lamp = bpy.ops.lamp_add(type='POINT')
+        bpy.ops.object.lamp_add(type='POINT')
         lamp_reference = bpy.data.objects[0]
 
-        lamp = bld.BlenderPoint(lamp_reference)
-
+        lamp = bld.BlenderTestLamp(lamp_reference)
         lamp.turn_off()
 
         self.assertEquals(lamp_reference.layers[1], True)
         self.assertEquals(lamp_reference.layers[0], False)
 
     def test_turn_on(self):
-        lamp = bld.BlenderPoint(None)
+        bpy.ops.object.lamp_add(type='POINT')
+        lamp_reference = bpy.data.objects[0]
 
+        lamp = bld.BlenderTestLamp(lamp_reference)
         lamp.turn_on()
 
         self.assertEquals(lamp.reference.layers[0], True)
         self.assertEquals(lamp.reference.layers[1], False)
 
     def test_face_towards(self):
-        lamp = bld.BlenderPoint(None)
+        bpy.ops.object.lamp_add(type='POINT')
+        lamp_reference = bpy.data.objects[0]
+        lamp = bld.BlenderTestLamp(lamp_reference)
 
         # set rotation to 45.0, then rotates back 45.0
         lamp.set_rot(45.0, 2, 1, 3)
@@ -119,13 +114,17 @@ class BlenderLampsTest(unittest.TestCase):
         self.assertEqual(lamp.reference.rotation_quaternion, q)
 
     def test_set_size(self):
-        lamp = bld.BlenderPoint(None)
+        bpy.ops.object.lamp_add(type='POINT')
+        lamp_reference = bpy.data.objects[0]
+        lamp = bld.BlenderTestLamp(lamp_reference)
+
         lamp.set_size(100)
         self.assertEquals(lamp.data.shadow_soft_size, 100)
 
 
 class BlenderSunTest(unittest.TestCase):
     def setUp(self):
+        # delete all objects
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.object.delete()
 
@@ -136,28 +135,45 @@ class BlenderSunTest(unittest.TestCase):
 
     def test_create_blendersun(self):
         sun = bld.BlenderSun(None)
-
         self.assertEquals(sun.data.type, 'SUN')
+
 
 class BlenderAreaTest(unittest.TestCase):
     def setUp(self):
+        # delete all objects
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.object.delete()
-    #     check follows multiple changes
 
     def tearDown(self):
-        # create lamp, pass to belnderpoint,
         # delete all objects
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.object.delete()
 
     def test_create_blenderarea(self):
-        sun = bld.BlenderArea(None)
-        self.assertEquals(sun.data.type, 'AREA')
+        area = bld.BlenderArea(None)
+        self.assertEquals(area.data.type, 'AREA')
+
+
+class BlenderPointTest(unittest.TestCase):
+    def setUp(self):
+        # delete all objects
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+
+    def tearDown(self):
+        # delete all objects
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+
+    def test_create_blenderpoint(self):
+        point = bld.BlenderPoint(None)
+        self.assertEquals(point.data.type, 'POINT')
 
 
 
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(BlenderLampsTest)
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderSunTest))
+    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderAreaTest))
+    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderPointTest))
     success = unittest.TextTestRunner(verbosity=True).run(suite).wasSuccessful()

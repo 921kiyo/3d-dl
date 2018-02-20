@@ -112,3 +112,10 @@ class BlenderPoint(BlenderLamp):
         self.set_brightness(default_brightness)
         self.set_size(default_size)
 
+
+class BlenderTestLamp(BlenderLamp):
+    """
+    Dummy lamp to test BlenderLamp class without relying on other subclasses
+    """
+    def __init__(self, obj_reference=None):
+        super(BlenderTestLamp, self).__init__(obj_reference)
