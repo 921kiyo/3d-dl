@@ -24,12 +24,23 @@ from rendering.BlenderAPI.BlenderCamera import BlenderCamera
 from rendering.BlenderAPI.BlenderLamps import BlenderLamp, BlenderSun
 from rendering.BlenderAPI.BlenderShapes import *
 
-class BlenderShapeTest(unittest.TestCase):
+class BlenderMeshTest(unittest.TestCase):
+
+    def setUp(self):
+        # delete all objects
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+
+    def tearDown(self):
+        # delete all objects
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+
     def test_set_diffuse(self):
         my_cube = BlenderCube()
         test_colors = [0.5, 0.5, 0.5, 1.0]
-        colors = bpy.data.objects['Cube.001'].data.materials[0].node_tree.nodes["Diffuse BSDF"].inputs["Color"].default_value
-        roughness = bpy.data.objects['Cube.001'].data.materials[0].node_tree.nodes["Diffuse BSDF"].inputs["Roughness"].default_value
+        colors = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Diffuse BSDF"].inputs["Color"].default_value
+        roughness = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Diffuse BSDF"].inputs["Roughness"].default_value
 
         # At this point all values should still be set to their default
         self.assertNotEqual(list(colors), test_colors)
@@ -37,8 +48,8 @@ class BlenderShapeTest(unittest.TestCase):
 
         # Setting diffuse, which will change the values for colour and roughness
         my_cube.set_diffuse();
-        colors = bpy.data.objects['Cube.001'].data.materials[0].node_tree.nodes["Diffuse BSDF"].inputs["Color"].default_value
-        roughness = bpy.data.objects['Cube.001'].data.materials[0].node_tree.nodes["Diffuse BSDF"].inputs["Roughness"].default_value
+        colors = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Diffuse BSDF"].inputs["Color"].default_value
+        roughness = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Diffuse BSDF"].inputs["Roughness"].default_value
 
         # # Now the values should be changed to that which we have set them to
         self.assertEqual(list(colors), test_colors)
@@ -47,8 +58,8 @@ class BlenderShapeTest(unittest.TestCase):
     def test_set_gloss(self):
         my_cube = BlenderCube()
         test_colors = [0.5, 0.5, 0.5, 1.0]
-        colors = bpy.data.objects['Cube.002'].data.materials[0].node_tree.nodes["Glossy BSDF"].inputs["Color"].default_value
-        roughness = bpy.data.objects['Cube.002'].data.materials[0].node_tree.nodes["Glossy BSDF"].inputs["Roughness"].default_value
+        colors = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Glossy BSDF"].inputs["Color"].default_value
+        roughness = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Glossy BSDF"].inputs["Roughness"].default_value
 
         # At this point all values should still be set to their default
         self.assertNotEqual(list(colors), test_colors)
@@ -56,8 +67,8 @@ class BlenderShapeTest(unittest.TestCase):
 
         # Setting gloss, which will change the values for colour and roughness
         my_cube.set_gloss();
-        colors = bpy.data.objects['Cube.002'].data.materials[0].node_tree.nodes["Glossy BSDF"].inputs["Color"].default_value
-        roughness = bpy.data.objects['Cube.002'].data.materials[0].node_tree.nodes["Glossy BSDF"].inputs["Roughness"].default_value
+        colors = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Glossy BSDF"].inputs["Color"].default_value
+        roughness = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Glossy BSDF"].inputs["Roughness"].default_value
 
         # Now the values should be changed to that which we have set them to
         self.assertEqual(list(colors), test_colors)
@@ -65,14 +76,14 @@ class BlenderShapeTest(unittest.TestCase):
 
     def test_set_mix(self):
         my_cube = BlenderCube()
-        fac = bpy.data.objects['Cube.003'].data.materials[0].node_tree.nodes["Mix Shader"].inputs["Fac"].default_value
+        fac = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Mix Shader"].inputs["Fac"].default_value
 
         # At this point all values should still be set to their default
         self.assertNotEqual(fac, 0.9)
 
         # Setting mixer, which will change the values for colour and roughness
         my_cube.set_mixer(0.9);
-        fac = bpy.data.objects['Cube.003'].data.materials[0].node_tree.nodes["Mix Shader"].inputs["Fac"].default_value
+        fac = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Mix Shader"].inputs["Fac"].default_value
 
         # Now the values should be changed to that which we have set them to
         self.assertAlmostEqual(fac, 0.9)

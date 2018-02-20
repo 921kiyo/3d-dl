@@ -23,6 +23,18 @@ from rendering.BlenderAPI.BlenderLamps import BlenderLamp, BlenderSun
 from rendering.BlenderAPI.BlenderShapes import *
 
 class BlenderShapeTest(unittest.TestCase):
+
+    def setUp(self):
+        # delete all objects
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+
+    def tearDown(self):
+        # delete all objects
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+
+
     def test_cube_creation(self):
         # To pass the test these two conditions must be satisfied
         # I.e. Cube.001 must not be present before, and must be present after
@@ -31,7 +43,7 @@ class BlenderShapeTest(unittest.TestCase):
 
         # Check if cube is present before
         for obj in bpy.data.objects:
-            if obj.name == "Cube.001":
+            if obj.name == "Cube":
                 break
         else:
             no_cube_before = True
@@ -41,12 +53,12 @@ class BlenderShapeTest(unittest.TestCase):
 
         # Check if cube is present after
         for obj in bpy.data.objects:
-            if obj.name == "Cube.001":
+            if obj.name == "Cube":
                 cube_after = True
                 break
 
-        self.assertTrue(no_cube_before, "There was already a Cube.001 before a cube was created!")
-        self.assertTrue(cube_after, "There was no Cube.001 even though it was supposed to have been created!")
+        self.assertTrue(no_cube_before, "There was already a Cube before a cube was created!")
+        self.assertTrue(cube_after, "There was no Cube even though it was supposed to have been created!")
 
     def test_plane_creation(self):
         # To pass the test these two conditions must be satisfied
