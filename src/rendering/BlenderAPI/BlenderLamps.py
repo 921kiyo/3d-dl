@@ -28,6 +28,7 @@ class BlenderLamp(BlenderObject):
         """
         interface method for all BlenderObjects
         """
+        # TODO: raise NotImplementedError
         bpy.ops.object.lamp_add(location=location)
 
     def set_size(self, size):
