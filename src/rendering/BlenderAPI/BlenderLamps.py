@@ -77,7 +77,7 @@ class BlenderSun(BlenderLamp):
     """
     Directional, but position invariant (always from above, at infinity)
     """
-    def __init__(self, obj_reference, default_brightness=15.0, default_size=0.1):
+    def __init__(self, obj_reference=None, default_brightness=15.0, default_size=0.1):
         super(BlenderSun, self).__init__(obj_reference)
         self.data.type = 'SUN'
         self.default_brightness = default_brightness
@@ -90,7 +90,7 @@ class BlenderArea(BlenderLamp):
     """
     Directional, and depends on position. Area 'behind the lamp' will not be illuminated
     """
-    def __init__(self, obj_reference, default_brightness=500.0, default_size=5.0):
+    def __init__(self, obj_reference=None, default_brightness=500.0, default_size=5.0):
         super(BlenderArea, self).__init__(obj_reference)
         self.data.type = 'AREA'
         self.default_brightness = default_brightness
@@ -103,7 +103,7 @@ class BlenderPoint(BlenderLamp):
     """
     Non-directional, source concentrated in a spot.
     """
-    def __init__(self, obj_reference, default_brightness=5000.0, default_size=5.0):
+    def __init__(self, obj_reference=None, default_brightness=5000.0, default_size=5.0):
         super(BlenderPoint, self).__init__(obj_reference)
         self.data.type = 'POINT'
         self.default_brightness = default_brightness
