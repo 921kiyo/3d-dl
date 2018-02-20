@@ -10,6 +10,7 @@ import rendering.BlenderAPI.BlenderObjects as bld
 
 import unittest
 
+
 class BlenderObjectTest(unittest.TestCase):
 
     def setUp(self):
@@ -74,5 +75,6 @@ class BlenderObjectTest(unittest.TestCase):
         self.assertEqual(num_objects_after, 0)
 
 if __name__ == '__main__':
+
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(BlenderObjectTest)
-    success = unittest.TextTestRunner(verbosity=True).run(suite).wasSuccessful()
+    success = unittest.TextTestRunner().run(suite).wasSuccessful()

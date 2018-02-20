@@ -71,5 +71,6 @@ class BlenderCameraTest(unittest.TestCase):
         self.assertAlmostEqual(cam_loc_norm[2], -focal_axis[2], places=5)
 
 if __name__ == '__main__':
+
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(BlenderCameraTest)
     success = unittest.TextTestRunner().run(suite).wasSuccessful()
