@@ -86,7 +86,7 @@ def predict():
     print("Utterly Butterly: " + utterlybutterly_value + "%")
     print("Yogurt: " + yogurt_value + "%")
     #return "Cheese: " + cheese_value + "% and " + "Yogurt: " + yogurt_value + "%"
-    return '<!DOCTYPE html> <html> <body> Cheese: ' + cheese_value + '% <br> Yogurt: ' + yogurt_value + '% <br> <img src="image" width="500" height="500"> </body> </html>'
+    return '<!DOCTYPE html> <html> <body> Anchor: ' + anchor_value + '% <br> Cheese: ' + cheese_value + '% <br> Clinique: ' + clinique_value + '% <br> Coconut Water: ' + coconutwater_value + '% <br> Neutrogena: ' + neutrogena_value + '% <br> UtterlyButterly: ' + utterlybutterly_value + '% <br>Yogurt: ' + yogurt_value + '% <br> <img src="image" width="500" height="500"> </body> </html>'
 
 @app.route('/123')
 def predict2():
