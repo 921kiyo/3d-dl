@@ -45,11 +45,14 @@ def assemble_model():
 
     # global spatial average pooling layer
     x = base_model.output
-    x = GlobalAveragePooling2D()(x)
+
+    base_model.layers[-1].name = 'base_output'
+
+    x = GlobalAveragePooling2D(name='pooling')(x)
     # fully-connected layer
-    x = Dense(1024, activation='relu')(x)
+    x = Dense(1024, activation='relu',name='dense')(x)
     # logistic layer
-    predictions = Dense(class_count, activation='softmax')(x)
+    predictions = Dense(class_count, activation='softmax',name='softmax')(x)
 
     # this is the model we will train
     model = Model(inputs=base_model.input, outputs=predictions)
@@ -130,6 +133,9 @@ def evaluate(model,test_dir=None):
     score = model.evaluate_generator(test_generator)
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
+
+    # predictions = model.predict_generator(test_generator)
+    # print(predictions[20:])
     return score
 
 

@@ -81,16 +81,23 @@ class TestKerasRetrain(unittest.TestCase):
 
         # train
         model = rt.assemble_model()
-        rt.train_model(model,epochs=2,train_dir=train_dir,validation_dir=validation_dir)
+        rt.train_model(model,epochs=5)
 
         # evaluate
         # TODO: how many images does this generate
-        score = rt.evaluate(model,test_dir=test_dir)
+        score = rt.evaluate(model)
 
         print("accuracy on b/w images")
         print(score[1])
         # check if significantly better than random
         self.assertTrue( score[1] > 0.6 )
+
+    def test_layers_connected(self):
+        model = rt.assemble_model()
+
+        self.assertTrue(np.array_equal(model.get_layer('base_output').output,model.get_layer('pooling').input))
+        self.assertTrue(np.array_equal(model.get_layer('pooling').output,model.get_layer('dense').input))
+        self.assertTrue(np.array_equal(model.get_layer('dense').output,model.get_layer('softmax').input))
 
     # TODO: write test that loss is never zero
 
