@@ -17,6 +17,9 @@ import numpy as np
 
 from flask import Flask, request
 
+import hashlib
+import time
+
 # initialize the input image shape (224x224 pixels) along with
 # the pre-processing function (this might need to be changed
 # based on which model we use to classify our image)
@@ -47,11 +50,16 @@ def predict():
     print("[INFO] loading and pre-processing image...")
     if request.method == 'POST':
       f = request.files['my_image']
-      f.save('/homes/mzw17/Lobster/keras/keras-official/static/image.jpg')
+      my_hash = hashlib.sha1()
+      my_hash.update(str(time.time()).encode('utf-8'))
+      filepath = '/homes/mzw17/Lobster/keras/keras-official/static/' + hash.hexdigest()[:10] + '.jpg'
+      #f.save('/homes/mzw17/Lobster/keras/keras-official/static/image.jpg')
+      f.save(filepath)
 
     # file = request.files['my_image']
     # file.save(os.path.join(app.config['UPLOAD_FOLDER'], 'image.jpg'))
-    image = load_img('/homes/mzw17/Lobster/keras/keras-official/static/image.jpg', target_size=inputShape)
+    #image = load_img('/homes/mzw17/Lobster/keras/keras-official/static/image.jpg', target_size=inputShape)
+    image = load_img(filepath, target_size=inputShape)
     image = img_to_array(image)
 
     # our input image is now represented as a NumPy array of shape
@@ -86,7 +94,7 @@ def predict():
     print("Utterly Butterly: " + utterlybutterly_value + "%")
     print("Yogurt: " + yogurt_value + "%")
     #return "Cheese: " + cheese_value + "% and " + "Yogurt: " + yogurt_value + "%"
-    return '<!DOCTYPE html> <html> <body> Anchor: ' + anchor_value + '% <br> Cheese: ' + cheese_value + '% <br> Clinique: ' + clinique_value + '% <br> Coconut Water: ' + coconutwater_value + '% <br> Neutrogena: ' + neutrogena_value + '% <br> UtterlyButterly: ' + utterlybutterly_value + '% <br>Yogurt: ' + yogurt_value + '% <br> <img src="image" width="500" height="500"> </body> </html>'
+    return '<!DOCTYPE html> <html> <body> Anchor: ' + anchor_value + '% <br> Cheese: ' + cheese_value + '% <br> Clinique: ' + clinique_value + '% <br> Coconut Water: ' + coconutwater_value + '% <br> Neutrogena: ' + neutrogena_value + '% <br> Nivea: ' + nivea_value + '% <br> UtterlyButterly: ' + utterlybutterly_value + '% <br>Yogurt: ' + yogurt_value + '% <br> <img src="image" width="500" height="500"> </body> </html>'
 
 @app.route('/123')
 def predict2():
