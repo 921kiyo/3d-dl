@@ -16,7 +16,7 @@ from PIL import Image
 from resizeimage import resizeimage
 
 #the below should point to the file containing the alphabet letter folders
-SUN_images_dir = "E:/LabelMeToolbox/real_data/images/m/"
+SUN_images_dir = "E:/LabelMeToolbox/real_data/images/z"
 # The below folder will contain the resized images
 resized_address = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/data/resized_background/SUN_back/"
   
@@ -81,4 +81,4 @@ def find_all_files(min_pixels, origin_folder, target_folder):
             #return 
     return root
 
-#roots= find_all_files(300,SUN_images_dir, resized_address)
+roots= find_all_files(300,SUN_images_dir, resized_address)
