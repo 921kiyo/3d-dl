@@ -38,6 +38,10 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def root():
     return app.send_static_file('image.jpg')
 
+@app.route('/<image_file>')
+def root():
+    return app.send_static_file(image_file)
+
 @app.route('/hello')
 def predict1():
     return '<!DOCTYPE html> <html> <body> <form action="/predict" method="POST" enctype="multipart/form-data"> <input type="file" name="my_image" accept="image/*"> <input type="submit"> </form> </body> </html>'
