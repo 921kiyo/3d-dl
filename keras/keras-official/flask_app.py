@@ -39,7 +39,7 @@ def root1():
     return app.send_static_file('image.jpg')
 
 @app.route('/<image_file>')
-def root():
+def root(image_file):
     return app.send_static_file(image_file)
 
 @app.route('/hello')
