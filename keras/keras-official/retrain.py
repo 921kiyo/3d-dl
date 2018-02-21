@@ -30,10 +30,10 @@ class_count = len(next(os.walk(global_train_data_dir))[1])
 # need to add salt&pepper noise, rotation, light
 # no horizontal flips for most classes
 train_datagen = ImageDataGenerator(
-        rescale=1./255,
-        shear_range=0.2,
-        zoom_range=0.2,
-        horizontal_flip=True)
+        rescale=1./255)
+        # shear_range=0.2,
+        # zoom_range=0.2,
+        # horizontal_flip=True)
 
 # augmentation configuration for testing: only rescaling
 test_datagen = ImageDataGenerator(rescale=1./255)
@@ -133,14 +133,14 @@ def evaluate(model,test_dir=None):
     return score
 
 
-def main():
-    model = assemble_model()
-    train_model(model)
-    evaluate(model)
-    model.save_weights('first_try.h5')  # always save your weights after training or during training
-    model.save('my_model.h5')
+# def main():
+#     model = assemble_model()
+#     train_model(model)
+#     evaluate(model)
+#     model.save_weights('first_try.h5')  # always save your weights after training or during training
+#     model.save('my_model.h5')
 
-main()
+# main()
 
 # How to do predictions: https://datascience.stackexchange.com/questions/13894/how-to-get-predictions-with-predict-generator-on-streaming-test-data-in-keras
 

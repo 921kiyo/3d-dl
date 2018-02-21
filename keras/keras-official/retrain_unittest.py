@@ -81,7 +81,7 @@ class TestKerasRetrain(unittest.TestCase):
 
         # train
         model = rt.assemble_model()
-        rt.train_model(model,epochs=1,train_dir=train_dir,validation_dir=validation_dir)
+        rt.train_model(model,epochs=2,train_dir=train_dir,validation_dir=validation_dir)
 
         # evaluate
         # TODO: how many images does this generate
