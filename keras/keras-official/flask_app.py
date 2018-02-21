@@ -52,7 +52,7 @@ def predict():
       f = request.files['my_image']
       my_hash = hashlib.sha1()
       my_hash.update(str(time.time()).encode('utf-8'))
-      filepath = '/homes/mzw17/Lobster/keras/keras-official/static/' + hash.hexdigest()[:10] + '.jpg'
+      filepath = '/homes/mzw17/Lobster/keras/keras-official/static/' + my_hash.hexdigest()[:10] + '.jpg'
       #f.save('/homes/mzw17/Lobster/keras/keras-official/static/image.jpg')
       f.save(filepath)
 
