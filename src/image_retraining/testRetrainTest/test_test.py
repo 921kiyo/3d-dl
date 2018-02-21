@@ -29,7 +29,7 @@ class TestTest(test_util.TensorFlowTestCase):
         pass
 
     def test_create_model_graph(self):
-        path = "/vol/project/2017/530/g1753002/tmp"
+        path = "/"
         model_info = create_model_info(path)
         graph, resized_input_tensor, bottleneck_tensor, result_tensor = create_model_graph(model_info)
         self.assertIsNotNone(graph)
@@ -38,7 +38,7 @@ class TestTest(test_util.TensorFlowTestCase):
         self.assertIsNotNone(result_tensor)
 
     def test_create_model_info(self):
-        path = "/vol/project/2017/530/g1753002/tmp"
+        path = "/"
         model_info = create_model_info(path)
         self.assertEqual(path, model_info['data_url'])
         self.assertEqual("final_result:0", model_info['result_tensor_name'])
