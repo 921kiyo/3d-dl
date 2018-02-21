@@ -35,7 +35,7 @@ app = Flask(__name__, static_url_path='')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route('/image')
-def root():
+def root1():
     return app.send_static_file('image.jpg')
 
 @app.route('/<image_file>')
