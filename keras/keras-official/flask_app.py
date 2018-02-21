@@ -23,8 +23,8 @@ from flask import Flask, request
 inputShape = (224, 224)
 preprocess = preprocess_input
 
-model = load_model('production_model_1.h5')
-
+#model = load_model('production_model_1.h5')
+model = load_model('8_class_model.h5')
 
 UPLOAD_FOLDER = '/home/mforcexvi1/mysite'
 
@@ -68,10 +68,22 @@ def predict():
     print("[INFO] classifying image")
     preds = model.predict(image)
     print(preds)
-    cheese_value = '{:.3f}'.format(preds[0][0]*100)
-    yogurt_value = '{:.3f}'.format(preds[0][1]*100)
+    anchor_value = '{:.3f}'.format(preds[0][0]*100)
+    cheese_value = '{:.3f}'.format(preds[0][1]*100)
+    clinique_value = '{:.3f}'.format(preds[0][2]*100)
+    coconutwater_value = '{:.3f}'.format(preds[0][3]*100)
+    neutrogena_value = '{:.3f}'.format(preds[0][4]*100)
+    nivea_value = '{:.3f}'.format(preds[0][5]*100)
+    utterlybutterly_value = '{:.3f}'.format(preds[0][6]*100)
+    yogurt_value = '{:.3f}'.format(preds[0][7]*100)
 
+    print("Anchor: " + anchor_value + "%")
     print("Cheese: " + cheese_value + "%")
+    print("Clinique: " + clinique_value + "%")
+    print("Coconut Water: " + coconutwater_value + "%")
+    print("Neutrogena: " + neutrogena_value + "%")
+    print("Nivea: " + nivea_value + "%")
+    print("Utterly Butterly: " + utterlybutterly_value + "%")
     print("Yogurt: " + yogurt_value + "%")
     #return "Cheese: " + cheese_value + "% and " + "Yogurt: " + yogurt_value + "%"
     return '<!DOCTYPE html> <html> <body> Cheese: ' + cheese_value + '% <br> Yogurt: ' + yogurt_value + '% <br> <img src="image" width="500" height="500"> </body> </html>'
