@@ -40,7 +40,7 @@ def root1():
 
 @app.route('/<image_file>')
 def root(image_file):
-    return app.send_static_file(image_file)
+    return app.send_static_file(image_file + '.jpg')
 
 @app.route('/hello')
 def predict1():
