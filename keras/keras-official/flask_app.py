@@ -52,7 +52,8 @@ def predict():
       f = request.files['my_image']
       my_hash = hashlib.sha1()
       my_hash.update(str(time.time()).encode('utf-8'))
-      filepath = '/homes/mzw17/Lobster/keras/keras-official/static/' + my_hash.hexdigest()[:10] + '.jpg'
+      short_hash = my_hash.hexdigest()[:10]
+      filepath = '/homes/mzw17/Lobster/keras/keras-official/static/' + short_hash + '.jpg'
       #f.save('/homes/mzw17/Lobster/keras/keras-official/static/image.jpg')
       f.save(filepath)
 
@@ -94,7 +95,7 @@ def predict():
     print("Utterly Butterly: " + utterlybutterly_value + "%")
     print("Yogurt: " + yogurt_value + "%")
     #return "Cheese: " + cheese_value + "% and " + "Yogurt: " + yogurt_value + "%"
-    return '<!DOCTYPE html> <html> <body> Anchor: ' + anchor_value + '% <br> Cheese: ' + cheese_value + '% <br> Clinique: ' + clinique_value + '% <br> Coconut Water: ' + coconutwater_value + '% <br> Neutrogena: ' + neutrogena_value + '% <br> Nivea: ' + nivea_value + '% <br> UtterlyButterly: ' + utterlybutterly_value + '% <br>Yogurt: ' + yogurt_value + '% <br> <img src="image" width="500" height="500"> </body> </html>'
+    return '<!DOCTYPE html> <html> <body> Anchor: ' + anchor_value + '% <br> Cheese: ' + cheese_value + '% <br> Clinique: ' + clinique_value + '% <br> Coconut Water: ' + coconutwater_value + '% <br> Neutrogena: ' + neutrogena_value + '% <br> Nivea: ' + nivea_value + '% <br> UtterlyButterly: ' + utterlybutterly_value + '% <br>Yogurt: ' + yogurt_value + '% <br> <img src="'+ short_hash + '" width="500" height="500"> </body> </html>'
 
 @app.route('/123')
 def predict2():
