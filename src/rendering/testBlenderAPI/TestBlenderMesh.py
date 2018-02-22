@@ -30,6 +30,8 @@ class BlenderMeshTest(unittest.TestCase):
         # delete all objects
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.object.delete()
+        self.my_cube = BlenderCube()
+        self.my_cube_nodes = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes
 
     def tearDown(self):
         # delete all objects
@@ -37,53 +39,50 @@ class BlenderMeshTest(unittest.TestCase):
         bpy.ops.object.delete()
 
     def test_set_diffuse(self):
-        my_cube = BlenderCube()
         test_colors = [0.5, 0.5, 0.5, 1.0]
-        colors = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Diffuse BSDF"].inputs["Color"].default_value
-        roughness = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Diffuse BSDF"].inputs["Roughness"].default_value
+        colors = self.my_cube_nodes["Diffuse BSDF"].inputs["Color"].default_value
+        roughness = self.my_cube_nodes["Diffuse BSDF"].inputs["Roughness"].default_value
 
         # At this point all values should still be set to their default
         self.assertNotEqual(list(colors), test_colors)
         self.assertNotEqual(roughness, 0.5)
 
         # Setting diffuse, which will change the values for colour and roughness
-        my_cube.set_diffuse();
-        colors = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Diffuse BSDF"].inputs["Color"].default_value
-        roughness = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Diffuse BSDF"].inputs["Roughness"].default_value
+        self.my_cube.set_diffuse();
+        colors = self.my_cube_nodes["Diffuse BSDF"].inputs["Color"].default_value
+        roughness = self.my_cube_nodes["Diffuse BSDF"].inputs["Roughness"].default_value
 
         # # Now the values should be changed to that which we have set them to
         self.assertEqual(list(colors), test_colors)
         self.assertEqual(roughness, 0.5)
 
     def test_set_gloss(self):
-        my_cube = BlenderCube()
         test_colors = [0.5, 0.5, 0.5, 1.0]
-        colors = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Glossy BSDF"].inputs["Color"].default_value
-        roughness = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Glossy BSDF"].inputs["Roughness"].default_value
+        colors = self.my_cube_nodes["Glossy BSDF"].inputs["Color"].default_value
+        roughness = self.my_cube_nodes["Glossy BSDF"].inputs["Roughness"].default_value
 
         # At this point all values should still be set to their default
         self.assertNotEqual(list(colors), test_colors)
         self.assertNotEqual(roughness, 0.5)
 
         # Setting gloss, which will change the values for colour and roughness
-        my_cube.set_gloss();
-        colors = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Glossy BSDF"].inputs["Color"].default_value
-        roughness = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Glossy BSDF"].inputs["Roughness"].default_value
+        self.my_cube.set_gloss();
+        colors = self.my_cube_nodes["Glossy BSDF"].inputs["Color"].default_value
+        roughness = self.my_cube_nodes["Glossy BSDF"].inputs["Roughness"].default_value
 
         # Now the values should be changed to that which we have set them to
         self.assertEqual(list(colors), test_colors)
         self.assertEqual(roughness, 0.5)
 
     def test_set_mix(self):
-        my_cube = BlenderCube()
-        fac = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Mix Shader"].inputs["Fac"].default_value
+        fac = self.my_cube_nodes["Mix Shader"].inputs["Fac"].default_value
 
         # At this point all values should still be set to their default
         self.assertNotEqual(fac, 0.9)
 
         # Setting mixer, which will change the values for colour and roughness
-        my_cube.set_mixer(0.9);
-        fac = bpy.data.objects['Cube'].data.materials[0].node_tree.nodes["Mix Shader"].inputs["Fac"].default_value
+        self.my_cube.set_mixer(0.9);
+        fac = self.my_cube_nodes["Mix Shader"].inputs["Fac"].default_value
 
         # Now the values should be changed to that which we have set them to
         self.assertAlmostEqual(fac, 0.9)

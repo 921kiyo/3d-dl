@@ -3,6 +3,8 @@ import math
 import mathutils as mathU
 import itertools
 
+from rendering.BlenderAPI.BlenderExceptions import *
+
 def rotate(vector, quaternion):
     """
     utility function to rotate a vector, given a rotation in the form of a quaternion
@@ -28,7 +30,7 @@ def to_quaternion(w, x, y, z):
     m = math.sqrt(x ** 2 + y ** 2 + z ** 2)
     w = math.pi * w / 180.0
     if m == 0:
-        q = [0, 0, 0, 0]
+        q = mathU.Quaternion([0, 0, 0], 0)
     else:
         q = mathU.Quaternion([x / m, y / m, z / m], w)
     return q
@@ -76,6 +78,9 @@ class BlenderObject(object):
         set the scale of current object
         :param scale: 3-tuple specifying scale of the x,y,z axes
         """
+        valid = check_is_iter(scale, 3) and check_vector_non_negative(scale)
+        if not valid:
+            raise InvalidInputError("scale input invalid")
         self.reference.scale = scale
 
     def set_rot(self, w, x, y, z):

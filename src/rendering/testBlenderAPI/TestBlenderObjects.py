@@ -7,6 +7,7 @@ if not (boop in sys.path):
     sys.path.append(boop)
 
 import rendering.BlenderAPI.BlenderObjects as bld
+from rendering.BlenderAPI.BlenderExceptions import *
 
 import unittest
 
@@ -45,18 +46,49 @@ class BlenderObjectTest(unittest.TestCase):
         self.assertTrue('Empty' in bpy.data.objects.keys())
 
     def test_set_location(self):
+        
         # set random location
         obj = bld.BlenderTestObject()
+        
+        # all positive
+        obj.set_location(2.0,2.5,1.0)
+        self.assertEqual(obj.reference.location, mathU.Vector((2.0,2.5,1.0)))
+        
+        # mixed
         obj.set_location(2.0,2.5,-1.0)
         self.assertEqual(obj.reference.location, mathU.Vector((2.0,2.5,-1.0)))
+        
+        # all negative
+        obj.set_location(-2.0,-2.5,-1.0)
+        self.assertEqual(obj.reference.location, mathU.Vector((-2.0,-2.5,-1.0)))
+
 
     def test_set_rotation(self):
+        
         obj = bld.BlenderTestObject()
-        # set rotation to 45.0, then rotates back 45.0
+        
+        # zero rotation
+        obj.set_rot(0.0, 2, 1, 3)
+        q = bld.to_quaternion(0.0, 2, 1, 3)
+        self.assertEqual(obj.reference.rotation_quaternion, q)
+        # zero vector
+        obj.set_rot(0.0, 0, 0, 0)
+        q = bld.to_quaternion(0.0, 0, 0, 0)
+        self.assertEqual(obj.reference.rotation_quaternion, q)
+
+        # set rotation to 45.0, then rotates back -45.0
         obj.set_rot(45.0, 2, 1, 3)
         q = bld.to_quaternion(45.0, 2, 1, 3)
         self.assertEqual(obj.reference.rotation_quaternion, q)
         obj.rotate(-45.0, 2, 1, 3)
+        q = bld.to_quaternion(0, 2, 1, 3)
+        self.assertEqual(obj.reference.rotation_quaternion, q)
+
+        # set rotation to -45.0, then rotates back 45.0
+        obj.set_rot(-45.0, 2, 1, 3)
+        q = bld.to_quaternion(-45.0, 2, 1, 3)
+        self.assertEqual(obj.reference.rotation_quaternion, q)
+        obj.rotate(45.0, 2, 1, 3)
         q = bld.to_quaternion(0, 2, 1, 3)
         self.assertEqual(obj.reference.rotation_quaternion, q)
 
@@ -65,8 +97,12 @@ class BlenderObjectTest(unittest.TestCase):
         obj = bld.BlenderTestObject()
         obj.set_scale((2.0,2.0,2.0))
         self.assertEqual(obj.reference.scale, mathU.Vector((2.0,2.0,2.0)))
-        obj.set_scale((-2.0, -2.0, -2.0))
-        self.assertEqual(obj.reference.scale , mathU.Vector((-2.0, -2.0, -2.0)))
+        caught = False
+        try:
+            obj.set_scale((-2.0, -2.0, -2.0))
+        except InvalidInputError:
+            caught = True
+        self.assertTrue(caught)
 
     def test_delete(self):
         obj = bld.BlenderTestObject()
