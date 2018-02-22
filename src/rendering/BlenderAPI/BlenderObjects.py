@@ -52,18 +52,28 @@ class BlenderObject(object):
     """
 
     def __init__(self, location=(0, 0, 0), orientation=(0, 0, 0, 0), scale=(1, 1, 1), reference=None, **kwargs):
+
         if reference is None:
+
             bpy.ops.object.select_all(action='DESELECT')  # deselect everything
-            self.blender_create_operation(location, **kwargs)
+            self.blender_create_operation(**kwargs)
             assert len(bpy.context.selected_objects) == 1, "more than one selected objects!"
             # make sure the only selected object is the recently created object
             self.reference = bpy.context.selected_objects[0]
+
         else:
+
             self.reference = reference
+
+        valid = check_is_iter(location, 3) and check_is_iter(orientation, 4)
+        if not valid:
+            raise InvalidInputError("location input invalid")
+
+        self.set_location(*location)
         self.set_rot(*orientation)
         self.set_scale(scale)
 
-    def blender_create_operation(self, location):
+    def blender_create_operation(self):
         # Attention: Pure virtual, for subclass to implement
         raise NotImplementedError
 
@@ -130,5 +140,5 @@ class BlenderTestObject(BlenderObject):
     def __init__(self, location=(0, 0, 0), orientation=(0, 0, 0, 0), scale=(1, 1, 1), reference=None, **kwargs):
         super(BlenderTestObject, self).__init__(location, orientation, scale, reference)
 
-    def blender_create_operation(self, location):
+    def blender_create_operation(self):
         bpy.ops.object.add()

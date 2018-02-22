@@ -123,16 +123,16 @@ class BlenderCube(BlenderMesh):
     def __init__(self, **kwargs):
         super(BlenderCube, self).__init__(**kwargs)
 
-    def blender_create_operation(self, location):
-        bpy.ops.mesh.primitive_cube_add(location=location)
+    def blender_create_operation(self):
+        bpy.ops.mesh.primitive_cube_add()
 
 
 class BlenderPlane(BlenderMesh):
     def __init__(self, **kwargs):
         super(BlenderPlane, self).__init__(**kwargs)
 
-    def blender_create_operation(self, location):
-        bpy.ops.mesh.primitive_plane_add(location=location)
+    def blender_create_operation(self):
+        bpy.ops.mesh.primitive_plane_add()
 
 
 class BlenderImportedShape(BlenderMesh):
@@ -143,7 +143,7 @@ class BlenderImportedShape(BlenderMesh):
         super(BlenderImportedShape, self).__init__(**kwargs)
         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 
-    def blender_create_operation(self, location, obj_path=None):
+    def blender_create_operation(self, obj_path=None):
         assert obj_path is not None, "Required keyword argument for importing shape: obj_path=[filepath]"
         bpy.ops.import_scene.obj(filepath=obj_path)
 

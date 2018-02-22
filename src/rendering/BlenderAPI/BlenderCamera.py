@@ -24,8 +24,8 @@ class BlenderCamera(BlenderObject):
         focal_axis.normalize()
         self.rotate(angle, *focal_axis)
 
-    def blender_create_operation(self, location):
-        bpy.ops.object.camera_add(location=location)
+    def blender_create_operation(self):
+        bpy.ops.object.camera_add()
 
     def face_towards(self, x, y, z):
         """

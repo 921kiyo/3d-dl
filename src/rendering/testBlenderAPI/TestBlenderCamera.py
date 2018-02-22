@@ -42,12 +42,24 @@ class BlenderCameraTest(unittest.TestCase):
         focal_axis = t * focal_origin
         focal_axis.normalize()
 
+        # test positive
         q_rot = to_quaternion(90, *focal_axis)
         q_new = q*q_rot
-
         cam.spin(90)
-
         self.assertEqual(q_new, cam.get_rot(), 'Camera spin not correct!')
+
+        # test negative
+        q_rot = to_quaternion(-90, *focal_axis)
+        q_new = q * q_rot
+        cam.spin(-90)
+        self.assertEqual(q_new, cam.get_rot(), 'Camera spin not correct!')
+
+        # test zero
+        q_rot = to_quaternion(0, *focal_axis)
+        q_new = q * q_rot
+        cam.spin(0)
+        self.assertEqual(q_new, cam.get_rot(), 'Camera spin not correct!')
+
 
     def test_face_towards(self):
         # instantiate camera at arbitrary location
@@ -63,6 +75,24 @@ class BlenderCameraTest(unittest.TestCase):
         focal_axis.normalize()
 
         cam_loc_norm = cam.reference.location
+        cam_loc_norm.normalize()
+
+        # camera location should be parallel to vector of focal axis
+        self.assertAlmostEqual(cam_loc_norm[0], -focal_axis[0], places=5)
+        self.assertAlmostEqual(cam_loc_norm[1], -focal_axis[1], places=5)
+        self.assertAlmostEqual(cam_loc_norm[2], -focal_axis[2], places=5)
+
+        # face random
+        cam.face_towards(20.0, -10.0, 0.0)
+
+        q = cam.get_rot()
+
+        focal_origin = mathU.Vector([0, 0, -1])
+        t = q.to_matrix()
+        focal_axis = t * focal_origin
+        focal_axis.normalize()
+
+        cam_loc_norm = cam.reference.location - mathU.Vector((20.0, -10.0, 0.0))
         cam_loc_norm.normalize()
 
         # camera location should be parallel to vector of focal axis

@@ -24,12 +24,12 @@ class BlenderLamp(BlenderObject):
         self.default_brightness = 0.0
         self.default_size = 0.0
 
-    def blender_create_operation(self, location):
+    def blender_create_operation(self):
         """
         interface method for all BlenderObjects
         """
         # TODO: raise NotImplementedError
-        bpy.ops.object.lamp_add(location=location)
+        bpy.ops.object.lamp_add()
 
     def set_size(self, size):
         self.data.shadow_soft_size = size
