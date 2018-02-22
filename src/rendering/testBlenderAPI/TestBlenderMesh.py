@@ -74,6 +74,18 @@ class BlenderMeshTest(unittest.TestCase):
         self.assertEqual(list(colors), test_colors)
         self.assertEqual(roughness, 0.5)
 
+        caught = False
+        try:
+            self.my_cube.set_gloss(color=(0.5, 0.5, -0.1, 2.0))
+        except InvalidInputError:
+            caught = True
+        try:
+            self.my_cube.set_gloss(rough=-0.1)
+        except InvalidInputError:
+            caught = caught and True
+
+        self.assertTrue(caught)
+
     def test_set_mix(self):
         fac = self.my_cube_nodes["Mix Shader"].inputs["Fac"].default_value
 
@@ -81,11 +93,23 @@ class BlenderMeshTest(unittest.TestCase):
         self.assertNotEqual(fac, 0.9)
 
         # Setting mixer, which will change the values for colour and roughness
-        self.my_cube.set_mixer(0.9);
+        self.my_cube.set_mixer(0.9)
         fac = self.my_cube_nodes["Mix Shader"].inputs["Fac"].default_value
 
         # Now the values should be changed to that which we have set them to
         self.assertAlmostEqual(fac, 0.9)
+
+        caught = False
+        try:
+            self.my_cube.set_mixer(1.1)
+        except InvalidInputError:
+            caught = True
+        try:
+            self.my_cube.set_mixer(-0.1)
+        except InvalidInputError:
+            caught = caught and True
+
+        self.assertTrue(caught)
 
 
 if __name__ == '__main__':
