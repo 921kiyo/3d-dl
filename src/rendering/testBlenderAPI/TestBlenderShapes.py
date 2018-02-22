@@ -22,6 +22,8 @@ from rendering.BlenderAPI.BlenderCamera import BlenderCamera
 from rendering.BlenderAPI.BlenderLamps import BlenderLamp, BlenderSun
 from rendering.BlenderAPI.BlenderShapes import *
 
+import os
+
 class BlenderShapeTest(unittest.TestCase):
 
     def setUp(self):
@@ -84,6 +86,14 @@ class BlenderShapeTest(unittest.TestCase):
 
         self.assertTrue(no_plane_before, "There was already a Plane before a plane was created!")
         self.assertTrue(plane_after, "There was no Plane even though it was supposed to have been created!")
+
+    def test_import_shape(self):
+        test_dir = os.path.dirname(__file__)
+        test_file_path = os.path.join(test_dir, 'test_files', 'example.obj')
+        num_before = len(bpy.data.objects)
+        cube = BlenderImportedShape(obj_path=test_file_path)
+        num_after = len(bpy.data.objects)
+        self.assertEqual(num_after - num_before, 1)
 
 
 if __name__ == '__main__':
