@@ -112,6 +112,24 @@ class BlenderLampsTest(unittest.TestCase):
         q = bld.to_quaternion(0, 2, 1, 3)
         self.assertEqual(lamp_reference.rotation_quaternion, q)
 
+    def test_set_brightness(self):
+        bpy.ops.object.lamp_add(type='POINT')
+        lamp_reference = bpy.data.objects[0]
+        lamp = bld.BlenderTestLamp(lamp_reference)
+
+        lamp.set_brightness(100)
+        strength_node = lamp_reference.data.node_tree.nodes["Emission"]
+        self.assertEquals(strength_node.inputs["Strength"].default_value, 100)
+        lamp.set_brightness(0.5)
+        self.assertEquals(strength_node.inputs["Strength"].default_value, 0.5)
+
+        caught = False
+        try:
+            lamp.set_brightness(-10)
+        except InvalidInputError:
+            caught = True
+        self.assertTrue(caught)
+
     def test_set_size(self):
         bpy.ops.object.lamp_add(type='POINT')
         lamp_reference = bpy.data.objects[0]
@@ -121,6 +139,13 @@ class BlenderLampsTest(unittest.TestCase):
         self.assertEquals(lamp_reference.data.shadow_soft_size, 100)
         lamp.set_size(0.5)
         self.assertEquals(lamp_reference.data.shadow_soft_size, 0.5)
+
+        caught = False
+        try:
+            lamp.set_size(-10)
+        except InvalidInputError:
+            caught = True
+        self.assertTrue(caught)
 
 
 class BlenderSunTest(unittest.TestCase):
