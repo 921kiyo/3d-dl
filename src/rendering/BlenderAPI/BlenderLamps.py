@@ -5,6 +5,7 @@ import mathutils as mathU
 import itertools
 
 from rendering.BlenderAPI.BlenderObjects import *
+from rendering.BlenderAPI.BlenderExceptions import *
 
 
 class BlenderLamp(BlenderObject):

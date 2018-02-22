@@ -94,8 +94,8 @@ class BlenderLampsTest(unittest.TestCase):
         lamp = bld.BlenderTestLamp(lamp_reference)
         lamp.turn_on()
 
-        self.assertEquals(lamp.reference.layers[0], True)
-        self.assertEquals(lamp.reference.layers[1], False)
+        self.assertEquals(lamp_reference.layers[0], True)
+        self.assertEquals(lamp_reference.layers[1], False)
 
     def test_face_towards(self):
         bpy.ops.object.lamp_add(type='POINT')
@@ -106,11 +106,11 @@ class BlenderLampsTest(unittest.TestCase):
         lamp.set_rot(45.0, 2, 1, 3)
         q = bld.to_quaternion(45.0, 2, 1, 3)
 
-        self.assertEqual(lamp.reference.rotation_quaternion, q)
+        self.assertEqual(lamp_reference.rotation_quaternion, q)
 
         lamp.rotate(-45.0, 2, 1, 3)
         q = bld.to_quaternion(0, 2, 1, 3)
-        self.assertEqual(lamp.reference.rotation_quaternion, q)
+        self.assertEqual(lamp_reference.rotation_quaternion, q)
 
     def test_set_size(self):
         bpy.ops.object.lamp_add(type='POINT')
@@ -118,7 +118,9 @@ class BlenderLampsTest(unittest.TestCase):
         lamp = bld.BlenderTestLamp(lamp_reference)
 
         lamp.set_size(100)
-        self.assertEquals(lamp.data.shadow_soft_size, 100)
+        self.assertEquals(lamp_reference.data.shadow_soft_size, 100)
+        lamp.set_size(0.5)
+        self.assertEquals(lamp_reference.data.shadow_soft_size, 0.5)
 
 
 class BlenderSunTest(unittest.TestCase):
