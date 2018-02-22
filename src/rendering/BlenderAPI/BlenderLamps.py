@@ -29,16 +29,19 @@ class BlenderLamp(BlenderObject):
         """
         interface method for all BlenderObjects
         """
-        # TODO: raise NotImplementedError
         bpy.ops.object.lamp_add()
 
     def set_size(self, size):
+        if not check_scalar_non_negative(size):
+            raise InvalidInputError('lamp size must be non negative')
         self.data.shadow_soft_size = size
 
     def set_brightness(self, strength):
         """
         Use nodes to set brightness
         """
+        if not check_scalar_non_negative(strength):
+            raise InvalidInputError('lamp strength must be non negative')
         self.data.use_nodes = True
         self.data.node_tree.nodes["Emission"].inputs["Strength"].default_value = strength
 
