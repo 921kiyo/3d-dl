@@ -19,8 +19,8 @@ class BlenderLamp(BlenderObject):
     iii default size - the larger the size, the more diffuse the casted shadows will be    
     """
     
-    def __init__(self, obj_reference):
-        super(BlenderLamp, self).__init__(reference=obj_reference)
+    def __init__(self, obj_reference=None, **kwargs):
+        super(BlenderLamp, self).__init__(reference=obj_reference, **kwargs)
         self.data = self.reference.data
         self.default_brightness = 0.0
         self.default_size = 0.0
@@ -82,8 +82,8 @@ class BlenderSun(BlenderLamp):
     """
     Directional, but position invariant (always from above, at infinity)
     """
-    def __init__(self, obj_reference=None, default_brightness=15.0, default_size=0.1):
-        super(BlenderSun, self).__init__(obj_reference)
+    def __init__(self, obj_reference=None, default_brightness=15.0, default_size=0.1, **kwargs):
+        super(BlenderSun, self).__init__(obj_reference, **kwargs)
         self.data.type = 'SUN'
         self.default_brightness = default_brightness
         self.default_size = default_size
@@ -95,8 +95,8 @@ class BlenderArea(BlenderLamp):
     """
     Directional, and depends on position. Area 'behind the lamp' will not be illuminated
     """
-    def __init__(self, obj_reference=None, default_brightness=500.0, default_size=5.0):
-        super(BlenderArea, self).__init__(obj_reference)
+    def __init__(self, obj_reference=None, default_brightness=500.0, default_size=5.0, **kwargs):
+        super(BlenderArea, self).__init__(obj_reference, **kwargs)
         self.data.type = 'AREA'
         self.default_brightness = default_brightness
         self.default_size = default_size
@@ -108,8 +108,8 @@ class BlenderPoint(BlenderLamp):
     """
     Non-directional, source concentrated in a spot.
     """
-    def __init__(self, obj_reference=None, default_brightness=5000.0, default_size=5.0):
-        super(BlenderPoint, self).__init__(obj_reference)
+    def __init__(self, obj_reference=None, default_brightness=5000.0, default_size=5.0, **kwargs):
+        super(BlenderPoint, self).__init__(obj_reference, **kwargs)
         self.data.type = 'POINT'
         self.default_brightness = default_brightness
         self.default_size = default_size
@@ -121,5 +121,5 @@ class BlenderTestLamp(BlenderLamp):
     """
     Dummy lamp to test BlenderLamp class without relying on other subclasses
     """
-    def __init__(self, obj_reference=None):
-        super(BlenderTestLamp, self).__init__(obj_reference)
+    def __init__(self, obj_reference=None, **kwargs):
+        super(BlenderTestLamp, self).__init__(obj_reference, **kwargs)

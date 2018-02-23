@@ -7,6 +7,7 @@ if not (boop in sys.path):
     sys.path.append(boop)
 
 import rendering.BlenderAPI as bld
+from rendering.BlenderAPI.BlenderExceptions import *
 
 
 class BlenderLampsTest(unittest.TestCase):
@@ -67,16 +68,6 @@ class BlenderLampsTest(unittest.TestCase):
 
         self.assertLess(num_objects_after, num_objects_before)
 
-    def test_create_operation(self):
-        num_objects_before = len(bpy.data.objects)
-
-        lamp = bld.BlenderLamp(None)
-        lamp.blender_create_operation((1, 1, 1))
-
-        num_objects_after = len(bpy.data.objects)
-
-        self.assertGreater(num_objects_after, num_objects_before, 'Number of objects did not increase!')
-
     def test_turn_off(self):
         bpy.ops.object.lamp_add(type='POINT')
         lamp_reference = bpy.data.objects[0]
@@ -98,19 +89,45 @@ class BlenderLampsTest(unittest.TestCase):
         self.assertEquals(lamp_reference.layers[1], False)
 
     def test_face_towards(self):
-        bpy.ops.object.lamp_add(type='POINT')
-        lamp_reference = bpy.data.objects[0]
-        lamp = bld.BlenderTestLamp(lamp_reference)
+        # instantiate camera at arbitrary location
+        lamp = bld.BlenderTestLamp(location=(2.0,4.0,-1.0))
+        lamp_reference = bpy.data.objects['Point']
+        # face origin
+        lamp.face_towards(0.0,0.0,0.0)
 
-        # set rotation to 45.0, then rotates back 45.0
-        lamp.set_rot(45.0, 2, 1, 3)
-        q = bld.to_quaternion(45.0, 2, 1, 3)
+        q = lamp.get_rot()
 
-        self.assertEqual(lamp_reference.rotation_quaternion, q)
+        focal_origin = mathU.Vector([0, 0, -1])
+        t = q.to_matrix()
+        focal_axis = t * focal_origin
+        focal_axis.normalize()
 
-        lamp.rotate(-45.0, 2, 1, 3)
-        q = bld.to_quaternion(0, 2, 1, 3)
-        self.assertEqual(lamp_reference.rotation_quaternion, q)
+        lamp_loc_norm = lamp.reference.location
+        lamp_loc_norm.normalize()
+
+        # camera location should be parallel to vector of focal axis
+        self.assertAlmostEqual(lamp_loc_norm[0], -focal_axis[0], places=5)
+        self.assertAlmostEqual(lamp_loc_norm[1], -focal_axis[1], places=5)
+        self.assertAlmostEqual(lamp_loc_norm[2], -focal_axis[2], places=5)
+
+        # face random
+        lamp.face_towards(20.0, -10.0, 0.0)
+
+        q = lamp.get_rot()
+
+        focal_origin = mathU.Vector([0, 0, -1])
+        t = q.to_matrix()
+        focal_axis = t * focal_origin
+        focal_axis.normalize()
+
+        lamp_loc_norm = lamp.reference.location - mathU.Vector((20.0, -10.0, 0.0))
+        lamp_loc_norm.normalize()
+
+        # camera location should be parallel to vector of focal axis
+        self.assertAlmostEqual(lamp_loc_norm[0], -focal_axis[0], places=5)
+        self.assertAlmostEqual(lamp_loc_norm[1], -focal_axis[1], places=5)
+        self.assertAlmostEqual(lamp_loc_norm[2], -focal_axis[2], places=5)
+
 
     def test_set_brightness(self):
         bpy.ops.object.lamp_add(type='POINT')
@@ -147,49 +164,13 @@ class BlenderLampsTest(unittest.TestCase):
             caught = True
         self.assertTrue(caught)
 
-
-class BlenderSunTest(unittest.TestCase):
-    def setUp(self):
-        # delete all objects
-        bpy.ops.object.select_all(action='SELECT')
-        bpy.ops.object.delete()
-
-    def tearDown(self):
-        # delete all objects
-        bpy.ops.object.select_all(action='SELECT')
-        bpy.ops.object.delete()
-
     def test_create_blendersun(self):
         sun = bld.BlenderSun(None)
         self.assertEquals(sun.data.type, 'SUN')
 
-
-class BlenderAreaTest(unittest.TestCase):
-    def setUp(self):
-        # delete all objects
-        bpy.ops.object.select_all(action='SELECT')
-        bpy.ops.object.delete()
-
-    def tearDown(self):
-        # delete all objects
-        bpy.ops.object.select_all(action='SELECT')
-        bpy.ops.object.delete()
-
     def test_create_blenderarea(self):
         area = bld.BlenderArea(None)
         self.assertEquals(area.data.type, 'AREA')
-
-
-class BlenderPointTest(unittest.TestCase):
-    def setUp(self):
-        # delete all objects
-        bpy.ops.object.select_all(action='SELECT')
-        bpy.ops.object.delete()
-
-    def tearDown(self):
-        # delete all objects
-        bpy.ops.object.select_all(action='SELECT')
-        bpy.ops.object.delete()
 
     def test_create_blenderpoint(self):
         point = bld.BlenderPoint(None)
@@ -199,7 +180,4 @@ class BlenderPointTest(unittest.TestCase):
 
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(BlenderLampsTest)
-    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderSunTest))
-    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderAreaTest))
-    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderPointTest))
     success = unittest.TextTestRunner(verbosity=True).run(suite).wasSuccessful()
