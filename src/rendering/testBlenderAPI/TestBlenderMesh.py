@@ -111,6 +111,21 @@ class BlenderMeshTest(unittest.TestCase):
 
         self.assertTrue(caught)
 
+    def test_set_mesh_bbvol(self):
+        my_cube = bpy.data.objects['Cube']
+
+        self.my_cube.set_mesh_bbvol(1.0)
+
+        self.assertAlmostEqual(my_cube.scale[0], 0.5)
+        self.assertAlmostEqual(my_cube.scale[1], 0.5)
+        self.assertAlmostEqual(my_cube.scale[2], 0.5)
+
+        self.my_cube.set_mesh_bbvol(9.3)
+
+        self.assertAlmostEqual(my_cube.scale[0], math.pow(9.3/8.0, 1./3.))
+        self.assertAlmostEqual(my_cube.scale[1], math.pow(9.3/8.0, 1./3.))
+        self.assertAlmostEqual(my_cube.scale[2], math.pow(9.3/8.0, 1./3.))
+
 
 if __name__ == '__main__':
 
