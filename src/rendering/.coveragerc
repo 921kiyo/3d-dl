@@ -1,0 +1,5 @@
+[run]
+include =
+    # omit this single file
+    BlenderAPI/*.py
+	testBlenderAPI/*.py

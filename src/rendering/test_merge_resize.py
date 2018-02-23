@@ -23,6 +23,12 @@ import os,io, sys
 from PIL import Image
 
 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.abspath(os.path.join(dir_path, os.pardir))
+base_path = os.path.abspath(os.path.join(parent,os.pardir))
+
+#base_path = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/test_data/'
+
 class TestResizeImages(unittest.TestCase):
     
     def test_full_resize(self):
@@ -34,10 +40,9 @@ class TestResizeImages(unittest.TestCase):
         That too small images are ignored
         And the remaining images are of the right format
         """
-        
         number_of_pixels = 300
-        destination = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/testing_folder/rendering_tests/resized_images/'
-        source_folder = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/testing_folder/rendering_tests/filter_database'
+        destination = base_path +'/test_data/rendering_tests/resized_images/'
+        source_folder = base_path + '/test_data/rendering_tests/filter_database'
         
         
         for the_file in os.listdir(destination):
@@ -66,8 +71,8 @@ class TestResizeImages(unittest.TestCase):
         Thus prints error message that is captured and compared to expected message
         First it deletes any file in the output folder.
         """
-        to_resize = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/testing_folder/rendering_tests/just_resize/original/faulty.jpg'
-        to_output = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/testing_folder/rendering_tests/just_resize/results/'
+        to_resize = base_path + '/test_data/rendering_tests/just_resize/original/faulty.jpg'
+        to_output = base_path + '/test_data/rendering_tests/just_resize/results/'
         
         for the_file in os.listdir(to_output):
             file_path = os.path.join(to_output, the_file)
@@ -89,8 +94,8 @@ class TestResizeImages(unittest.TestCase):
         First it deletes any file in the output folder.
         """
     
-        to_resize = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/testing_folder/rendering_tests/just_resize/original/good.jpg'
-        to_output = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/testing_folder/rendering_tests/just_resize/results/'
+        to_resize = base_path +'/test_data/rendering_tests/just_resize/original/good.jpg'
+        to_output = base_path +'/test_data/rendering_tests/just_resize/results/'
  
         for the_file in os.listdir(to_output):
             file_path = os.path.join(to_output, the_file)
@@ -111,7 +116,7 @@ class TestResizeImages(unittest.TestCase):
         somehow changes the pixels by one or two 
         So cannot just compare all the pixels
         """
-        test_folder = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/testing_folder/merging_tests/single_test/'
+        test_folder = base_path +'/test_data/merging_tests/single_test/'
         # the files are: render1.png and background.jpg
         output_file = os.path.join(test_folder, "output1.jpg")
         if(os.path.isfile(output_file)):
@@ -134,7 +139,7 @@ class TestResizeImages(unittest.TestCase):
         
         """
         
-        test_folder = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/testing_folder/merging_tests/batch_test/'
+        test_folder = base_path + '/test_data/merging_tests/batch_test/'
         results_folder = test_folder+"results/"
         # delete all files in output folder
         for the_file in os.listdir(results_folder):
@@ -153,6 +158,7 @@ class TestResizeImages(unittest.TestCase):
             self.assertNotEqual('PNG', im.format)
             
         
+
 
 if __name__=='__main__':
     unittest.main()
