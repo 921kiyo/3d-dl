@@ -21,7 +21,7 @@ import Resize_background as rb
 import Merge_Images as mi
 import os,io, sys
 from PIL import Image
-import numpy as np
+
 
 class TestResizeImages(unittest.TestCase):
     
