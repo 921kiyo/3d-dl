@@ -35,11 +35,25 @@ def mix(img1, img2, size):
 
     return img1*(1-mask) + img2*mask
 
+def random_brightness(img):
+    """
+    randomly adjust mean brightness of an image, capping all values
+    between 0 and 1
+    :param img: image array
+    :return: image array
+    """
+    brightness = np.random.uniform(0,1.0)
+    img_bright = np.mean(img)
+    mul = brightness/img_bright
+    img *= img*mul
+    img[img>1.0] = 1.0
+    return img
+
 def random_image(size):
     r = np.random.uniform()
     if r>0.5:
         return random_color(size)
-    return turbulence.turbulence_rgb(size)*np.random.uniform(0,2.0)
+    return random_brightness(turbulence.turbulence_rgb(size))
 
 def rand_background(N, size):
     T = random_image(size)
@@ -47,7 +61,6 @@ def rand_background(N, size):
         T2 = random_image(size)
         T = mix(T,T2,size)
     return T
-
 
 def generate_background(n_of_images, ofset =0):
     for i in range(ofset, n_of_images+ofset):
