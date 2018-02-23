@@ -8,11 +8,16 @@ Created on Tue Feb 20 19:16:22 2018
 import unittest
 
 import numpy as np
-import math
+import os
 import sys
-boop = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/src"
-if not (boop in sys.path):
-    sys.path.append(boop)
+#boop = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/src"
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.abspath(os.path.join(dir_path, os.pardir))
+base_path = os.path.abspath(os.path.join(parent,os.pardir)) # folder /src
+
+if not (base_path in sys.path):
+    sys.path.append(base_path)
 
 
 import rendering.randomLib.metaballs as mb

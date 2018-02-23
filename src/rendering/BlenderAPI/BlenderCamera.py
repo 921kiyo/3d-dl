@@ -8,7 +8,7 @@ from rendering.BlenderAPI.BlenderObjects import *
 
 
 class BlenderCamera(BlenderObject):
-    def __init__(self, reference, **kwargs):
+    def __init__(self, reference=None, **kwargs):
         super(BlenderCamera, self).__init__(reference=reference, **kwargs)
 
     def spin(self, angle):
@@ -23,6 +23,9 @@ class BlenderCamera(BlenderObject):
         focal_axis = T * focal_origin
         focal_axis.normalize()
         self.rotate(angle, *focal_axis)
+
+    def blender_create_operation(self):
+        bpy.ops.object.camera_add()
 
     def face_towards(self, x, y, z):
         """

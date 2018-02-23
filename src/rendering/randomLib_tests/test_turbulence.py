@@ -12,10 +12,15 @@ the randomness truly properly
 import unittest
 
 import numpy as np
-import sys
-boop = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/src"
-if not (boop in sys.path):
-    sys.path.append(boop)
+import sys, os
+#boop = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/src"
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.abspath(os.path.join(dir_path, os.pardir))
+base_path = os.path.abspath(os.path.join(parent,os.pardir)) # folder /src
+
+if not (base_path in sys.path):
+    sys.path.append(base_path)
 
 
 import rendering.randomLib.turbulence as tb

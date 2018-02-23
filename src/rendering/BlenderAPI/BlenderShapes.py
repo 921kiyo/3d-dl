@@ -6,6 +6,7 @@ import itertools
 
 from rendering.BlenderAPI.BlenderObjects import *
 from rendering.BlenderAPI.BlenderNodes import *
+from rendering.BlenderAPI.BlenderExceptions import *
 
 
 class BlenderMesh(BlenderObject):
@@ -51,6 +52,10 @@ class BlenderMesh(BlenderObject):
         :param color: 4-tuple defining the RGBA channels in [0,1]
         :param roughness: [0,1] value defininf relative roughness of shader
         """
+        if not check_vector_elements_normalized(color):
+            raise InvalidInputError('Diffuse color needs to be normalized!')
+        if not check_scalar_normalized(rough):
+            raise InvalidInputError('Diffuse roughness needs to be normalized!')
         self.nodes['node_diff'].set_color(*color)
         self.nodes['node_diff'].set_roughness(rough)
 
@@ -60,6 +65,10 @@ class BlenderMesh(BlenderObject):
         :param color: 4-tuple defining the RGBA channels in [0,1]
         :param roughness: [0,1] value defininf relative roughness of shader
         """
+        if not check_vector_elements_normalized(color):
+            raise InvalidInputError('Gloss color needs to be normalized!')
+        if not check_scalar_normalized(rough):
+            raise InvalidInputError('Gloss roughness needs to be normalized!')
         self.nodes['node_gloss'].set_color(*color)
         self.nodes['node_gloss'].set_roughness(rough)
 
@@ -68,6 +77,8 @@ class BlenderMesh(BlenderObject):
         set the mixing factor of the mixed shader node
         :param factor: [0,1] value defining the diffuse-glossy shader ratio
         """
+        if not check_scalar_normalized(factor):
+            raise InvalidInputError('mixer factor needs to be normalized!')
         self.nodes['node_mix'].set_fac(factor)
 
     def add_image_texture(self, image_path, projection='FLAT', mapping='UV'):
@@ -113,6 +124,8 @@ class BlenderMesh(BlenderObject):
         return (max(VX) - min(VX))*(max(VY) - min(VY))*(max(VZ) - min(VZ))
 
     def set_mesh_bbvol(self, VReq):
+        if not check_scalar_non_negative (VReq):
+            raise InvalidInputError('Mesh BB Volume has to be positive!')
         self.set_scale((1.0,1.0,1.0))
         VNom = self.compute_mesh_bbvol()
         scale = math.pow(VReq/VNom, 1./3.)
@@ -123,16 +136,16 @@ class BlenderCube(BlenderMesh):
     def __init__(self, **kwargs):
         super(BlenderCube, self).__init__(**kwargs)
 
-    def blender_create_operation(self, location):
-        bpy.ops.mesh.primitive_cube_add(location=location)
+    def blender_create_operation(self):
+        bpy.ops.mesh.primitive_cube_add()
 
 
 class BlenderPlane(BlenderMesh):
     def __init__(self, **kwargs):
         super(BlenderPlane, self).__init__(**kwargs)
 
-    def blender_create_operation(self, location):
-        bpy.ops.mesh.primitive_plane_add(location=location)
+    def blender_create_operation(self):
+        bpy.ops.mesh.primitive_plane_add()
 
 
 class BlenderImportedShape(BlenderMesh):
@@ -143,7 +156,7 @@ class BlenderImportedShape(BlenderMesh):
         super(BlenderImportedShape, self).__init__(**kwargs)
         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
 
-    def blender_create_operation(self, location, obj_path=None):
+    def blender_create_operation(self, obj_path=None):
         assert obj_path is not None, "Required keyword argument for importing shape: obj_path=[filepath]"
         bpy.ops.import_scene.obj(filepath=obj_path)
 
