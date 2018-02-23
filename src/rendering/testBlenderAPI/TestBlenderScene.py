@@ -21,15 +21,7 @@ from rendering.BlenderAPI.BlenderScene import BlenderRoom
 from rendering.BlenderAPI.BlenderCamera import BlenderCamera
 from rendering.BlenderAPI.BlenderLamps import BlenderLamp, BlenderSun, BlenderPoint
 
-
-
-
-# def main():
-#     my_room = BlenderRoom(10)
-#     print(len(my_room.walls))
-#     my_scene = BlenderScene(bpy.data)
-#
-# main()
+import os
 
 class BlenderSceneTest(unittest.TestCase):
 
@@ -96,11 +88,6 @@ class BlenderSceneTest(unittest.TestCase):
         self.assertEqual(self.my_scene.data, bpy.data.scenes[0])
         self.assertEqual(len(bpy.data.objects.keys()), 0) # TODO fix this!
 
-    # def test_add_background(self):
-    #     new_background = TODO
-    #     self.my_scene.add_background(new_background)
-    #     self.assertEqual(self.my_scene.background, new_background, "Background was not successfully added to scene!")
-
     def test_add_subject(self):
         new_subject_cube = bld.BlenderCube()
         self.my_scene.add_subject(new_subject_cube)
@@ -123,9 +110,12 @@ class BlenderSceneTest(unittest.TestCase):
         self.assertEqual(len(self.my_scene.objects_unfixed), 1, "Incorrect number of elements in objects_fixed list")
 
     def test_render_creation(self):
-        self.my_scene.render_to_file('render_test_1.jpg')
-        import os.path
-        self.assertTrue(os.path.isfile('render_test_1.jpg'))
+        camera = bld.BlenderCamera()
+        bpy.context.scene.camera = camera.reference
+        filepath = os.path.join(os.path.dirname(__file__), 'test_files' , 'render_test_1.png')
+        self.my_scene.render_to_file(filepath)
+        self.assertTrue(os.path.isfile(filepath))
+        os.remove(filepath)
 
 if __name__ == '__main__':
 
