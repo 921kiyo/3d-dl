@@ -30,6 +30,7 @@ from sklearn.metrics import confusion_matrix
 import matplotlib
 import io
 import pickle
+from test_errors import *
 
 FLAGS = None
 
@@ -182,6 +183,8 @@ def add_jpeg_decoding(input_width, input_height, input_depth, input_mean,
     Tensors for the node to feed JPEG data into, and the output of the
       preprocessing steps.
   """
+  if not check_nonnegative_args(input_width, input_height, input_depth, input_std):
+    raise InvalidInputError('Input dimensions must be Nonnegative!')
   jpeg_data = tf.placeholder(tf.string, name='DecodeJPGInput')
   decoded_image = tf.image.decode_jpeg(jpeg_data, channels=input_depth)
   #decoded_image = tf_equalize(decoded_image)
@@ -197,6 +200,10 @@ def add_jpeg_decoding(input_width, input_height, input_depth, input_mean,
 
 
 def eval_result(result_tensor, ground_truth, idx2label):
+
+    if not check_confidence_tensor(result_tensor):
+        raise InvalidInputError('Result confidence tensor invalid!')
+
     result = np.argmax(result_tensor,axis=1)
     prediction = (ground_truth==result[0])
     correct_label = idx2label[ground_truth]
@@ -206,9 +213,11 @@ def eval_result(result_tensor, ground_truth, idx2label):
 
 
 def extract_summary_tensors(test_results, label2idx):
+
     confidences = []
     predictions = []
     truth = []
+
     for result in test_results:
         confidences.extend(result['class_confidences'])# of shape [batch_size, n_class]
         predictions.append(label2idx[result['predicted_label']])
@@ -227,6 +236,10 @@ def plot_confusion_matrix(cm, classes, normalize=False,
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.
     """
+    if (not check_confusion_matrix(cm)):
+        raise InvalidInputError('Confusion Matrix Invalid!')
+    if not (len(classes) == cm.shape[0]):
+        raise InvalidInputError('Number of classes incompatible with CM!')
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 
@@ -259,6 +272,10 @@ def plot_confusion_matrix(cm, classes, normalize=False,
     return image
 
 def compute_sensitivity(cm):
+
+    if (not check_confusion_matrix(cm)):
+        raise InvalidInputError('Confusion Matrix Invalid!')
+
     cm = np.array(cm)
     relevant = np.sum(cm,axis=1)
     sensitivity = np.zeros(relevant.shape)
@@ -270,6 +287,10 @@ def compute_sensitivity(cm):
     return sensitivity
 
 def compute_precision(cm):
+
+    if (not check_confusion_matrix(cm)):
+        raise InvalidInputError('Confusion Matrix Invalid!')
+
     cm = np.array(cm)
     relevant = np.sum(cm,axis=0)
     precision = np.zeros(relevant.shape)

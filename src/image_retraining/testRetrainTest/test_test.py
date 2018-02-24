@@ -23,18 +23,10 @@ class TestTest(test_util.TensorFlowTestCase):
     def test_get_test_files(self):
         label_path = os.path.join(current_dir, "test.txt")
         label2idx, idx2label = create_label_lists(label_path)
-        filedir = os.path.join(current_dir, "test_images/")
+        filedir = os.path.join(current_dir, "test_images")
         test_files = get_test_files(filedir, label2idx, 1)
-        self.assertEqual([('banana', 1, os.path.join(current_dir, '/banana/trump.jpg'))], test_files)
+        self.assertEqual([('banana', 1, os.path.join(filedir, 'banana','trump.jpg'))], test_files)
         pass
-
-    def test_create_model_graph(self):
-        model_info = create_model_info(current_dir)
-        graph, resized_input_tensor, bottleneck_tensor, result_tensor = create_model_graph(model_info)
-        self.assertIsNotNone(graph)
-        self.assertIsNotNone(resized_input_tensor)
-        self.assertIsNotNone(bottleneck_tensor)
-        self.assertIsNotNone(result_tensor)
 
     def test_create_model_info(self):
         model_info = create_model_info(current_dir)
@@ -51,12 +43,30 @@ class TestTest(test_util.TensorFlowTestCase):
         self.assertEqual(128, model_info['input_std'])
         pass
 
+    def test_create_model_graph(self):
+        model_info = create_model_info(current_dir)
+        graph, resized_input_tensor, bottleneck_tensor, result_tensor = create_model_graph(model_info)
+        self.assertIsNotNone(graph)
+        self.assertIsNotNone(resized_input_tensor)
+        self.assertIsNotNone(bottleneck_tensor)
+        self.assertIsNotNone(result_tensor)
+
     def test_add_jpeg_decoding(self):
         with tf.Graph().as_default():
+            # test correct inputs
             jpeg_data, mul_image, decoded_image = add_jpeg_decoding(10, 10, 3, 0, 255)
             self.assertIsNotNone(jpeg_data)
             self.assertIsNotNone(mul_image)
             self.assertIsNotNone(decoded_image)
+            self.assertEqual(mul_image.shape, (1,10,10,3))
+
+            # test incorrect inputs
+            caught = False
+            try:
+                add_jpeg_decoding(-10, 10, 3, 0, 255)
+            except InvalidInputError:
+                caught = True
+            self.assertTrue(caught)
 
     def test_run_resize_data(self):        # Build jpeg decoding and give it to run resized data
         with tf.Graph().as_default():
@@ -75,22 +85,33 @@ class TestTest(test_util.TensorFlowTestCase):
         pass
 
     def test_eval_result(self):
-        # Case1: eval_result() predicts correctly
-        result_tensor = [[0.5180032,  0.48199683]]
+
+        # Case 1: eval_result() predicts correctly
+        result_tensor = [[0.5180032,  0.4819968]]
         ground_truth = 0
         idx2label = {0: 'yogurt', 1: 'cheese'}
         prediction, correct_label, predicted_label = eval_result(result_tensor, ground_truth, idx2label)
         self.assertEqual(True, prediction)
         self.assertEqual('yogurt', correct_label)
         self.assertEqual('yogurt', predicted_label)
-        # Case2: eval_result() predicts incorrectly
+
+        # Case 2: eval_result() predicts incorrectly
         result_tensor = [[0.1,  0.9]]
         ground_truth = 0
         idx2label = {0: 'yogurt', 1: 'cheese'}
         prediction, correct_label, predicted_label = eval_result(result_tensor, ground_truth, idx2label)
-        self.assertNotEqual(True, prediction)
+        self.assertFalse(prediction)
         self.assertEqual('yogurt', correct_label)
-        self.assertNotEqual('yogurt', predicted_label)
+        self.assertEqual('cheese', predicted_label)
+
+        # Case 3: result_tensor is incorrect
+        caught = False
+        try:
+            result_tensor = [[0.1, 0.91]]
+            prediction, correct_label, predicted_label = eval_result(result_tensor, ground_truth, idx2label)
+        except InvalidInputError:
+            caught = True
+        self.assertTrue(caught)
         pass
 
     def test_extract_summary_tensors(self):
@@ -106,28 +127,38 @@ class TestTest(test_util.TensorFlowTestCase):
         pass
 
     def test_plot_confusion_matrix(self):
+        # square confusion matrix
         cm = np.array([[1,0],[0,1]])
         image = plot_confusion_matrix(cm, ['0','1'])
         self.assertIsNotNone(image)
-        pass
 
-    def test_get_test_files(self):
-        with tf.Graph().as_default():
-            with tf.Session() as sess:
-                jpeg_data, mul_image, decoded_image = add_jpeg_decoding(10, 10, 3, 0, 255)
-                label_path = os.path.join(current_dir, "test.txt")
-                label2idx, idx2label = create_label_lists(label_path)
-                file_dir = os.path.join(current_dir, "test_images/")
-                test_data = get_test_files(file_dir, label2idx, 1)
-                self.assertTrue(len(test_data) > 0)
+        # non-square confusion matrix
+        cm = np.array([[1, 0, 0], [0, 1, 0]])
+        caught = False
+        try:
+            plot_confusion_matrix(cm, ['0', '1'])
+        except InvalidInputError:
+            caught = True
+        self.assertTrue(caught)
+
+        # wrong number of classes
+        cm = np.array([[1, 0], [0, 1]])
+        caught = False
+        try:
+            image = plot_confusion_matrix(cm, ['0', '1', '2'])
+        except InvalidInputError:
+            caught = True
+        self.assertTrue(caught)
         pass
 
     def test_compute_sensitivity(self):
 
+        # case 1 class
         cm = np.array([[1]])
         sens = compute_sensitivity(cm)
         self.assertAllClose(sens, np.array([1.]))
 
+        # case 2 classes
         cm = np.array([[1,0],[0,1]])
         sens = compute_sensitivity(cm)
         self.assertAllClose(sens, np.array([1., 1.]))
@@ -135,14 +166,31 @@ class TestTest(test_util.TensorFlowTestCase):
         cm = np.array([[1,1],[0,1]])
         sens = compute_sensitivity(cm)
         self.assertAllClose(sens, np.array([.5, 1.]))
+
+        # case one empty class
+        cm = np.array([[1, 1], [0, 0]])
+        sens = compute_sensitivity(cm)
+        self.assertAllClose(sens, np.array([.5, -1]))
+
+        # non-square confusion matrix
+        cm = np.array([[1, 0, 0], [0, 1, 0]])
+        caught = False
+        try:
+            compute_sensitivity(cm)
+        except InvalidInputError:
+            caught = True
+        self.assertTrue(caught)
+
         pass
 
     def test_compute_precision(self):
 
+        # case 1 class
         cm = np.array([[1]])
         prec = compute_sensitivity(cm)
         self.assertAllClose(prec, np.array([1.]))
 
+        # case 2 classes
         cm = np.array([[1,0],[0,1]])
         prec = compute_sensitivity(cm)
         self.assertAllClose(prec, np.array([1., 1.]))
@@ -150,6 +198,20 @@ class TestTest(test_util.TensorFlowTestCase):
         cm = np.array([[1,1],[0,1]])
         prec = compute_precision(cm)
         self.assertAllClose(prec, np.array([1., .5]))
+
+        # case one empty class
+        cm = np.array([[0, 1], [0, 1]])
+        prec = compute_precision(cm)
+        self.assertAllClose(prec, np.array([-1, .5]))
+
+        # non-square confusion matrix
+        cm = np.array([[1, 0, 0], [0, 1, 0]])
+        caught = False
+        try:
+            compute_sensitivity(cm)
+        except InvalidInputError:
+            caught = True
+        self.assertTrue(caught)
 
         pass
 
