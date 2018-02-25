@@ -30,6 +30,9 @@ from sklearn.metrics import confusion_matrix
 import matplotlib
 import io
 import pickle
+from image_retraining.test_errors import *
+
+FLAGS = None
 
 def create_label_lists(label_path):
     """
@@ -70,6 +73,13 @@ def get_test_files(filedir, label2idx, n=5):
         num_files = len(filenames)
         if num_files > n:
             num_files = n
+
+        # Extract the last dir name from dirpath
+        last_dirname = os.path.basename(os.path.normpath(dirpath))
+        new_dir = os.path.join(filedir, last_dirname)
+        # Check if the directory has only one level below and not more than that
+        if(dirpath != new_dir):
+            raise InvalidDirectoryStructureError()
 
         for i in range(num_files):
             filepath = os.path.join(dirpath,filenames[i])
@@ -180,6 +190,8 @@ def add_jpeg_decoding(input_width, input_height, input_depth, input_mean,
     Tensors for the node to feed JPEG data into, and the output of the
       preprocessing steps.
   """
+  if not check_nonnegative_args(input_width, input_height, input_depth, input_std):
+    raise InvalidInputError('Input dimensions must be Nonnegative!')
   jpeg_data = tf.placeholder(tf.string, name='DecodeJPGInput')
   decoded_image = tf.image.decode_jpeg(jpeg_data, channels=input_depth)
   #decoded_image = tf_equalize(decoded_image)
@@ -195,6 +207,10 @@ def add_jpeg_decoding(input_width, input_height, input_depth, input_mean,
 
 
 def eval_result(result_tensor, ground_truth, idx2label):
+
+    if not check_confidence_tensor(result_tensor):
+        raise InvalidInputError('Result confidence tensor invalid!')
+
     result = np.argmax(result_tensor,axis=1)
     prediction = (ground_truth==result[0])
     correct_label = idx2label[ground_truth]
@@ -204,9 +220,11 @@ def eval_result(result_tensor, ground_truth, idx2label):
 
 
 def extract_summary_tensors(test_results, label2idx):
+
     confidences = []
     predictions = []
     truth = []
+
     for result in test_results:
         confidences.extend(result['class_confidences'])# of shape [batch_size, n_class]
         predictions.append(label2idx[result['predicted_label']])
@@ -225,13 +243,12 @@ def plot_confusion_matrix(cm, classes, normalize=False,
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.
     """
+    if (not check_confusion_matrix(cm)):
+        raise InvalidInputError('Confusion Matrix Invalid!')
+    if not (len(classes) == cm.shape[0]):
+        raise InvalidInputError('Number of classes incompatible with CM!')
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-        print("Normalized confusion matrix")
-    else:
-        print('Confusion matrix, without normalization')
-
-    print(cm)
 
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title)
@@ -262,18 +279,32 @@ def plot_confusion_matrix(cm, classes, normalize=False,
     return image
 
 def compute_sensitivity(cm):
+
+    if (not check_confusion_matrix(cm)):
+        raise InvalidInputError('Confusion Matrix Invalid!')
+
     cm = np.array(cm)
     relevant = np.sum(cm,axis=1)
     sensitivity = np.zeros(relevant.shape)
     for i in range(len(sensitivity)):
+        if relevant[i] == 0:
+            sensitivity[i] = -1
+            continue
         sensitivity[i] = cm[i,i]/relevant[i]
     return sensitivity
 
 def compute_precision(cm):
+
+    if (not check_confusion_matrix(cm)):
+        raise InvalidInputError('Confusion Matrix Invalid!')
+
     cm = np.array(cm)
     relevant = np.sum(cm,axis=0)
     precision = np.zeros(relevant.shape)
     for i in range(len(precision)):
+        if relevant[i] == 0:
+            precision[i] = -1
+            continue
         precision[i] = cm[i,i]/relevant[i]
     return precision
 
@@ -285,9 +316,9 @@ def plot_bar(x,heights, heights2=None, title='Bar Chart', xlabel='X', ylabel='Y'
         plt.bar(x-bar_width,heights2,bar_width)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-        
+
     plt.tight_layout()
-    
+
     # convert to tf image
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
@@ -299,7 +330,7 @@ def plot_bar(x,heights, heights2=None, title='Bar Chart', xlabel='X', ylabel='Y'
     return image
 
 
-def summarize_results(sess, label2idx, per_class_test_results):
+def summarize_results(sess, label2idx, per_class_test_results, print_results=False):
     # Check if directory already exists. If so, create a new one
     if tf.gfile.Exists(FLAGS.model_source_dir + '/test_results'):
         tf.gfile.DeleteRecursively(FLAGS.model_source_dir + '/test_results')
@@ -328,9 +359,9 @@ def summarize_results(sess, label2idx, per_class_test_results):
             summary_writer.add_summary(confidences_summary,i)
 
     # Confusion Matrix Plot
-    
+
     cm = confusion_matrix(truth, predictions)
-    
+
     cm_img = plot_confusion_matrix(cm, classes=label2idx.keys())
     summary_op = tf.summary.image("Confusion_Matrix", cm_img)
     confusion_summary = sess.run(summary_op)
@@ -343,7 +374,10 @@ def summarize_results(sess, label2idx, per_class_test_results):
     summary_op = tf.summary.image("Precision", prec_img)
     prec_summary = sess.run(summary_op)
     summary_writer.add_summary(prec_summary)
-    print('Precision: ',precision)
+    if print_results:
+        print('Confusion Matrix: ', cm)
+        print('Sensitivity: ', sensitivity)
+        print('Precision: ',precision)
 
     summary_writer.close()
 
@@ -355,13 +389,13 @@ def main(_):
 
     # Gather information about the model architecture we'll be using.
     model_info = create_model_info(FLAGS.model_source_dir)
-    
+
     graph, resized_input_tensor, bottleneck_tensor, result_tensor = create_model_graph(model_info)
-    
+
     # Look at the folder structure, and create lists of all the images.
     label2idx, idx2label = create_label_lists(FLAGS.label_path)
     test_data = get_test_files(FLAGS.test_file_dir, label2idx, n=FLAGS.num_test)
-    
+
     with tf.Session(graph=graph) as sess:
         if FLAGS.test_result_file is None:
 
@@ -385,23 +419,23 @@ def main(_):
             for test_datum in test_data:
                 if(count%FLAGS.notify_interval == 0):
                     print('processed {0}, {1} more to go'.format(count,len(test_data)-count) )
-                    
+
                 test_result = {}
-                    
+
                 # read in image data
                 image_data = gfile.FastGFile(test_datum[2], 'rb').read()
                 ground_truth = test_datum[1]
-                
+
                 # fetch resized image from the resizing network
                 resized_image_data, decoded_jpeg_data = run_resize_data(
                     sess, image_data, jpeg_data_tensor, resized_image_tensor, decoded_jpeg_tensor)
-                
+
                 # feed resized image into Inception network, output result
                 result, bottleneck = sess.run(
                     [result_tensor, bottleneck_tensor],
                     feed_dict={resized_input_tensor: resized_image_data}
                 )
-                    
+
                 # decode result tensor here since we don't have access to the prediction tensor
                 test_result['prediction'], test_result['correct_label'], test_result['predicted_label'] = \
                     eval_result(result, ground_truth, idx2label)
@@ -409,14 +443,14 @@ def main(_):
                 test_result['features'] = bottleneck[0]
                 per_class_test_results[test_result['correct_label']].append(test_result)
                 features.append(bottleneck[0])
-                        
+
                 count += 1
         else:
             print('Pre supplied test result file found, loading ... ')
-            pickled_test_result = open(FLAGS.test_result_file,'rb')  
+            pickled_test_result = open(FLAGS.test_result_file,'rb')
             per_class_test_results = pickle.load(pickled_test_result)
-                
-        summarize_results(sess ,label2idx, per_class_test_results)
+
+        summarize_results(sess ,label2idx, per_class_test_results, print=True)
     #
     # features = np.array(features)
     # print('feature shape: ', features.shape)
@@ -503,7 +537,7 @@ if __name__ == '__main__':
       help="""\
               directory to store the test results.\
               """)
-  
+
   parser.add_argument(
       '--test_result_file',
       type=str,
