@@ -25,3 +25,7 @@ def check_nonnegative_args(*args):
 class InvalidInputError(Exception):
     def __init__(self, message):
         self.message = message
+
+class InvalidDirectoryStructureError(Exception):
+    def __init__(self):
+        self.message = "hello world"

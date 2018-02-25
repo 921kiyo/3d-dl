@@ -30,7 +30,7 @@ from sklearn.metrics import confusion_matrix
 import matplotlib
 import io
 import pickle
-from test_errors import *
+from image_retraining.test_errors import *
 
 FLAGS = None
 
@@ -73,6 +73,13 @@ def get_test_files(filedir, label2idx, n=5):
         num_files = len(filenames)
         if num_files > n:
             num_files = n
+
+        # Extract the last dir name from dirpath
+        last_dirname = os.path.basename(os.path.normpath(dirpath))
+        new_dir = os.path.join(filedir, last_dirname)
+        # Check if the directory has only one level below and not more than that
+        if(dirpath != new_dir):
+            raise InvalidDirectoryStructureError()
 
         for i in range(num_files):
             filepath = os.path.join(dirpath,filenames[i])
@@ -309,9 +316,9 @@ def plot_bar(x,heights, heights2=None, title='Bar Chart', xlabel='X', ylabel='Y'
         plt.bar(x-bar_width,heights2,bar_width)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-        
+
     plt.tight_layout()
-    
+
     # convert to tf image
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
@@ -352,7 +359,7 @@ def summarize_results(sess, label2idx, per_class_test_results, print_results=Fal
             summary_writer.add_summary(confidences_summary,i)
 
     # Confusion Matrix Plot
-    
+
     cm = confusion_matrix(truth, predictions)
 
     cm_img = plot_confusion_matrix(cm, classes=label2idx.keys())
@@ -382,13 +389,13 @@ def main(_):
 
     # Gather information about the model architecture we'll be using.
     model_info = create_model_info(FLAGS.model_source_dir)
-    
+
     graph, resized_input_tensor, bottleneck_tensor, result_tensor = create_model_graph(model_info)
-    
+
     # Look at the folder structure, and create lists of all the images.
     label2idx, idx2label = create_label_lists(FLAGS.label_path)
     test_data = get_test_files(FLAGS.test_file_dir, label2idx, n=FLAGS.num_test)
-    
+
     with tf.Session(graph=graph) as sess:
         if FLAGS.test_result_file is None:
 
@@ -412,23 +419,23 @@ def main(_):
             for test_datum in test_data:
                 if(count%FLAGS.notify_interval == 0):
                     print('processed {0}, {1} more to go'.format(count,len(test_data)-count) )
-                    
+
                 test_result = {}
-                    
+
                 # read in image data
                 image_data = gfile.FastGFile(test_datum[2], 'rb').read()
                 ground_truth = test_datum[1]
-                
+
                 # fetch resized image from the resizing network
                 resized_image_data, decoded_jpeg_data = run_resize_data(
                     sess, image_data, jpeg_data_tensor, resized_image_tensor, decoded_jpeg_tensor)
-                
+
                 # feed resized image into Inception network, output result
                 result, bottleneck = sess.run(
                     [result_tensor, bottleneck_tensor],
                     feed_dict={resized_input_tensor: resized_image_data}
                 )
-                    
+
                 # decode result tensor here since we don't have access to the prediction tensor
                 test_result['prediction'], test_result['correct_label'], test_result['predicted_label'] = \
                     eval_result(result, ground_truth, idx2label)
@@ -436,13 +443,13 @@ def main(_):
                 test_result['features'] = bottleneck[0]
                 per_class_test_results[test_result['correct_label']].append(test_result)
                 features.append(bottleneck[0])
-                        
+
                 count += 1
         else:
             print('Pre supplied test result file found, loading ... ')
-            pickled_test_result = open(FLAGS.test_result_file,'rb')  
+            pickled_test_result = open(FLAGS.test_result_file,'rb')
             per_class_test_results = pickle.load(pickled_test_result)
-                
+
         summarize_results(sess ,label2idx, per_class_test_results, print=True)
     #
     # features = np.array(features)
@@ -530,7 +537,7 @@ if __name__ == '__main__':
       help="""\
               directory to store the test results.\
               """)
-  
+
   parser.add_argument(
       '--test_result_file',
       type=str,

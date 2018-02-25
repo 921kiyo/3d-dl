@@ -1,4 +1,4 @@
-# TODO For the relative path to work, you have to append the absolute path of your comment
+# For the relative path to work, you have to append the absolute path of your comment
 # import sys
 # sys.path.append("/homes/kk3317/Desktop/Ocado/Lobster/src")
 
@@ -10,25 +10,46 @@ import os
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
 from image_retraining.test import *
+from image_retraining.test_errors import *
 import image_retraining.test as test
 
 class TestTest(test_util.TensorFlowTestCase):
     def test_create_label_lists(self):
+        # Case 1: Correct path
         label_path = os.path.join(current_dir, "test.txt")
         label2idx, idx2label = create_label_lists(label_path)
         self.assertEqual({'apple': 0, 'banana': 1}, label2idx)
         self.assertEqual({0: 'apple', 1: 'banana'}, idx2label)
-        pass
+        # Case 2: Incorrect path
+        caught = False
+        try:
+            label_path = os.path.join("/", "test.txt")
+            create_label_lists(label_path)
+        except FileNotFoundError:
+            caught = True
+        self.assertTrue(caught)
 
     def test_get_test_files(self):
+        # Case1: Correct folder structure
         label_path = os.path.join(current_dir, "test.txt")
         label2idx, idx2label = create_label_lists(label_path)
         filedir = os.path.join(current_dir, "test_images")
         test_files = get_test_files(filedir, label2idx, 1)
         self.assertEqual([('banana', 1, os.path.join(filedir, 'banana','trump.jpg'))], test_files)
-        pass
+
+        # Case 2: Incorrect folder structure
+        caught = False
+        try:
+            label_path = os.path.join(current_dir, "test.txt")
+            label2idx, idx2label = create_label_lists(label_path)
+            filedir = os.path.join(current_dir, "hidden_folder")
+            test_files = get_test_files(filedir, label2idx, 1)
+        except InvalidDirectoryStructureError:
+            caught = True
+        self.assertTrue(caught)
 
     def test_create_model_info(self):
+        # No need to do partition test
         model_info = create_model_info(current_dir)
         self.assertEqual(current_dir, model_info['data_url'])
         self.assertEqual("final_result:0", model_info['result_tensor_name'])
@@ -41,15 +62,23 @@ class TestTest(test_util.TensorFlowTestCase):
         self.assertEqual(3, model_info['input_depth'])
         self.assertEqual(128, model_info['input_mean'])
         self.assertEqual(128, model_info['input_std'])
-        pass
 
     def test_create_model_graph(self):
+        # Case1: correct path
         model_info = create_model_info(current_dir)
         graph, resized_input_tensor, bottleneck_tensor, result_tensor = create_model_graph(model_info)
         self.assertIsNotNone(graph)
         self.assertIsNotNone(resized_input_tensor)
         self.assertIsNotNone(bottleneck_tensor)
         self.assertIsNotNone(result_tensor)
+        # Case 2: Incorrect path
+        caught = False
+        try:
+            model_info = create_model_info("/")
+            create_model_graph(model_info)
+        except tf.errors.NotFoundError:
+            caught = True
+        self.assertTrue(caught)
 
     def test_add_jpeg_decoding(self):
         with tf.Graph().as_default():
@@ -69,6 +98,7 @@ class TestTest(test_util.TensorFlowTestCase):
             self.assertTrue(caught)
 
     def test_run_resize_data(self):        # Build jpeg decoding and give it to run resized data
+        # No need to do partition test
         with tf.Graph().as_default():
             with tf.Session() as sess:
                 jpeg_data, mul_image, decoded_image = add_jpeg_decoding(10, 10, 3, 0, 255)
@@ -85,7 +115,6 @@ class TestTest(test_util.TensorFlowTestCase):
         pass
 
     def test_eval_result(self):
-
         # Case 1: eval_result() predicts correctly
         result_tensor = [[0.5180032,  0.4819968]]
         ground_truth = 0
@@ -115,6 +144,7 @@ class TestTest(test_util.TensorFlowTestCase):
         pass
 
     def test_extract_summary_tensors(self):
+        # No need to do partition test
         test_results = [
             {'class_confidences' : np.array([[0.6, 0.4]]), 'predicted_label': '0', 'correct_label': '1'},
             {'class_confidences' : np.array([[0.51, 0.49]]), 'predicted_label': '0', 'correct_label': '1'},
@@ -213,10 +243,6 @@ class TestTest(test_util.TensorFlowTestCase):
             caught = True
         self.assertTrue(caught)
 
-        pass
-
-    def test_plot_bar(self):
-        # Ong
         pass
 
     @tf.test.mock.patch.object(test, 'FLAGS', model_source_dir=os.path.join(current_dir, "outputs/"))
