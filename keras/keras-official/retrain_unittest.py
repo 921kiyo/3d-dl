@@ -81,11 +81,11 @@ class TestKerasRetrain(unittest.TestCase):
 
         # train
         model = rt.assemble_model()
-        rt.train_model(model,epochs=5)
+        rt.train_model(model,epochs=1,train_dir=train_dir,validation_dir=validation_dir)
 
         # evaluate
         # TODO: how many images does this generate
-        score = rt.evaluate(model)
+        score = rt.evaluate(model,test_dir=test_dir)
 
         print("accuracy on b/w images")
         print(score[1])
