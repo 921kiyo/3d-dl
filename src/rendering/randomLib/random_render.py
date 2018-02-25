@@ -3,7 +3,7 @@ metballs!
 """
 
 import random
-import bpy
+#import bpy
 import math
 
 def random_color():
@@ -19,6 +19,9 @@ def random_shell_coords(radius):
     :param radius: radius of shell
     :return: 3-tuple shell coordinate
     """
+    
+    if(radius<0):
+        raise ValueError("Cannot have negative radius")
     theta = math.radians(random.uniform(0.0, 360.0))
     phi = math.radians(random.uniform(0.0, 360.0))
     x = radius * math.cos(theta) * math.sin(phi)
@@ -38,6 +41,9 @@ def random_cartesian_coords(mux, muy, muz, sigma, lim):
     :param lim: cube limit width
     :return: 3-tuple gaussian random coordinate
     """
+    if(sigma<0 or lim<0):
+        raise ValueError("Cannot have negative sigma and cube width lim")
+    
     x = min(random.gauss(mux, sigma), lim)
     y = min(random.gauss(muy, sigma), lim)
     z = min(random.gauss(muz, sigma), lim)

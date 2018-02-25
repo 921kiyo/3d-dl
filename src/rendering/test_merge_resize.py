@@ -21,7 +21,7 @@ import Resize_background as rb
 import Merge_Images as mi
 import os,io, sys
 from PIL import Image
-import numpy as np
+
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.abspath(os.path.join(dir_path, os.pardir))
@@ -32,14 +32,14 @@ base_path = os.path.abspath(os.path.join(parent,os.pardir))
 class TestResizeImages(unittest.TestCase):
     
     def test_full_resize(self):
-        # should find seven images and resize them.
-        # One of them is too small and so should be ignored
-        # Final folder should have 6 images
-        # Tests that all images are found in any subfolder
-        # That too small images are ignored
-        # And the remaining images are of the right format
-        
-
+        """
+        should find seven images and resize them.
+        One of them is too small and so should be ignored
+        Final folder should have 6 images
+        Tests that all images are found in any subfolder
+        That too small images are ignored
+        And the remaining images are of the right format
+        """
         number_of_pixels = 300
         destination = base_path +'/test_data/rendering_tests/resized_images/'
         source_folder = base_path + '/test_data/rendering_tests/filter_database'
