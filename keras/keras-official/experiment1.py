@@ -20,9 +20,10 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import TensorBoard
 
 batch_size = 16
-class_count = len(next(os.walk('/vol/project/2017/530/g1753002/keras_test_data/train'))[1])
-train_data_dir = '/homes/mzw17/Downloads/train'
-validation_data_dir = '/homes/mzw17/Downloads/train'
+#class_count = len(next(os.walk('/vol/project/2017/530/g1753002/keras_test_data/train'))[1])
+class_count = 8
+train_data_dir = '/vol/project/2017/530/g1753002/matthew/8_class_data/qlone_training_images'
+validation_data_dir = '/vol/project/2017/530/g1753002/matthew/8_class_data/qlone_training_images'
 test_dir = '/vol/project/2017/530/g1753002/experiment2'
 
 # augmentation configuration for training
@@ -31,7 +32,10 @@ test_dir = '/vol/project/2017/530/g1753002/experiment2'
 train_datagen = ImageDataGenerator(
         rescale=1./255,
         shear_range=0.2,
-        zoom_range=0.2,
+        width_shift_range=0.3,
+        height_shift_range=0.3,
+        zoom_range=0.7,
+        rotation_range=170,
         horizontal_flip=True)
 
 # augmentation configuration for testing: only rescaling
@@ -127,7 +131,7 @@ model.fit_generator(
 
 
 model.save_weights('first_try.h5')  # always save your weights after training or during training
-model.save('experimental_model_1.h5')
+model.save('8_class_model.h5')
 
 score = model.evaluate_generator(test_generator)
 print(score)
