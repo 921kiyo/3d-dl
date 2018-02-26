@@ -67,8 +67,9 @@ def find_all_files(min_pixels, origin_folder, target_folder):
     """
     #count = 0
     for root, dirs, files in os.walk(origin_folder):
-        if(len(files)>0):
-            for image_name in files:
+        vis_files = [f for f in files if not f[0] == '.']
+        if(len(vis_files)>0):
+            for image_name in vis_files:
                 #print(root, dirs, image_name)
                 with Image.open(root+"/"+ image_name) as tested_image:
                         width, height = tested_image.size
