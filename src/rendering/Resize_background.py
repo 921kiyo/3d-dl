@@ -82,4 +82,4 @@ def find_all_files(min_pixels, origin_folder, target_folder):
             #return 
     return root
 
-roots= find_all_files(300,SUN_images_dir, resized_address)
+# roots= find_all_files(300,SUN_images_dir, resized_address)

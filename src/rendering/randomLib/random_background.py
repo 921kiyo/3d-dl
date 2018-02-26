@@ -2,6 +2,7 @@
 metballs!
 """
 
+import os
 import numpy as np
 from scipy.interpolate import interp2d
 from scipy.misc import imresize
@@ -61,7 +62,8 @@ def generate_images( save_as,pixels=300, range_min=0, range_max=10,):
         img = rand_background(np.random.randint(2,4),pixels)
         scaled = img*256
         true_img = Image.fromarray(scaled.astype('uint8'), mode = "RGB")
-        true_img.save(save_as+'background%d.png'%i)
+        filename = 'background%d.png'%i
+        true_img.save(os.path.join(save_as, filename))
         #plt.imshow(img)
         #plt.show()
 

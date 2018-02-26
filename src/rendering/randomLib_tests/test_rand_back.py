@@ -98,8 +98,8 @@ class TestResizeImages(unittest.TestCase):
         """
         
         
-        master_path = os.path.abspath(os.path.join(base_path,os.pardir))
-        test_path = master_path+"\\test_data\\rendering_tests\\rand_back\\"
+        master_path = os.path.abspath(os.path.join(base_path, os.pardir))
+        test_path = os.path.join(master_path, 'test_data', 'rendering_tests', 'rand_back')
         
         # Clean the folder
         for the_file in os.listdir(test_path):
@@ -109,7 +109,7 @@ class TestResizeImages(unittest.TestCase):
         self.assertEqual(0, len(os.listdir(test_path)))  
         
         
-        rb.generate_images(test_path,300, 0,5)
+        rb.generate_images(test_path, 300, 0,5)
         all_images = os.listdir(test_path)
         self.assertEqual(5, len(all_images))
         
