@@ -2,4 +2,7 @@
 include =
     # omit this single file
     BlenderAPI/*.py
-	testBlenderAPI/*.py
+    testBlenderAPI/*.py
+    Resize_background.py
+    Merge_Images.py
+    test_merge_resize.py
