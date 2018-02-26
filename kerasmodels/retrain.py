@@ -18,21 +18,6 @@ from keras.preprocessing.image import ImageDataGenerator
 # For Tensorboard
 from keras.callbacks import TensorBoard
 
-global_train_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/train'
-global_validation_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
-global_test_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
-
-# augmentation configuration for training
-# need to add salt&pepper noise, rotation, light
-# no horizontal flips for most classes
-train_datagen = ImageDataGenerator(
-        rescale=1./255)
-        # shear_range=0.2,
-        # zoom_range=0.2,
-        # horizontal_flip=Trumodele)
-
-# augmentation configuration for testing: only rescaling
-test_datagen = ImageDataGenerator(rescale=1./255)
 
 class KerasInception:
     model = None
@@ -72,40 +57,41 @@ class KerasInception:
 
         return model
 
-    def train(self,epochs=5,train_dir=None,validation_dir=None):
-        # if directories are provided, use them
-        # else, assume to use the global variable
-        if train_dir != None:
-            train_data_dir = train_dir
-        else:
-            train_data_dir = global_train_data_dir
-
-        if validation_dir != None:
-            validation_data_dir = validation_dir
-        else:
-            validation_data_dir = global_validation_data_dir
-
+    def train(self,train_dir,validation_dir,epochs=5):
         # model can only be built here after training directory is clear
         # (for number of classes)
-        self.model = self.assemble_model(train_data_dir)
+        self.model = self.assemble_model(train_dir)
 
-        print("using for training: ",train_data_dir)
-        print("using for validation: ",validation_data_dir)
+        print("Directory used for training: ",train_dir)
+        print("Directory used for validation: ",validation_dir)
+        # augmentation configuration for training
+        # need to add salt&pepper noise, rotation, light
+        # no horizontal flips for most classes
+        train_datagen = ImageDataGenerator(
+                rescale=1./255)
+                # shear_range=0.2,
+                # zoom_range=0.2,
+                # horizontal_flip=True)
+
+
         # this is a generator that will read pictures found in
-        # subfolers of train_data_dir, and indefinitely generate
+        # subfolers of train_dir, and indefinitely generate
         # batches of augmented image data and
         # rescales images to the specified target_size and splits them into batches
         # (instead of loading all images directly into GPU memory)
         train_generator = train_datagen.flow_from_directory(
-                train_data_dir,  # this is the target directory
+                train_dir,  # this is the target directory
                 target_size=(self.input_dim, self.input_dim),  # all images will be resized to input_dimxinput_dim
                 batch_size=self.batch_size,
                 class_mode='categorical')
 
+        # augmentation configuration for validation: only rescaling
+        validation_datagen = ImageDataGenerator(rescale=1./255)
+
         # generator for validation data
         # similar to above but based on different augmentation function (above)
-        validation_generator = test_datagen.flow_from_directory(
-                validation_data_dir,
+        validation_generator = validation_datagen.flow_from_directory(
+                validation_dir,
                 target_size=(self.input_dim, self.input_dim),
                 batch_size=self.batch_size,
                 class_mode='categorical')
@@ -122,20 +108,14 @@ class KerasInception:
                 validation_steps=800 // self.batch_size,
                 callbacks = [tensorboard])
 
-    def evaluate(self,test_dir=None):
-        # if directories are provided, use them
-        # else, assume to use the global variable
-        if test_dir != None:
-            test_data_dir = test_dir
-        else:
-            test_data_dir = global_test_data_dir
-
-        print("using for test: ",test_data_dir)
+    def evaluate(self,test_dir):
+        # augmentation configuration for testing: only rescaling
+        test_datagen = ImageDataGenerator(rescale=1./255)
 
         # generator for test data
         # similar to above but based on different augmentation function (above)
         test_generator = test_datagen.flow_from_directory(
-                test_data_dir,
+                test_dir,
                 target_size=(self.input_dim, self.input_dim),
                 batch_size=16,
                 class_mode='categorical')
@@ -144,22 +124,11 @@ class KerasInception:
         print('Test loss:', score[0])
         print('Test accuracy:', score[1])
 
-        # predictions = model.predict_generator(test_generator)
-        # print(predictions[20:])
         return score
 
     def save_model(self,name):
         self.model.save(name)
 
-
-# def main():
-#     model = assemble_model()
-#     train_model(model)
-#     evaluate(model)
-#     model.save_weights('first_try.h5')  # always save your weights after training or during training
-#     model.save('my_model.h5')
-
-# main()
 
 def main():
     train_dir = '/vol/project/2017/530/g1753002/keras_test_data/train'
@@ -171,33 +140,6 @@ def main():
     model.evaluate(test_dir=test_dir)
 
 main()
-
-# How to do predictions: https://datascience.stackexchange.com/questions/13894/how-to-get-predictions-with-predict-generator-on-streaming-test-data-in-keras
-
-# # predictions
-# print("==== Predictions ====")
-# # since we dont have the test data loaded yet, we use a generator (again) to load it in one by one and make a prediction for each
-# # see https://keras.io/models/sequential/#sequential-model-methods
-# # we cannot use the standard predict function, which only takes in one data point and makes a prediction for it
-# pred_datagen = ImageDataGenerator()
-#
-# pred_generator = pred_datagen.flow_from_directory(
-#         test_dir,
-#         target_size=(input_dim, input_dim),
-#         batch_size=16,
-#         class_mode=None,  # only data, no labels
-#         shuffle=False)  # keep data in same order as labels
-#
-# probabilities = model.predict_generator(pred_generator, 2000)
-#
-# print("==== Test Accuracy ====")
-# print(probabilities)
-#
-# # calculate accuracy
-
-
-
-
 
 
 
