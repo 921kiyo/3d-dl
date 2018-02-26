@@ -79,7 +79,7 @@ class KerasInception:
 
         return model
 
-    def train(self,train_dir,validation_dir,epochs=5):
+    def train(self,train_dir,validation_dir,epochs=5,fine_tune=False):
         # model can only be built here after training directory is clear
         # (for number of classes)
         self.model = self.assemble_model(train_dir)
@@ -128,6 +128,33 @@ class KerasInception:
                 validation_steps=800 // self.batch_size,
                 callbacks = [tensorboard])
 
+        if fine_tune:
+            self.fine_tune(train_generator)
+
+    def fine_tune(train_generator):
+        # we chose to train the top 2 inception blocks, i.e. we will freeze
+        # the first 249 layers and unfreeze the rest:
+        for layer in self.model.layers[:249]:
+           layer.trainable = False
+        for layer in self.model.layers[249:]:
+           layer.trainable = True
+
+        # we need to recompile the model for these modifications to take effect
+        # we use SGD with a low learning rate
+        from keras.optimizers import SGD
+        model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy'])
+
+        # we train our model again (this time fine-tuning the top 2 inception blocks
+        # alongside the top Dense layers
+        self.model.fit_generator(
+                train_generator,
+                steps_per_epoch=2000 // self.batch_size,
+                epochs=epochs,
+                validation_data=validation_generator,
+                validation_steps=800 // self.batch_size,
+                callbacks = [tensorboard])
+
+
     def evaluate(self,test_dir):
         # augmentation configuration for testing: only rescaling
         test_datagen = ImageDataGenerator(rescale=1./255)
@@ -157,13 +184,15 @@ def main():
     dense_layers = 1
     input_dim = 150
     batch_size = 16
+    fine_tune = True
 
     model = KerasInception(input_dim=input_dim,
                             batch_size=batch_size,
                             dense_layers=dense_layers)
 
     model.train(train_dir=train_dir,
-                validation_dir=validation_dir)
+                validation_dir=validation_dir,
+                fine_tune=fine_tune)
 
     model.evaluate(test_dir=test_dir)
 
