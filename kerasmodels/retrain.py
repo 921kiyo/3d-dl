@@ -13,6 +13,28 @@ from keras.preprocessing.image import ImageDataGenerator
 # For Tensorboard
 from keras.callbacks import TensorBoard
 
+# for add_salt_pepper_noise
+import numpy as np
+
+# Custom Image Augmentation Function
+def add_salt_pepper_noise(X_img):
+    # Need to produce a copy as to not modify the original image
+    X_img_copy = X_img.copy()
+    row, col, _ = X_img_copy.shape
+    salt_vs_pepper = 0.2
+    amount = 0.004
+    num_salt = np.ceil(amount * X_img_copy.size * salt_vs_pepper)
+    num_pepper = np.ceil(amount * X_img_copy.size * (1.0 - salt_vs_pepper))
+
+    # Add Salt noise
+    coords = [np.random.randint(0, i - 1, int(num_salt)) for i in X_img.shape]
+    X_img[coords[0], coords[1], :] = 1
+
+    # Add Pepper noise
+    coords = [np.random.randint(0, i - 1, int(num_pepper)) for i in X_img.shape]
+    X_img[coords[0], coords[1], :] = 0
+    return X_img_copy
+
 
 class KerasInception:
     model = None
@@ -63,10 +85,11 @@ class KerasInception:
         # need to add salt&pepper noise, rotation, light
         # no horizontal flips for most classes
         train_datagen = ImageDataGenerator(
-                rescale=1./255)
-                # shear_range=0.2,
-                # zoom_range=0.2,
-                # horizontal_flip=True)
+                rescale=1./255,
+                zoom_range=0.2,
+                preprocessing_function=add_salt_pepper_noise,
+                # rotation_range=180,
+                horizontal_flip=False)
 
 
         # this is a generator that will read pictures found in
