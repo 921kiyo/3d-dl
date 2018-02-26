@@ -1,6 +1,6 @@
 # For the relative path to work, you have to append the absolute path of your comment
-import sys
-sys.path.append("/homes/kk3317/Desktop/Ocado/Lobster/src")
+# import sys
+# sys.path.append("/homes/kk3317/Desktop/Ocado/Lobster/src")
 
 from tensorflow.python.framework import test_util
 import tensorflow as tf
