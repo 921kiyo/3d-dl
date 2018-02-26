@@ -81,9 +81,8 @@ class KerasInception:
 
         print("Directory used for training: ",train_dir)
         print("Directory used for validation: ",validation_dir)
+
         # augmentation configuration for training
-        # need to add salt&pepper noise, rotation, light
-        # no horizontal flips for most classes
         train_datagen = ImageDataGenerator(
                 rescale=1./255,
                 zoom_range=0.2,
@@ -91,11 +90,9 @@ class KerasInception:
                 # rotation_range=180,
                 horizontal_flip=False)
 
-
-        # this is a generator that will read pictures found in
-        # subfolers of train_dir, and indefinitely generate
-        # batches of augmented image data and
-        # rescales images to the specified target_size and splits them into batches
+        # generator that will read pictures found in train_dir, and
+        # indefinitely generate batches of augmented image data and
+        # rescales images to target_size, splits them into batches
         # (instead of loading all images directly into GPU memory)
         train_generator = train_datagen.flow_from_directory(
                 train_dir,  # this is the target directory
