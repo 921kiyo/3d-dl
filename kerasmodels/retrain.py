@@ -18,13 +18,9 @@ from keras.preprocessing.image import ImageDataGenerator
 # For Tensorboard
 from keras.callbacks import TensorBoard
 
-batch_size = 16
 global_train_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/train'
 global_validation_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
 global_test_data_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
-input_dim = 150
-
-class_count = len(next(os.walk(global_train_data_dir))[1])
 
 # augmentation configuration for training
 # need to add salt&pepper noise, rotation, light
@@ -33,110 +29,127 @@ train_datagen = ImageDataGenerator(
         rescale=1./255)
         # shear_range=0.2,
         # zoom_range=0.2,
-        # horizontal_flip=True)
+        # horizontal_flip=Trumodele)
 
 # augmentation configuration for testing: only rescaling
 test_datagen = ImageDataGenerator(rescale=1./255)
 
+class KerasInception:
+    model = None
+    input_dim = 0
+    batch_size = 0
 
-def assemble_model():
-    # base pre-trained model
-    base_model = InceptionV3(weights='imagenet', include_top=False)
+    def __init__(self,input_dim=150,batch_size=16):
+        self.input_dim = input_dim
+        self.batch_size = batch_size
 
-    # global spatial average pooling layer
-    x = base_model.output
+    def assemble_model(self,train_dir):
+        class_count = len(next(os.walk(train_dir))[1])
 
-    base_model.layers[-1].name = 'base_output'
+        # base pre-trained model
+        base_model = InceptionV3(weights='imagenet', include_top=False)
 
-    x = GlobalAveragePooling2D(name='pooling')(x)
-    # fully-connected layer
-    x = Dense(1024, activation='relu',name='dense')(x)
-    # logistic layer
-    predictions = Dense(class_count, activation='softmax',name='softmax')(x)
+        # global spatial average pooling layer
+        x = base_model.output
 
-    # this is the model we will train
-    model = Model(inputs=base_model.input, outputs=predictions)
+        base_model.layers[-1].name = 'base_output'
 
-    # we want to train top layers only
-    for layer in base_model.layers:
-        layer.trainable = False
+        x = GlobalAveragePooling2D(name='pooling')(x)
+        # fully-connected layer
+        x = Dense(1024, activation='relu',name='dense')(x)
+        # logistic layer
+        predictions = Dense(class_count, activation='softmax',name='softmax')(x)
 
-    # compile the model (*after* setting layers to non-trainable)
-    model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
+        # this is the model we will train
+        model = Model(inputs=base_model.input, outputs=predictions)
 
-    return model
+        # we want to train top layers only
+        for layer in base_model.layers:
+            layer.trainable = False
 
-def train_model(model,epochs=5,train_dir=None,validation_dir=None):
-    # if directories are provided, use them
-    # else, assume to use the global variable
-    if train_dir != None:
-        train_data_dir = train_dir
-    else:
-        train_data_dir = global_train_data_dir
+        # compile the model (*after* setting layers to non-trainable)
+        model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
 
-    if validation_dir != None:
-        validation_data_dir = validation_dir
-    else:
-        validation_data_dir = global_validation_data_dir
+        return model
 
-    print("using for training: ",train_data_dir)
-    print("using for validation: ",validation_data_dir)
-    # this is a generator that will read pictures found in
-    # subfolers of train_data_dir, and indefinitely generate
-    # batches of augmented image data and
-    # rescales images to the specified target_size and splits them into batches
-    # (instead of loading all images directly into GPU memory)
-    train_generator = train_datagen.flow_from_directory(
-            train_data_dir,  # this is the target directory
-            target_size=(input_dim, input_dim),  # all images will be resized to input_dimxinput_dim
-            batch_size=16,
-            class_mode='categorical')
+    def train(self,epochs=5,train_dir=None,validation_dir=None):
+        # if directories are provided, use them
+        # else, assume to use the global variable
+        if train_dir != None:
+            train_data_dir = train_dir
+        else:
+            train_data_dir = global_train_data_dir
 
-    # generator for validation data
-    # similar to above but based on different augmentation function (above)
-    validation_generator = test_datagen.flow_from_directory(
-            validation_data_dir,
-            target_size=(input_dim, input_dim),
-            batch_size=16,
-            class_mode='categorical')
+        if validation_dir != None:
+            validation_data_dir = validation_dir
+        else:
+            validation_data_dir = global_validation_data_dir
 
-    # log everything in tensorboard
-    tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
+        # model can only be built here after training directory is clear
+        # (for number of classes)
+        self.model = self.assemble_model(train_data_dir)
 
-    # train the model on the new data for a few epochs
-    model.fit_generator(
-            train_generator,
-            steps_per_epoch=2000 // batch_size,
-            epochs=epochs,
-            validation_data=validation_generator,
-            validation_steps=800 // batch_size,
-            callbacks = [tensorboard])
+        print("using for training: ",train_data_dir)
+        print("using for validation: ",validation_data_dir)
+        # this is a generator that will read pictures found in
+        # subfolers of train_data_dir, and indefinitely generate
+        # batches of augmented image data and
+        # rescales images to the specified target_size and splits them into batches
+        # (instead of loading all images directly into GPU memory)
+        train_generator = train_datagen.flow_from_directory(
+                train_data_dir,  # this is the target directory
+                target_size=(self.input_dim, self.input_dim),  # all images will be resized to input_dimxinput_dim
+                batch_size=self.batch_size,
+                class_mode='categorical')
 
-def evaluate(model,test_dir=None):
-    # if directories are provided, use them
-    # else, assume to use the global variable
-    if test_dir != None:
-        test_data_dir = test_dir
-    else:
-        test_data_dir = global_test_data_dir
+        # generator for validation data
+        # similar to above but based on different augmentation function (above)
+        validation_generator = test_datagen.flow_from_directory(
+                validation_data_dir,
+                target_size=(self.input_dim, self.input_dim),
+                batch_size=self.batch_size,
+                class_mode='categorical')
 
-    print("using for test: ",test_data_dir)
+        # log everything in tensorboard
+        tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 
-    # generator for test data
-    # similar to above but based on different augmentation function (above)
-    test_generator = test_datagen.flow_from_directory(
-            test_data_dir,
-            target_size=(input_dim, input_dim),
-            batch_size=16,
-            class_mode='categorical')
+        # train the model on the new data for a few epochs
+        self.model.fit_generator(
+                train_generator,
+                steps_per_epoch=2000 // self.batch_size,
+                epochs=epochs,
+                validation_data=validation_generator,
+                validation_steps=800 // self.batch_size,
+                callbacks = [tensorboard])
 
-    score = model.evaluate_generator(test_generator)
-    print('Test loss:', score[0])
-    print('Test accuracy:', score[1])
+    def evaluate(self,test_dir=None):
+        # if directories are provided, use them
+        # else, assume to use the global variable
+        if test_dir != None:
+            test_data_dir = test_dir
+        else:
+            test_data_dir = global_test_data_dir
 
-    # predictions = model.predict_generator(test_generator)
-    # print(predictions[20:])
-    return score
+        print("using for test: ",test_data_dir)
+
+        # generator for test data
+        # similar to above but based on different augmentation function (above)
+        test_generator = test_datagen.flow_from_directory(
+                test_data_dir,
+                target_size=(self.input_dim, self.input_dim),
+                batch_size=16,
+                class_mode='categorical')
+
+        score = self.model.evaluate_generator(test_generator)
+        print('Test loss:', score[0])
+        print('Test accuracy:', score[1])
+
+        # predictions = model.predict_generator(test_generator)
+        # print(predictions[20:])
+        return score
+
+    def save_model(self,name):
+        self.model.save(name)
 
 
 # def main():
@@ -147,6 +160,17 @@ def evaluate(model,test_dir=None):
 #     model.save('my_model.h5')
 
 # main()
+
+def main():
+    train_dir = '/vol/project/2017/530/g1753002/keras_test_data/train'
+    validation_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
+    test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
+
+    model = KerasInception(input_dim=150,batch_size=16)
+    model.train(train_dir=train_dir,validation_dir=validation_dir)
+    model.evaluate(test_dir=test_dir)
+
+main()
 
 # How to do predictions: https://datascience.stackexchange.com/questions/13894/how-to-get-predictions-with-predict-generator-on-streaming-test-data-in-keras
 
