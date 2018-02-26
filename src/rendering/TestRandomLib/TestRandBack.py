@@ -39,7 +39,7 @@ class TestResizeImages(unittest.TestCase):
             for color in result:
                 for line in color:
                     for value in line:
-                        self.assertTrue(value>=0 and value <=2.0)
+                        self.assertTrue(value>=0 and value <=1.0)
                         
     def test_random_image(self):
         """
@@ -54,7 +54,7 @@ class TestResizeImages(unittest.TestCase):
             for color in result:
                 for line in color:
                     for value in line:
-                        self.assertTrue(value>=0 and value <=2.0)
+                        self.assertTrue(value>=0 and value <=1.0)
     
     
     def test_mix(self):
@@ -72,7 +72,7 @@ class TestResizeImages(unittest.TestCase):
             for color in result:
                 for line in color:
                     for value in line:
-                        self.assertTrue(value>=0 and value <=2.0)
+                        self.assertTrue(value>=0 and value <=1.0)
         
             
     def test_rand_background(self):
@@ -88,7 +88,7 @@ class TestResizeImages(unittest.TestCase):
             for color in result:
                 for line in color:
                     for value in line:
-                        self.assertTrue(value>=0 and value <=2.0)
+                        self.assertTrue(value>=0 and value <=1.0)
                         
     
     def test_generate_images(self):
