@@ -6,8 +6,8 @@ import os
 import numpy as np
 from scipy.interpolate import interp2d
 from scipy.misc import imresize
-import rendering.randomLib.turbulence as turbulence
-import rendering.randomLib.metaballs as metaballs
+import rendering.RandomLib.turbulence as turbulence
+import rendering.RandomLib.metaballs as metaballs
 import matplotlib.pyplot as plt
 from PIL import Image
 
@@ -67,4 +67,4 @@ def generate_images( save_as,pixels=300, range_min=0, range_max=10,):
         #plt.imshow(img)
         #plt.show()
 
-#generate_images(base_path,0,10)
+#generate_images(base_path,300,0,2)

@@ -24,7 +24,7 @@ base_path = os.path.abspath(os.path.join(parent,os.pardir)) # folder /src
 if not (base_path in sys.path):
     sys.path.append(base_path)
 
-import rendering.randomLib.random_background as rb
+import rendering.RandomLib.random_background as rb
 
 n_of_tests = 5
 class TestResizeImages(unittest.TestCase):

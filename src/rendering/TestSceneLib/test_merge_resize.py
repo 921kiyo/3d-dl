@@ -17,15 +17,22 @@ way of testing the functions.
 """
 
 import unittest
-import Resize_background as rb
-import Merge_Images as mi
+
+
 import os,io, sys
 from PIL import Image
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.abspath(os.path.join(dir_path, os.pardir))
-base_path = os.path.abspath(os.path.join(parent,os.pardir))
+gr_parent = os.path.abspath(os.path.join(parent,os.pardir))
+base_path = os.path.abspath(os.path.join(gr_parent,os.pardir))
+
+if not (parent in sys.path):
+    sys.path.append(parent)
+    
+import SceneLib.Resize_background as rb
+import SceneLib.Merge_Images as mi
 
 #base_path = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/test_data/'
 
@@ -42,7 +49,7 @@ class TestResizeImages(unittest.TestCase):
         """
         number_of_pixels = 300
         destination = base_path +'/test_data/rendering_tests/resized_images/'
-        source_folder = base_path + '/test_data/rendering_tests/filter_database'
+        source_folder = base_path + '/test_data/rendering_tests/filter_database/'
         
         
         for the_file in os.listdir(destination):

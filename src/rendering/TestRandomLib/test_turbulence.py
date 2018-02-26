@@ -17,13 +17,14 @@ import sys, os
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.abspath(os.path.join(dir_path, os.pardir))
-base_path = os.path.abspath(os.path.join(parent,os.pardir)) # folder /src
+base_path = os.path.abspath(os.path.join(parent, os.pardir))
+
 
 if not (base_path in sys.path):
     sys.path.append(base_path)
 
 
-import rendering.randomLib.turbulence as tb
+import rendering.RandomLib.turbulence as tb
 
 class Testturbulence(unittest.TestCase):
     

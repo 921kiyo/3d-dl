@@ -24,7 +24,7 @@ if not (base_path in sys.path):
     sys.path.append(base_path)
 
 
-import rendering.randomLib.random_render as rr
+import rendering.RandomLib.random_render as rr
 
 class Testturbulence(unittest.TestCase):
     

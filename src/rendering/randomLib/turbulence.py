@@ -49,6 +49,3 @@ def turbulence_rgb(N):
         img[:,:,i] = turbulence(N,np.random.randint(min_depth,max_depth), np.random.randint(1,4))
     return img
 
-result = turbulence_rgb(300)
-plt.imshow(result)
-plt.show()
