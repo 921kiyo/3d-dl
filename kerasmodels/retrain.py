@@ -6,11 +6,6 @@ from keras import backend as K
 from time import *
 import os
 
-# many parts come from here: https://keras.io/applications/ see Fine-tune InceptionV3 on a new set of classes
-# some code from here: https://blog.keras.io/building-powerful-image-classification-models-using-very-little-data.html
-
-# here's a model which uses bottleneck caching: https://gist.github.com/Thimira/354b90d59faf8b0d758f74eae3a511e2
-# our current model doesnt cache, instead it generates a new distorted image every time
 
 # For Function to feed images to model and augment images at the same time
 from keras.preprocessing.image import ImageDataGenerator
@@ -140,36 +135,3 @@ def main():
     model.evaluate(test_dir=test_dir)
 
 main()
-
-
-
-# THIS CODE COULD BE ADDED BEFORE SAVING FOR SLIGHT IMPROVEMENT IN PERFORMANCE
-# # at this point, the top layers are well trained and we can start fine-tuning
-# # convolutional layers from inception V3. We will freeze the bottom N layers
-# # and train the remaining top layers.
-#
-# # let's visualize layer names and layer indices to see how many layers
-# # we should freeze:
-# for i, layer in enumerate(base_model.layers):
-#    print(i, layer.name)
-#
-# # we chose to train the top 2 inception blocks, i.e. we will freeze
-# # the first 249 layers and unfreeze the rest:
-# for layer in model.layers[:249]:
-#    layer.trainable = False
-# for layer in model.layers[249:]:
-#    layer.trainable = True
-#
-# # we need to recompile the model for these modifications to take effect
-# # we use SGD with a low learning rate
-# from keras.optimizers import SGD
-# model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy')
-#
-# # we train our model again (this time fine-tuning the top 2 inception blocks
-# # alongside the top Dense layers
-# model.fit_generator(
-#         train_generator,
-#         steps_per_epoch=2000 // batch_size,
-#         epochs=50,
-#         validation_data=validation_generator,
-#         validation_steps=800 // batch_size)
