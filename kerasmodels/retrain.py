@@ -40,10 +40,12 @@ class KerasInception:
     model = None
     input_dim = 0
     batch_size = 0
+    dense_layers = 0
 
-    def __init__(self,input_dim=150,batch_size=16):
+    def __init__(self,input_dim=150,batch_size=16,dense_layers=1):
         self.input_dim = input_dim
         self.batch_size = batch_size
+        self.dense_layers = dense_layers
 
     def assemble_model(self,train_dir):
         class_count = len(next(os.walk(train_dir))[1])
@@ -57,8 +59,11 @@ class KerasInception:
         base_model.layers[-1].name = 'base_output'
 
         x = GlobalAveragePooling2D(name='pooling')(x)
-        # fully-connected layer
-        x = Dense(1024, activation='relu',name='dense')(x)
+
+        for i in range(self.dense_layers):
+            # fully-connected layer
+            x = Dense(1024, activation='relu',name='dense'+str(i))(x)
+
         # logistic layer
         predictions = Dense(class_count, activation='softmax',name='softmax')(x)
 
@@ -149,9 +154,17 @@ def main():
     train_dir = '/vol/project/2017/530/g1753002/keras_test_data/train'
     validation_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
     test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
+    dense_layers = 1
+    input_dim = 150
+    batch_size = 16
 
-    model = KerasInception(input_dim=150,batch_size=16)
-    model.train(train_dir=train_dir,validation_dir=validation_dir)
+    model = KerasInception(input_dim=input_dim,
+                            batch_size=batch_size,
+                            dense_layers=dense_layers)
+
+    model.train(train_dir=train_dir,
+                validation_dir=validation_dir)
+
     model.evaluate(test_dir=test_dir)
 
 main()
