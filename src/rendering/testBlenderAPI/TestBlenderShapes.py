@@ -95,6 +95,12 @@ class BlenderShapeTest(unittest.TestCase):
         num_after = len(bpy.data.objects)
         self.assertEqual(num_after - num_before, 1)
 
+    def test_apply_texture(self):
+        test_dir = os.path.dirname(__file__)
+        test_file_path = os.path.join(test_dir, 'test_files', 'texture.jpg')
+        my_cube = BlenderCube()
+        success = my_cube.add_image_texture(test_file_path)
+        self.assertTrue(success)
 
 if __name__ == '__main__':
 
