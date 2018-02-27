@@ -102,6 +102,17 @@ class BlenderShapeTest(unittest.TestCase):
         success = my_cube.add_image_texture(test_file_path)
         self.assertTrue(success)
 
+        success = my_cube.add_image_texture(test_file_path, mapping='Generated')
+        self.assertTrue(success)
+
+        success = my_cube.add_image_texture(test_file_path, mapping='Invalid')
+        self.assertFalse(success)
+
+        test_file_path = os.path.join(test_dir, 'test_files', 'texture_does_not_exist.jpg')
+        success = my_cube.add_image_texture(test_file_path)
+        self.assertFalse(success)
+
+
 if __name__ == '__main__':
 
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(BlenderShapeTest)

@@ -25,15 +25,6 @@ class TestBlenderMixShaderNode(unittest.TestCase):
 
     def test_get_shader1_input(self):
 
-        # Option 1: getting a node tree from a cube:
-        # bpy.ops.mesh.primitive_cube_add(location=(1, 1, 1))
-        # cube = bpy.data.objects[0]
-        # mat = bpy.data.materials.new(name="Material")
-        # cube.data.materials.append(mat)
-        # cube.data.materials[0].use_nodes = True
-        # tree = cube.data.materials[0].node_tree
-        # print(tree)
-
         # Option 2: just creating a doe tree:
         bpy.ops.node.new_node_tree(type='ShaderNodeTree', name="NodeTree")
         tree = bpy.data.node_groups["NodeTree"]

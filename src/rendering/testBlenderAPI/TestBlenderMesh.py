@@ -55,6 +55,17 @@ class BlenderMeshTest(unittest.TestCase):
         # # Now the values should be changed to that which we have set them to
         self.assertEqual(list(colors), test_colors)
         self.assertEqual(roughness, 0.5)
+        caught = False
+        try:
+            self.my_cube.set_diffuse(color=(0.5, 0.5, -0.1, 2.0))
+        except InvalidInputError:
+            caught = True
+        try:
+            self.my_cube.set_diffuse(rough=-0.1)
+        except InvalidInputError:
+            caught = caught and True
+
+        self.assertTrue(caught)
 
     def test_set_gloss(self):
         test_colors = [0.5, 0.5, 0.5, 1.0]
@@ -125,6 +136,14 @@ class BlenderMeshTest(unittest.TestCase):
         self.assertAlmostEqual(my_cube.scale[0], math.pow(9.3/8.0, 1./3.))
         self.assertAlmostEqual(my_cube.scale[1], math.pow(9.3/8.0, 1./3.))
         self.assertAlmostEqual(my_cube.scale[2], math.pow(9.3/8.0, 1./3.))
+
+        caught = False
+        try:
+            self.my_cube.set_mesh_bbvol(-1.0)
+        except InvalidInputError:
+            caught = True
+
+        self.assertTrue(caught)
 
 
 if __name__ == '__main__':
