@@ -90,8 +90,20 @@ class BlenderMesh(BlenderObject):
         """
         if not 'node_imgtex' in self.nodes.keys():
             self.nodes['node_imgtex'] = BlenderImageTextureNode(self.node_tree)
+            self.links.new(self.nodes['node_imgtex'].get_color_output(), self.nodes['node_diff'].get_color_input())
+            self.links.new(self.nodes['node_imgtex'].get_color_output(), self.nodes['node_gloss'].get_color_input())
+
+        if mapping not in ['UV', 'Generated']:
+            return False
+
         if not 'node_texcoord' in self.nodes.keys():
             self.nodes['node_texcoord'] = BlenderTexCoordNode(self.node_tree)
+
+        if mapping == 'Generated':
+            vector = self.nodes['node_texcoord'].get_Generated_output()
+        else:
+            vector = self.nodes['node_texcoord'].get_UV_output()
+        self.links.new(vector, self.nodes['node_imgtex'].get_vector_input())
 
         try:
             img = bpy.data.images.load(image_path)
@@ -102,16 +114,6 @@ class BlenderMesh(BlenderObject):
         if not success:
             return success
 
-        if mapping not in ['UV', 'Generated']:
-            return False
-
-        if mapping == 'Generated':
-            vector = self.nodes['node_texcoord'].get_Generated_output()
-        else:
-            vector = self.nodes['node_texcoord'].get_UV_output()
-        self.links.new(vector, self.nodes['node_imgtex'].get_vector_input())
-        self.links.new(self.nodes['node_imgtex'].get_color_output(), self.nodes['node_diff'].get_color_input())
-        self.links.new(self.nodes['node_imgtex'].get_color_output(), self.nodes['node_gloss'].get_color_input())
         return True
 
     def toggle_smooth(self):
