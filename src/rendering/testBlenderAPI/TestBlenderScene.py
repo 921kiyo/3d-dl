@@ -92,6 +92,7 @@ class BlenderSceneTest(unittest.TestCase):
         new_subject_cube = bld.BlenderCube()
         self.my_scene.add_subject(new_subject_cube)
         self.assertEqual(self.my_scene.subject, new_subject_cube, "Subject (cube) was not successfully added to scene!")
+        self.my_scene.delete_all();
 
     def test_add_object_fixed(self):
         new_room = BlenderRoom(10)
@@ -100,6 +101,7 @@ class BlenderSceneTest(unittest.TestCase):
         self.assertTrue(self.my_scene.objects_fixed[0] == new_room, "Fixed object (room) was not successfully added to scene!")
         # Check that one and only one object was added
         self.assertEqual(len(self.my_scene.objects_fixed), 1, "Incorrect number of elements in objects_fixed list")
+        self.my_scene.delete_all();
 
     def test_add_object_unfixed(self):
         new_object_cube = bld.BlenderCube()
@@ -108,6 +110,7 @@ class BlenderSceneTest(unittest.TestCase):
         self.assertEqual(self.my_scene.objects_unfixed[0], new_object_cube, "Subject (cube) was not successfully added to scene!")
         # Check that one and only one object was added
         self.assertEqual(len(self.my_scene.objects_unfixed), 1, "Incorrect number of elements in objects_fixed list")
+        self.my_scene.delete_all();
 
     def test_render_creation(self):
         self.my_scene.set_render()
