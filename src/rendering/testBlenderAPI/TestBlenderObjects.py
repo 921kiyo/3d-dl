@@ -46,7 +46,7 @@ class BlenderObjectTest(unittest.TestCase):
         self.assertTrue('Empty' in bpy.data.objects.keys())
 
     def test_set_location(self):
-        
+
         # set random location
         obj = bld.BlenderTestObject()
         
@@ -61,6 +61,15 @@ class BlenderObjectTest(unittest.TestCase):
         # all negative
         obj.set_location(-2.0,-2.5,-1.0)
         self.assertEqual(obj.reference.location, mathU.Vector((-2.0,-2.5,-1.0)))
+
+    def test_set_invlid_location(self):
+
+        caught = False
+        try:
+            obj = bld.BlenderTestObject(location=(0,0))
+        except InvalidInputError:
+            caught = True
+        self.assertTrue(caught)
 
 
     def test_set_rotation(self):
@@ -105,10 +114,14 @@ class BlenderObjectTest(unittest.TestCase):
         self.assertTrue(caught)
 
     def test_delete(self):
+        # delete the first time
         obj = bld.BlenderTestObject()
         obj.delete()
         num_objects_after = len(bpy.data.objects)
         self.assertEqual(num_objects_after, 0)
+
+        # delete the second time
+        obj.delete()
 
 if __name__ == '__main__':
 
