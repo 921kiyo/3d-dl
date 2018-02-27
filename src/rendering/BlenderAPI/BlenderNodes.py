@@ -4,6 +4,7 @@ import random
 import mathutils as mathU
 import itertools
 
+from rendering.BlenderAPI.BlenderExceptions import *
 
 class BlenderNode(object):
     """
@@ -67,8 +68,8 @@ class BlenderMixShaderNode(BlenderNode):
         return self.get_output('Shader')
 
     def set_fac(self, fac):
-        if fac > 1.0:
-            fac = 1.0
+        if not check_scalar_normalized(fac):
+            raise InvalidInputError('mixing factor needs to be normalized!')
         self.set_input('Fac', fac)
 
 
@@ -98,13 +99,13 @@ class BlenderDiffuseBSDFNode(BlenderNode):
     def set_color(self, r, g, b, a):
         args = (r, g, b, a)
         for i, arg in enumerate(args):
-            if arg > 1.0:
-                args[i] = 1.0
+            if not check_scalar_normalized(arg):
+                raise InvalidInputError('color needs to be normalized!')
         self.set_input('Color', args)
 
     def set_roughness(self, r):
-        if r > 1.0:
-            r = 1.0
+        if not check_scalar_normalized(r):
+            raise InvalidInputError('roughness needs to be normalized!')
         self.set_input('Roughness', r)
 
     def get_bsdf_output(self):
@@ -126,13 +127,13 @@ class BlenderGlossyBSDFNode(BlenderNode):
     def set_color(self, r, g, b, a):
         args = (r, g, b, a)
         for i, arg in enumerate(args):
-            if arg > 1.0:
-                args[i] = 1.0
+            if not check_scalar_normalized(arg):
+                raise InvalidInputError('color needs to be normalized!')
         self.set_input('Color', args)
 
     def set_roughness(self, r):
-        if r > 1.0:
-            r = 1.0
+        if not check_scalar_normalized(r):
+            raise InvalidInputError('roughness needs to be normalized!')
         self.set_input('Roughness', r)
 
     def get_bsdf_output(self):
