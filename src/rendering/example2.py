@@ -51,7 +51,7 @@ cube.delete()
 #render_folder = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\object_poses\\Halloumi_white'
 ##render_folder = '/vol/bitbucket/who11/CO-530/data/Clinique/render'
 
-num_images = 1
+num_images = 30
 # required file paths for the script to run
 obj_path = 'D:\\PycharmProjects\\3DModels\\Tea\\Tea.obj'
 texture_path = 'D:\\PycharmProjects\\3DModels\\Tea\\Tea.jpg'
@@ -141,10 +141,10 @@ with open(csv_path,'w') as csvfile:
             coord_writer.writerow([x,y,z])
 
         # position cube close to subject
-        loc2 = loc
-        while list_distances(loc, loc2).magnitude < math.sqrt(3):
+        #loc2 = loc
+        #while list_distances(loc, loc2).magnitude < math.sqrt(3):
 
-            loc2 = bld.random_cartesian_coords(0.0,0.0,0.0,2.0,4.0)
+        #    loc2 = rnd.random_cartesian_coords(0.0,0.0,0.0,2.0,4.0)
         #cube.set_location(*loc2)
 
         # **********************  RENDER N SAVE **********************
