@@ -110,6 +110,7 @@ class BlenderSceneTest(unittest.TestCase):
         self.assertEqual(len(self.my_scene.objects_unfixed), 1, "Incorrect number of elements in objects_fixed list")
 
     def test_render_creation(self):
+        self.my_scene.set_render()
         camera = bld.BlenderCamera()
         bpy.context.scene.camera = camera.reference
         filepath = os.path.join(os.path.dirname(__file__), 'test_files' , 'render_test_1.png')
