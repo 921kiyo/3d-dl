@@ -113,7 +113,7 @@ def predict_api():
       my_hash = hashlib.sha1()
       my_hash.update(str(time.time()).encode('utf-8'))
       short_hash = my_hash.hexdigest()[:10]
-      filepath = '/homes/mzw17/Lobster/keras/keras-official/static/' + short_hash + '.jpg'
+      filepath = '/homes/mzw17/Lobster/kerasmodels/static/' + short_hash + '.jpg'
       #f.save('/homes/mzw17/Lobster/keras/keras-official/static/image.jpg')
       f.save(filepath)
 
