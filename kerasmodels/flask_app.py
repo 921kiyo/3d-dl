@@ -160,7 +160,7 @@ def predict_api():
 
     max_key = max(classified.items(), key=operator.itemgetter(1))[0]
 
-    max_value = dictionary.get(max_key, "Error")
+    max_value = classified.get(max_key, "Error")
 
     result = {"max_class": max_key, "max_value": max_value}
 
