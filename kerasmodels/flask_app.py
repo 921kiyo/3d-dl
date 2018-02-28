@@ -19,6 +19,7 @@ from flask import Flask, request, jsonify
 
 import hashlib
 import time
+import operator
 
 # initialize the input image shape (224x224 pixels) along with
 # the pre-processing function (this might need to be changed
@@ -155,9 +156,15 @@ def predict_api():
     print("Utterly Butterly: " + utterlybutterly_value + "%")
     print("Yogurt: " + yogurt_value + "%")
 
-    classified = {"Anchor": anchor_value, "Cheese": cheese_value, "Clinique": clinique_value, "Coconut Water": coconutwater_value, 'Neutrogena': neutrogena_value, 'Nivea': nivea_value, 'UtterlyButterly': utterlybutterly_value, 'Yogurt': yogurt_value}
+    classified = {"Anchor": anchor_value, "Cheese": cheese_value, "Clinique": clinique_value, "Coconut Water": coconutwater_value, "Neutrogena": neutrogena_value, "Nivea": nivea_value, "UtterlyButterly": utterlybutterly_value, "Yogurt": yogurt_value}
 
-    return jsonify(classified)
+    max_key = max(classified.iteritems(), key=operator.itemgetter(1))[0]
+
+    max_value = dictionary.get(max_key, "Error")
+
+    result = {"max_class": max_key, "max_value": max_value}
+
+    return jsonify(result)
     #return "Cheese: " + cheese_value + "% and " + "Yogurt: " + yogurt_value + "%"
     # '<!DOCTYPE html> <html> <body> Anchor: ' + anchor_value + '% <br> Cheese: ' + cheese_value + '% <br> Clinique: ' + clinique_value + '% <br> Coconut Water: ' + coconutwater_value + '% <br> Neutrogena: ' + neutrogena_value + '% <br> Nivea: ' + nivea_value + '% <br> UtterlyButterly: ' + utterlybutterly_value + '% <br>Yogurt: ' + yogurt_value + '% <br> <img src="'+ short_hash + '" width="500" height="500"> </body> </html>'
 
