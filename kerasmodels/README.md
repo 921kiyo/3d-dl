@@ -12,7 +12,7 @@ Helper Function:
 * get_augmentation_params(augmentation_mode)
 
 Example how you could use the API:
-'''
+```
   train_dir = '/vol/project/2017/530/g1753002/keras_test_data/train'
   validation_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
   test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
@@ -36,7 +36,7 @@ Example how you could use the API:
               augmentation_params=get_augmentation_params(augmentation_mode))
 
   model.evaluate(test_dir=test_dir)
-'''
+```
 
 ## Call Tensorboard:
-'''tensorboard --logdir=[logdirectory]'''
+```tensorboard --logdir=[logdirectory]```
