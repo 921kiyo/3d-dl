@@ -158,7 +158,7 @@ def predict_api():
 
     classified = {"Anchor": anchor_value, "Cheese": cheese_value, "Clinique": clinique_value, "Coconut Water": coconutwater_value, "Neutrogena": neutrogena_value, "Nivea": nivea_value, "UtterlyButterly": utterlybutterly_value, "Yogurt": yogurt_value}
 
-    max_key = max(classified.iteritems(), key=operator.itemgetter(1))[0]
+    max_key = max(classified.items(), key=operator.itemgetter(1))[0]
 
     max_value = dictionary.get(max_key, "Error")
 
