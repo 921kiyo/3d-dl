@@ -155,7 +155,7 @@ def predict():
     print("Utterly Butterly: " + utterlybutterly_value + "%")
     print("Yogurt: " + yogurt_value + "%")
 
-    classified = {'Anchor': anchor_value, "Cheese": cheese_value, "Clinique": clinique_value, "Coconut Water": coconutwater_value, 'Neutrogena', neutrogena_value, 'Nivea': nivea_value, 'UtterlyButterly': utterlybutterly_value, 'Yogurt': yogurt_value}
+    classified = {"Anchor": anchor_value, "Cheese": cheese_value, "Clinique": clinique_value, "Coconut Water": coconutwater_value, 'Neutrogena', neutrogena_value, 'Nivea': nivea_value, 'UtterlyButterly': utterlybutterly_value, 'Yogurt': yogurt_value}
 
     return jsonify(classified)
     #return "Cheese: " + cheese_value + "% and " + "Yogurt: " + yogurt_value + "%"
