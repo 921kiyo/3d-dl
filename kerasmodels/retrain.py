@@ -16,6 +16,9 @@ from keras.callbacks import TensorBoard
 # for add_salt_pepper_noise
 import numpy as np
 
+# for leaving the program in case of invalid arguments (sys.exit(0))
+import sys
+
 # Custom Image Augmentation Function
 def add_salt_pepper_noise(X_img):
     # Need to produce a copy as to not modify the original image
@@ -79,7 +82,8 @@ class KerasInception:
 
         return model
 
-    def train(self,train_dir,validation_dir,epochs=5,fine_tune=False):
+    def train(self,train_dir,validation_dir,epochs=5,fine_tune=False,
+            salt_pepper=False,augmentation_params={}):
         # model can only be built here after training directory is clear
         # (for number of classes)
         self.model = self.assemble_model(train_dir)
@@ -88,12 +92,16 @@ class KerasInception:
         print("Directory used for validation: ",validation_dir)
 
         # augmentation configuration for training
-        train_datagen = ImageDataGenerator(
-                rescale=1./255,
-                zoom_range=0.2,
-                preprocessing_function=add_salt_pepper_noise,
-                # rotation_range=180,
-                horizontal_flip=False)
+        if salt_pepper:
+            train_datagen = ImageDataGenerator(
+                    rescale=1./255,
+                    preprocessing_function=add_salt_pepper_noise,
+                    # horizontal_flip=False, # no flippin groceries
+                    **augmentation_params)
+        else:
+            train_datagen = ImageDataGenerator(
+                    rescale=1./255,
+                    **augmentation_params)
 
         # generator that will read pictures found in train_dir, and
         # indefinitely generate batches of augmented image data and
@@ -129,9 +137,9 @@ class KerasInception:
                 callbacks = [tensorboard])
 
         if fine_tune:
-            self.fine_tune(train_generator)
+            self.fine_tune(train_generator,validation_generator,tensorboard)
 
-    def fine_tune(train_generator):
+    def fine_tune(self,train_generator,validation_generator,tensorboard):
         # we chose to train the top 2 inception blocks, i.e. we will freeze
         # the first 249 layers and unfreeze the rest:
         for layer in self.model.layers[:249]:
@@ -142,14 +150,14 @@ class KerasInception:
         # we need to recompile the model for these modifications to take effect
         # we use SGD with a low learning rate
         from keras.optimizers import SGD
-        model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy'])
+        self.model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy'])
 
         # we train our model again (this time fine-tuning the top 2 inception blocks
         # alongside the top Dense layers
         self.model.fit_generator(
                 train_generator,
                 steps_per_epoch=2000 // self.batch_size,
-                epochs=epochs,
+                epochs=5,
                 validation_data=validation_generator,
                 validation_steps=800 // self.batch_size,
                 callbacks = [tensorboard])
@@ -176,6 +184,17 @@ class KerasInception:
     def save_model(self,name):
         self.model.save(name)
 
+def get_augmentation_params(augmentation_mode):
+    if augmentation_mode == 0:
+        return {}
+    elif augmentation_mode == 1:
+        return {'rotation_range': 180}
+    elif augmentation_mode == 2:
+        return {'rotation_range': 180, 'zoom_range': 0.2}
+    else:
+        print("UNKNOWN AUGMENTATION PARAMETER! (needs to be 0, 1 or 2)")
+        sys.exit(0)
+
 
 def main():
     train_dir = '/vol/project/2017/530/g1753002/keras_test_data/train'
@@ -184,7 +203,9 @@ def main():
     dense_layers = 1
     input_dim = 150
     batch_size = 16
-    fine_tune = True
+    fine_tune = False # if true, some of the inceptionV3 layers will be trained for 5 epochs at the end of training
+    add_salt_pepper_noise = False # if True, it adds SP noise
+    augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
 
     model = KerasInception(input_dim=input_dim,
                             batch_size=batch_size,
@@ -192,7 +213,10 @@ def main():
 
     model.train(train_dir=train_dir,
                 validation_dir=validation_dir,
-                fine_tune=fine_tune)
+                fine_tune=fine_tune,
+                epochs=5,
+                salt_pepper=add_salt_pepper_noise,
+                augmentation_params=get_augmentation_params(augmentation_mode))
 
     model.evaluate(test_dir=test_dir)
 
