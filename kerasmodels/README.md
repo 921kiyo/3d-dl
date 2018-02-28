@@ -1,4 +1,4 @@
-## KerasInception API
+## KerasInception How To
 
 Class:
 * KerasInception(self,input_dim=150,batch_size=16,dense_layers=1)
