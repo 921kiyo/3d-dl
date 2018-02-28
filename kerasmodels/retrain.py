@@ -206,6 +206,7 @@ def main():
     fine_tune = False # if true, some of the inceptionV3 layers will be trained for 5 epochs at the end of training
     add_salt_pepper_noise = False # if True, it adds SP noise
     augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
+    epochs = 5
 
     model = KerasInception(input_dim=input_dim,
                             batch_size=batch_size,
@@ -214,7 +215,7 @@ def main():
     model.train(train_dir=train_dir,
                 validation_dir=validation_dir,
                 fine_tune=fine_tune,
-                epochs=5,
+                epochs=epochs,
                 salt_pepper=add_salt_pepper_noise,
                 augmentation_params=get_augmentation_params(augmentation_mode))
 
