@@ -15,7 +15,7 @@ from keras.preprocessing.image import load_img
 import numpy as np
 # import argparse
 
-from flask import Flask, request
+from flask import Flask, request, jsonify
 
 import hashlib
 import time
@@ -100,6 +100,68 @@ def predict():
     print("Yogurt: " + yogurt_value + "%")
     #return "Cheese: " + cheese_value + "% and " + "Yogurt: " + yogurt_value + "%"
     return '<!DOCTYPE html> <html> <body> Anchor: ' + anchor_value + '% <br> Cheese: ' + cheese_value + '% <br> Clinique: ' + clinique_value + '% <br> Coconut Water: ' + coconutwater_value + '% <br> Neutrogena: ' + neutrogena_value + '% <br> Nivea: ' + nivea_value + '% <br> UtterlyButterly: ' + utterlybutterly_value + '% <br>Yogurt: ' + yogurt_value + '% <br> <img src="'+ short_hash + '" width="500" height="500"> </body> </html>'
+
+
+@app.route('/api', methods=['POST'])
+def predict():
+    # load the input image using the Keras helper utility while ensuring
+    # the image is resized to `inputShape`, the required input dimensions
+    # for the ImageNet pre-trained network
+    print("[INFO] loading and pre-processing image...")
+    if request.method == 'POST':
+      f = request.files['my_image']
+      my_hash = hashlib.sha1()
+      my_hash.update(str(time.time()).encode('utf-8'))
+      short_hash = my_hash.hexdigest()[:10]
+      filepath = '/homes/mzw17/Lobster/keras/keras-official/static/' + short_hash + '.jpg'
+      #f.save('/homes/mzw17/Lobster/keras/keras-official/static/image.jpg')
+      f.save(filepath)
+
+    # file = request.files['my_image']
+    # file.save(os.path.join(app.config['UPLOAD_FOLDER'], 'image.jpg'))
+    #image = load_img('/homes/mzw17/Lobster/keras/keras-official/static/image.jpg', target_size=inputShape)
+    image = load_img(filepath, target_size=inputShape)
+    image = img_to_array(image)
+
+    # our input image is now represented as a NumPy array of shape
+    # (inputShape[0], inputShape[1], 3) however we need to expand the
+    # dimension by making the shape (1, inputShape[0], inputShape[1], 3)
+    # so we can pass it through thenetwork
+    image = np.expand_dims(image, axis=0)
+
+    # pre-process the image using the appropriate function based on the
+    # model that has been loaded (i.e., mean subtraction, scaling, etc.)
+    image = preprocess(image)
+
+    # classify the image
+    print("[INFO] classifying image")
+    preds = model.predict(image)
+    print(preds)
+    anchor_value = '{:.3f}'.format(preds[0][0]*100)
+    cheese_value = '{:.3f}'.format(preds[0][1]*100)
+    clinique_value = '{:.3f}'.format(preds[0][2]*100)
+    coconutwater_value = '{:.3f}'.format(preds[0][3]*100)
+    neutrogena_value = '{:.3f}'.format(preds[0][4]*100)
+    nivea_value = '{:.3f}'.format(preds[0][5]*100)
+    utterlybutterly_value = '{:.3f}'.format(preds[0][6]*100)
+    yogurt_value = '{:.3f}'.format(preds[0][7]*100)
+
+    print("Anchor: " + anchor_value + "%")
+    print("Cheese: " + cheese_value + "%")
+    print("Clinique: " + clinique_value + "%")
+    print("Coconut Water: " + coconutwater_value + "%")
+    print("Neutrogena: " + neutrogena_value + "%")
+    print("Nivea: " + nivea_value + "%")
+    print("Utterly Butterly: " + utterlybutterly_value + "%")
+    print("Yogurt: " + yogurt_value + "%")
+
+    classified = {'Anchor': anchor_value, "Cheese": cheese_value, "Clinique": clinique_value, "Coconut Water": coconutwater_value, 'Neutrogena', neutrogena_value, 'Nivea': nivea_value, 'UtterlyButterly': utterlybutterly_value, 'Yogurt': yogurt_value}
+
+    return jsonify(classified)
+    #return "Cheese: " + cheese_value + "% and " + "Yogurt: " + yogurt_value + "%"
+    # '<!DOCTYPE html> <html> <body> Anchor: ' + anchor_value + '% <br> Cheese: ' + cheese_value + '% <br> Clinique: ' + clinique_value + '% <br> Coconut Water: ' + coconutwater_value + '% <br> Neutrogena: ' + neutrogena_value + '% <br> Nivea: ' + nivea_value + '% <br> UtterlyButterly: ' + utterlybutterly_value + '% <br>Yogurt: ' + yogurt_value + '% <br> <img src="'+ short_hash + '" width="500" height="500"> </body> </html>'
+
+
 
 @app.route('/123')
 def predict2():
