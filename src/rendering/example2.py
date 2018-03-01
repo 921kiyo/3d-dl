@@ -20,8 +20,8 @@ C.scene.render.engine = 'CYCLES'
 
 #boop = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/src/rendering/BlenderAPI'
 # above is for Pavel so he does not have to set it every time
-boop = 'D:/PycharmProjects/Lobster/src/'
-
+#boop = 'D:/PycharmProjects/Lobster/src/'
+boop = '/vol/bitbucket/who11/CO-530/Lobster/src'
 
 
 if not (boop in sys.path):
@@ -51,22 +51,24 @@ cube.delete()
 #render_folder = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\object_poses\\Halloumi_white'
 ##render_folder = '/vol/bitbucket/who11/CO-530/data/Clinique/render'
 
-num_images = 30
+num_images = 50
 # required file paths for the script to run
-obj_path = 'D:\\PycharmProjects\\3DModels\\Tea\\Tea.obj'
-texture_path = 'D:\\PycharmProjects\\3DModels\\Tea\\Tea.jpg'
-render_folder = 'D:\\PycharmProjects\\3DModels\\Tea\\render'
+obj_path = '/vol/project/2017/530/g1753002/3DModels/Halloumi/Halloumi.obj'
+texture_path = '/vol/project/2017/530/g1753002/3DModels/Halloumi/Halloumi.jpg'
+render_folder = '/vol/project/2017/530/g1753002/3DModels/Halloumi/render_30deg'
 
 csv_path = os.path.join(render_folder,'camera.csv')
 
 # Import the shape, and give texture image
-product = bld.BlenderImportedShape(obj_path=obj_path, location=(-1,0,-1) ,orientation=(0,0,1,0))
+product = bld.BlenderImportedShape(obj_path=obj_path, location=(-1,0,-1) ,orientation=(180,0,1,0))
 product.set_mesh_bbvol(8.0) # size of original cube
 product.add_image_texture(texture_path)
 product.set_diffuse(color=(1,0,0,1),rough=0.1)
 product.set_gloss(rough=0.1)
 product.set_mixer(0.3)
 product.toggle_smooth()
+product.set_location(0.,0.,0.)
+
 
 # Create a cube
 """
@@ -111,19 +113,20 @@ with open(csv_path,'w') as csvfile:
 
         # **********************  CAMERA **********************
         # random location of camera along shell coordinates
-        x,y,z = rnd.random_shell_coords(7.0)
+        x,y,z = rnd.random_shell_coord_cons(5.0, 30.0)
         cam.set_location(x,y,z)
         # face towards the centre
         cam.face_towards(0.0,0.0,0.0)
+        coord_writer.writerow([x,y,z])
 
         # randomize spin of camera
         spin_angle = random.uniform(0.0,360.0)
         cam.spin(spin_angle)
 
         # **********************  ACTION **********************
+        """
         loc = rnd.random_cartesian_coords(0.0,0.0,0.0,1.0,4.0)
         product.set_location(*loc)
-
         # flip subject 90 degrees along one axis, so every face has a 3rd chance to face the poles
         is_flip = random.randint(1,3)
         disp = list_distances((x,y,z), loc)
@@ -139,7 +142,7 @@ with open(csv_path,'w') as csvfile:
         else:
             product.set_rot(0,0,1,0)
             coord_writer.writerow([x,y,z])
-
+        """
         # position cube close to subject
         #loc2 = loc
         #while list_distances(loc, loc2).magnitude < math.sqrt(3):
