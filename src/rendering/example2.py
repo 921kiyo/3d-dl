@@ -28,7 +28,7 @@ if not (boop in sys.path):
     sys.path.append(boop)
 
 import rendering.BlenderAPI as bld
-import rendering.randomLib.random_render as rnd
+import rendering.RandomLib.random_render as rnd
 
 
 def list_distances(L1,L2):
