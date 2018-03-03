@@ -1,6 +1,6 @@
 import bpy
 import math
-import rendering.randomLib
+import rendering.RandomLib
 import mathutils as mathU
 import itertools
 
