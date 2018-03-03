@@ -113,7 +113,7 @@ with open(csv_path,'w') as csvfile:
 
         # **********************  CAMERA **********************
         # random location of camera along shell coordinates
-        x,y,z = rnd.random_shell_coord_cons(5.0, 30.0)
+        x,y,z = rnd.random_shell_coords_cons(5.0, 30.0)
         cam.set_location(x,y,z)
         # face towards the centre
         cam.face_towards(0.0,0.0,0.0)

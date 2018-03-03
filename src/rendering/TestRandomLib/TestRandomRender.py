@@ -24,7 +24,8 @@ if not (base_path in sys.path):
     sys.path.append(base_path)
 
 
-import rendering.RandomLib.random_render as rr
+import rendering.randomLib.random_render as rr
+import itertools as it
 
 class Testturbulence(unittest.TestCase):
     
@@ -82,8 +83,21 @@ class Testturbulence(unittest.TestCase):
         
         self.assertRaises(ValueError, rr.random_cartesian_coords, 0,0,1,-5,2)
         self.assertRaises(ValueError, rr.random_cartesian_coords, 0,0,1,5,-2)
-        
-        
-        
+
+    def test_random_shell_coords_cons(self):
+        """
+        Test that for any input radius, the generated points can be found
+        on a shell of that radius, centered on (0,0,0)
+        Tests for int and float and also for negative radius
+        """
+        test_radii=[2,0,3.5]
+        test_phi_sigma=[10.0, 30.0, 180.0]
+        for (r,s) in it.product(test_radii, test_phi_sigma):
+            x,y,z = rr.random_shell_coords_cons(r,s)
+            self.assertAlmostEqual(r, np.sqrt(x**2+y**2+z**2))
+
+        self.assertRaises(ValueError, rr.random_shell_coords_cons, -5, 30.0)
+        self.assertRaises(ValueError, rr.random_shell_coords_cons, 5, -30.0)
+
 if __name__=='__main__':
     unittest.main()
