@@ -67,6 +67,20 @@ def random_shell_coords_cons(radius, phi_sigma):
     z = radius * np.cos(phi)
     return x, y, z
 
+def random_lighting_conditions(blender_lamp, reference_location=(0.0, 0.0, 0.0), location_variance=1.0):
+    """
+    choose a random coordinate to face
+    choose a random brightness and size
+    both according to a gaussian distribution with mean (0,0,0), default brightness and size
+    and variance being 30% of mean (negative values of brightness and size will be evaluated
+    to zero)
+    """
+    loc = random_cartesian_coords(*reference_location, location_variance, 6.0)
+    blender_lamp.face_towards(*loc)
+    brightness = sample_trunc_norm(blender_lamp.default_brightness, 0.3 * blender_lamp.default_brightness, 0.0, None)
+    blender_lamp.set_brightness(brightness)
+    blender_lamp.set_size(random.gauss(blender_lamp.default_size, 0.3 * blender_lamp.default_size))
+
 def check_required_kwargs(kwarg_dict, kw_list):
     for kw in kw_list:
         if not kw in kwarg_dict.keys():
