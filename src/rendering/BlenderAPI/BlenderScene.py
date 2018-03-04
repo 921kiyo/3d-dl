@@ -97,39 +97,109 @@ class BlenderScene(object):
             lamp.delete()
 
 class BlenderRandomScene(BlenderScene):
-    def __init__(self, data):
-        super(BlenderRandomScene, self).__init__(data)
-        self.params = {}
+    def __init__(self, bpy):
+        self.setup_blender(bpy)
+        super(BlenderRandomScene, self).__init__(bpy.data.scenes[0])
         '''light params'''
-        self.params['num_lights']       = {'dist': 'uniformd', 'l': 1, 'r': 4}
-        self.params['light_dist']       = {'dist': 'trunc_norm', 'mu':5.0, 'sigmu': 1.0, 'l': 0.0, 'r': None}
-        self.params['light_energy']     = {'dist': 'trunc_norm', 'mu': 0.0, 'sigmu': 0.0, 'l': 0.0, 'r': None}
+        self.num_lamps     = rnd.UniformDDist(l=1,r=3)
+        self.lamp_loc      = rnd.UniformShellCoordinateDist()
+        self.lamp_distance = rnd.TruncNormDist(mu=5.0,sigmu=0.3,l=0.0,r=None)
+        self.lamp_energy   = rnd.TruncNormDist(mu=5000.,sigmu=0.3,l=0.0,r=None)
+        self.lamp_size     = rnd.TruncNormDist(mu=5., sigmu=0.3, l=0.0, r=None)
         '''camera params'''
-        self.params['camera_loc']       = {'regime': 'ring', 'params': []}
-        self.params['camera_radius']    = {'dist': 'trunc_norm', 'mu': 6.0, 'sigmu': 0.0, 'l': 0.0, 'r': None}
-        self.params['spin_angle']       = {'dist': 'uniformc', 'l':0.0, 'r':360.0}
-        self.params['camera_phi_sigma'] = {'dist': 'constant', 'k': 30.0}
-        self.params['subject_size']     = {'dist': 'trunc_norm', 'mu':8.0, 'sigmu': 0.0, 'l':0.0, 'r': None}
+        self.camera_loc     = rnd.CompositeShellRingDist(phi_sigma=10.0,normals='XZ')
+        self.camera_radius  = rnd.TruncNormDist(mu=6.0,sigmu=0.3,l=0.0,r=None)
+        self.spin_angle     = rnd.UniformCDist(l=0.0,r=360.0)
+        '''mesh params'''
+        self.subject_size   = rnd.NormDist(mu=8.0,sigma=0.0)
 
-    def set_num_lights(self, N):
-        self.num_lights = N
+        self.max_num_lamps = 0
+        self.set_num_lamps(self.num_lamps.r)
+
+    def setup_blender(self, bpy):
+        # set use GPU
+        C = bpy.context
+        C.user_preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
+        C.user_preferences.addons['cycles'].preferences.devices[0].use = True
+        C.scene.render.engine = 'CYCLES'
+
+        # delete the initial cube
+        cube = bld.BlenderCube(reference=bpy.data.objects['Cube'])
+        cube.delete()
+
+        # Fetch the camera and lamp
+        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+
+    def set_num_lamps(self, N):
+        if N == self.max_num_lamps:
+            return
+        self.max_num_lamps = N
         self.remove_lamps()
-        for i in range(self.num_lights):
+        for i in range(self.max_num_lamps):
             self.add_lamp(BlenderPoint(None))
 
     def load_subject_from_path(self, obj_path, texture_path):
         self.remove_subject()
         self.add_subject(BlenderImportedShape(obj_path=obj_path, location=(-1,0,-1) ,orientation=(180,0,1,0)))
-        self.subject.set_mesh_bbvol(self.params['subject_size']['mu'])  # size of original cube
+        self.subject.set_mesh_bbvol(self.subject_size.sample_param())  # size of original cube
         self.subject.add_image_texture(texture_path)
-        # texture appearance are fixe for now
+        # texture appearance are fixed for now
         self.subject.set_diffuse(color=(1, 0, 0, 1), rough=0.1)
         self.subject.set_gloss(rough=0.1)
         self.subject.set_mixer(0.3)
         self.subject.set_location(0., 0., 0.)
 
+    def set_attribute_distribution(self, attr, params):
+        self_dict = vars(self)
+        if attr not in self_dict.keys():
+            raise KeyError('Cannot find specified attribute!')
+        self_dict[attr] = DistributionFactory(**params)
 
+    def random_lighting_conditions(self, blender_lamp):
+        '''location'''
+        (x,y,z) = self.lamp_loc.sample_param()
+        r = self.lamp_distance.sample_param()
+        loc = (r*x, r*y, r*z)
+        blender_lamp.set_location(*loc)
+        '''energy'''
+        brightness = self.lamp_energy.sample_param()
+        blender_lamp.set_brightness(brightness)
+        size = self.lamp_size.sample_param()
+        blender_lamp.set_size(size)
 
+    def scene_setup(self):
+        # **********************  LIGHTS **********************
+        # turn everything off
+        for lamp in self.lamps:
+            lamp.turn_off()
 
+        # set random lighting conditions
+        self.set_num_lamps(self.num_lamps.r)
+        num_active_lamps = self.num_lamps.sample_param()
+        for l in range(num_active_lamps):
+            lamp = self.lamps[l]
+            lamp.turn_on()
+            self.random_lighting_conditions(lamp)
 
+        # **********************  CAMERA **********************
+        # random location of camera along shell coordinates
+        (x, y, z) = self.camera_loc.sample_param()
+        r = self.camera_radius.sample_param()
+        loc = (r*x, r*y, r*z)
+        self.camera.set_location(*loc)
+        # face towards the centre
+        self.camera.face_towards(0.0, 0.0, 0.0)
+
+        # randomize spin of camera
+        spin_angle = self.spin_angle.sample_param()
+        self.camera.spin(spin_angle)
+
+        # ********************* SUBJECT **********************
+        self.subject.set_mesh_bbvol(self.subject_size.sample_param())  # size of original cube
+
+    def render_to_file(self, filepath):
+        """Overrides parent class implementation"""
+        self.scene_setup()
+        self.data.render.filepath = filepath
+        bpy.ops.render.render(write_still=True)
 
