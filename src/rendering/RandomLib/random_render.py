@@ -51,6 +51,8 @@ def random_cartesian_coords(mux, muy, muz, sigma, lim):
 
 def sample_trunc_norm(mu, sigma, a = None , b = None):
     x = None
+    if not(a is None or b is None) and a > b:
+        raise ValueError('Lower bound greater than upper bound!')
     while((x is None) or ((a is not None) and (x < a)) or ((b is not None) and (x > b))):
         x = random.gauss(mu, sigma)
     return x
@@ -106,6 +108,9 @@ class TruncNormDist(Distribution):
         self.sigmu= sigmu
         self.l = l
         self.r = r
+
+        if not(self.l is None or self.r is None) and (self.l > self.r):
+            raise ValueError('Lower bound greater than upper bound!')
         super(TruncNormDist, self).__init__(**kwargs)
 
     def sample_param(self):
@@ -221,11 +226,11 @@ class UniformShellCoordinateDist(Distribution):
 def DistributionFactory(**params):
     check_required_kwargs(params, ['dist'])
     return {
-        'TruncNorm': TruncNormDist(**params),
-        'Norm': TruncNormDist(**params),
-        'UniformC': UniformCDist(**params),
-        'UniformD': UniformDDist(**params),
-        'ShellRingCoordinate': ShellRingCoordinateDist(**params),
-        'CompositeShellRing': CompositeShellRingDist(**params),
-        'UniformShellCoordinate': UniformShellCoordinateDist(**params)
-    }[params['dist']]
+        'TruncNorm': TruncNormDist,
+        'Norm': TruncNormDist,
+        'UniformC': UniformCDist,
+        'UniformD': UniformDDist,
+        'ShellRingCoordinate': ShellRingCoordinateDist,
+        'CompositeShellRing': CompositeShellRingDist,
+        'UniformShellCoordinate': UniformShellCoordinateDist
+    }[params['dist']](**params)

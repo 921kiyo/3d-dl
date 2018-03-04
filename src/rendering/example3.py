@@ -34,7 +34,7 @@ render_folder = 'D:\\PycharmProjects\\3DModels\\Tea\\render'
 csv_path = os.path.join(render_folder,'camera.csv')
 
 # instantiate scene
-scene = bld.BlenderRandomScene(bpy)
+scene = bld.BlenderRandomScene(bpy.data.scenes[0])
 
 # delete the initial cube
 cube = bld.BlenderCube(reference=bpy.data.objects['Cube'])

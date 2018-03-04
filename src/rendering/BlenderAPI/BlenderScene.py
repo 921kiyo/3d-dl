@@ -99,7 +99,7 @@ class BlenderScene(object):
 
 class BlenderRandomScene(BlenderScene):
     def __init__(self, data):
-        super(BlenderRandomScene, self).__init__(bpy.data.scenes[0])
+        super(BlenderRandomScene, self).__init__(data)
         '''light params'''
         self.num_lamps     = rnd.UniformDDist(l=1,r=3)
         self.lamp_loc      = rnd.UniformShellCoordinateDist()
@@ -139,7 +139,7 @@ class BlenderRandomScene(BlenderScene):
         self_dict = vars(self)
         if attr not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
-        self_dict[attr] = DistributionFactory(**params)
+        self_dict[attr] = rnd.DistributionFactory(**params)
 
     def set_attribute_distribution_params(self, attr, param, val):
         self_dict = vars(self)
