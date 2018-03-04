@@ -50,6 +50,8 @@ def random_cartesian_coords(mux, muy, muz, sigma, lim):
     return x, y, z
 
 def sample_trunc_norm(mu, sigma, a = None , b = None):
+    if sigma < 0:
+        raise ValueError("Cannot have negative variance!")
     x = None
     while((x is None) or ((x < a) and (a is not None)) or ((x > b) and (b is not None))):
         x = random.gauss(mu, sigma)
@@ -80,3 +82,109 @@ def random_lighting_conditions(blender_lamp, reference_location=(0.0, 0.0, 0.0),
     brightness = sample_trunc_norm(blender_lamp.default_brightness, 0.3 * blender_lamp.default_brightness, 0.0, None)
     blender_lamp.set_brightness(brightness)
     blender_lamp.set_size(random.gauss(blender_lamp.default_size, 0.3 * blender_lamp.default_size))
+
+def check_required_kwargs(kwarg_dict, kw_list):
+    for kw in kw_list:
+        if not kw in kwarg_dict.keys():
+            raise KeyError()
+
+class Distribution(object):
+    def __init__(self, **kwargs):
+        self.params = kwargs
+
+    def sample_param(self):
+        return NotImplementedError
+
+class TruncNormDist(Distribution):
+    def __init__(self, **kwargs):
+        check_required_kwargs(kwargs, ['mu','sigmu','l','r'])
+        super(TruncNormDist, self).__init__(**kwargs)
+
+    def sample_param(self):
+        return sample_trunc_norm(self.params['mu'], self.params['sigmu']*self.params['mu'], self.params['l'], self.params['r'])
+
+class NormDist(Distribution):
+    def __init__(self, **kwargs):
+        check_required_kwargs(kwargs, ['mu','sigma'])
+        super(NormDist, self).__init__(**kwargs)
+
+    def sample_param(self):
+        return random.gauss(self.params['mu'], self.params['sigma'])
+
+class UniformCDist(Distribution):
+    def __init__(self, **kwargs):
+        check_required_kwargs(kwargs, ['l','r'])
+        super(UniformCDist, self).__init__(**kwargs)
+
+    def sample_param(self):
+        return random.uniform(self.params['l'], self.params['r'])
+
+class UniformDDist(Distribution):
+    def __init__(self, **kwargs):
+        check_required_kwargs(kwargs, ['l','r'])
+        super(UniformDDist, self).__init__(**kwargs)
+
+    def sample_param(self):
+        return random.randint(self.params['l'], self.params['r'])
+
+class ShellRingCoordinateDist(Distribution):
+    def __init__(self, **kwargs):
+        check_required_kwargs(kwargs, ['phi_sigma', 'normal'])
+        super(ShellRingCoordinateDist, self).__init__(**kwargs)
+        if self.params['normal'] not in ['X','Y','Z']:
+            raise ValueError('Normal must be one of X, Y , or Z!')
+        self.theta = UniformCDist(l=0.0, r=360.0)
+        self.phi = TruncNormDist(mu=90.0,sigmu=self.params['phi_sigma']/90.0,l=0.0,r=180.0)
+
+    def sample_param(self):
+
+        theta = math.radians(self.theta.sample_param())
+        phi = math.radians(self.phi.sample_param())
+
+        x = np.cos(theta) * np.sin(phi)
+        y = np.sin(theta) * np.sin(phi)
+        z = np.cos(phi)
+
+        if self.params['normal'] == 'X':
+            coords = (-z, y, x)
+        elif self.params['normal'] == 'Y':
+            coords = (x, z, -y)
+        elif self.params['normal'] == 'Z':
+            coords = (x, y, z)
+
+        return coords
+
+class CompositeShellRingDist(Distribution):
+    def __init__(self, **kwargs):
+        check_required_kwargs(kwargs, ['phi_sigma', 'normals'])
+        super(CompositeShellRingDist, self).__init__(**kwargs)
+        if self.params['normals'] not in ['X','Y','Z','XY','XZ','YZ','XYZ']:
+            raise ValueError('Normal must be one of ["X","Y","Z","XY","XZ","YZ","XYZ"]!')
+        self.distributions = []
+        for normal in self.params['normals']:
+            self.distributions.append(ShellRingCoordinateDist(phi_sigma=self.params['phi_sigma'], normal=normal))
+        self.distribution_select = UniformDDist(l=0,r=len(self.distributions)-1)
+
+    def sample_param(self):
+        selection = self.distribution_select.sample_param()
+        selected_distribution = self.distributions[selection]
+        return selected_distribution.sample_param()
+
+
+class UniformShellCoordinateDist(Distribution):
+    def __init__(self, **kwargs):
+        self.theta = UniformCDist(l=0.0, r=360.0)
+        self.phi = TruncNormDist(mu=90.0,sigmu=30.0/90.0,l=0.0,r=180.0)
+        super(UniformShellCoordinateDist, self).__init__(**kwargs)
+
+    def sample_param(self):
+
+        theta = math.radians(self.theta.sample_param())
+        phi = math.radians(self.phi.sample_param())
+
+        x = np.cos(theta) * np.sin(phi)
+        y = np.sin(theta) * np.sin(phi)
+        z = np.cos(phi)
+
+        return (x,y,z)
+

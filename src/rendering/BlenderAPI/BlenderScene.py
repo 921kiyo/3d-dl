@@ -101,12 +101,13 @@ class BlenderRandomScene(BlenderScene):
         super(BlenderRandomScene, self).__init__(data)
         self.params = {}
         '''light params'''
-        self.params['num_lights']       = {'dist': 'uniform_d', 'l': 1, 'r': 4}
+        self.params['num_lights']       = {'dist': 'uniformd', 'l': 1, 'r': 4}
         self.params['light_dist']       = {'dist': 'trunc_norm', 'mu':5.0, 'sigmu': 1.0, 'l': 0.0, 'r': None}
         self.params['light_energy']     = {'dist': 'trunc_norm', 'mu': 0.0, 'sigmu': 0.0, 'l': 0.0, 'r': None}
         '''camera params'''
+        self.params['camera_loc']       = {'regime': 'ring', 'params': []}
         self.params['camera_radius']    = {'dist': 'trunc_norm', 'mu': 6.0, 'sigmu': 0.0, 'l': 0.0, 'r': None}
-        self.params['spin_angle']       = {'dist': 'uniform_c', 'l':0.0, 'r':360.0}
+        self.params['spin_angle']       = {'dist': 'uniformc', 'l':0.0, 'r':360.0}
         self.params['camera_phi_sigma'] = {'dist': 'constant', 'k': 30.0}
         self.params['subject_size']     = {'dist': 'trunc_norm', 'mu':8.0, 'sigmu': 0.0, 'l':0.0, 'r': None}
 
@@ -127,17 +128,6 @@ class BlenderRandomScene(BlenderScene):
         self.subject.set_mixer(0.3)
         self.subject.set_location(0., 0., 0.)
 
-    def sample_param_trunc_norm(self, params):
-        return rnd.sample_trunc_norm(params['mu'], params['sigma'], params['l'], params['r'])
-
-    def sample_param_uniformc(self, params):
-        return rnd.uniform(params['l'], params['r'])
-
-    def sample_param_uniformd(self, params):
-        return rnd.randint(params['l'], params['r'])
-
-    def sample_param_norm(self, params):
-        return random.gauss(params['mu'], params['sigma'])
 
 
 
