@@ -95,10 +95,10 @@ class BlenderScene(object):
     def remove_lamps(self):
         for lamp in self.lamps:
             lamp.delete()
+        self.lamps = []
 
 class BlenderRandomScene(BlenderScene):
-    def __init__(self, bpy):
-        self.setup_blender(bpy)
+    def __init__(self, data):
         super(BlenderRandomScene, self).__init__(bpy.data.scenes[0])
         '''light params'''
         self.num_lamps     = rnd.UniformDDist(l=1,r=3)
@@ -115,20 +115,6 @@ class BlenderRandomScene(BlenderScene):
 
         self.max_num_lamps = 0
         self.set_num_lamps(self.num_lamps.r)
-
-    def setup_blender(self, bpy):
-        # set use GPU
-        C = bpy.context
-        C.user_preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
-        C.user_preferences.addons['cycles'].preferences.devices[0].use = True
-        C.scene.render.engine = 'CYCLES'
-
-        # delete the initial cube
-        cube = bld.BlenderCube(reference=bpy.data.objects['Cube'])
-        cube.delete()
-
-        # Fetch the camera and lamp
-        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
 
     def set_num_lamps(self, N):
         if N == self.max_num_lamps:
@@ -154,6 +140,15 @@ class BlenderRandomScene(BlenderScene):
         if attr not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
         self_dict[attr] = DistributionFactory(**params)
+
+    def set_attribute_distribution_params(self, attr, param, val):
+        self_dict = vars(self)
+        if attr not in self_dict.keys():
+            raise KeyError('Cannot find specified attribute!')
+        dist_dict = vars(self_dict[attr])
+        if param not in dist_dict.keys():
+            raise KeyError('Cannot find specified attribute!')
+        dist_dict[param] = val
 
     def random_lighting_conditions(self, blender_lamp):
         '''location'''
@@ -203,3 +198,25 @@ class BlenderRandomScene(BlenderScene):
         self.data.render.filepath = filepath
         bpy.ops.render.render(write_still=True)
 
+    def clear_logs(self):
+
+        self_dict = vars(self)
+        for attr_name in self_dict.keys():
+            attr = self_dict[attr_name]
+            if hasattr(attr, 'sample_param'):
+                attr.clear_log()
+
+    def retrieve_logs(self, clear=True):
+
+        logs = {}
+        self_dict = vars(self)
+
+        for attr_name in self_dict.keys():
+            attr = self_dict[attr_name]
+            if hasattr(attr, 'sample_param'):
+                logs[attr_name] = attr.log
+
+        if clear:
+            self.clear_logs()
+
+        return logs

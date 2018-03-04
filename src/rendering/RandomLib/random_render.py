@@ -74,10 +74,17 @@ def check_required_kwargs(kwarg_dict, kw_list):
 
 class Distribution(object):
     def __init__(self, **kwargs):
+        self.log = []
         pass
 
     def sample_param(self):
         return NotImplementedError
+
+    def log_param(self, val):
+        self.log.append(val)
+
+    def clear_log(self):
+        self.log = []
 
 class TruncNormDist(Distribution):
     def __init__(self, mu=None, sigmu=None, l=None, r=None, **kwargs):
@@ -88,7 +95,9 @@ class TruncNormDist(Distribution):
         super(TruncNormDist, self).__init__(**kwargs)
 
     def sample_param(self):
-        return sample_trunc_norm(self.mu, self.sigmu*self.mu, self.l, self.r)
+        y = sample_trunc_norm(self.mu, self.sigmu*self.mu, self.l, self.r)
+        self.log_param(y)
+        return y
 
 class NormDist(Distribution):
     def __init__(self, mu=None, sigma=None, **kwargs):
@@ -97,7 +106,9 @@ class NormDist(Distribution):
         super(NormDist, self).__init__(**kwargs)
 
     def sample_param(self):
-        return random.gauss(self.mu, self.sigma)
+        y = random.gauss(self.mu, self.sigma)
+        self.log_param(y)
+        return y
 
 class UniformCDist(Distribution):
     def __init__(self, l=None, r=None, **kwargs):
@@ -108,7 +119,9 @@ class UniformCDist(Distribution):
         super(UniformCDist, self).__init__(**kwargs)
 
     def sample_param(self):
-        return random.uniform(self.l, self.r)
+        y = random.uniform(self.l, self.r)
+        self.log_param(y)
+        return y
 
 class UniformDDist(Distribution):
     def __init__(self, l=None, r=None, **kwargs):
@@ -119,7 +132,9 @@ class UniformDDist(Distribution):
         super(UniformDDist, self).__init__(**kwargs)
 
     def sample_param(self):
-        return random.randint(self.l, self.r)
+        y = random.randint(self.l, self.r)
+        self.log_param(y)
+        return y
 
 class ShellRingCoordinateDist(Distribution):
     def __init__(self, phi_sigma = None, normal = None, **kwargs):
@@ -147,6 +162,8 @@ class ShellRingCoordinateDist(Distribution):
         elif self.normal == 'Z':
             coords = (x, y, z)
 
+        self.log_param(coords)
+
         return coords
 
 class CompositeShellRingDist(Distribution):
@@ -164,7 +181,9 @@ class CompositeShellRingDist(Distribution):
     def sample_param(self):
         selection = self.distribution_select.sample_param()
         selected_distribution = self.distributions[selection]
-        return selected_distribution.sample_param()
+        coords = selected_distribution.sample_param()
+        self.log_param(coords)
+        return coords
 
 
 class UniformShellCoordinateDist(Distribution):
@@ -181,8 +200,9 @@ class UniformShellCoordinateDist(Distribution):
         x = np.cos(theta) * np.sin(phi)
         y = np.sin(theta) * np.sin(phi)
         z = np.cos(phi)
-
-        return (x,y,z)
+        coords = (x,y,z)
+        self.log_param(coords)
+        return coords
 
 def DistributionFactory(**params):
     check_required_kwargs(params, ['dist'])
