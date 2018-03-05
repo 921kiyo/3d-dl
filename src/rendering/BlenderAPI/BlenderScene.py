@@ -99,9 +99,23 @@ class BlenderScene(object):
 
 class BlenderRandomScene(BlenderScene):
     """
-    Subclass of blender scene. Control random variables associated with 
+    Subclass of blender scene. Controls random variables associated with
+    rendering by assigning it a distribution instead of a fixed constant
+    value. When rendering, it samples from this distribution to generate
+    the scene.
+
+    There are methods to change these distributions on the fly, as well
+    as change the distribution parameters, namely the set_attribute_distribution
+    and set_attribute_distribution_params method.
     """
     def __init__(self, data):
+        """
+        Initialization method. Here are listed all the default distributions
+        for each variable. Note that there may be incompatible variable -
+        distribution combos, since some distributions are specified over
+        vectors.
+        :param data: bpy scene data structure
+        """
         super(BlenderRandomScene, self).__init__(data)
         '''light params'''
         self.num_lamps     = rnd.UniformDDist(l=1,r=3)
@@ -139,12 +153,46 @@ class BlenderRandomScene(BlenderScene):
         self.subject.set_location(0., 0., 0.)
 
     def set_attribute_distribution(self, attr, params):
+        """
+
+        Sets the distribution of attribute specified by attr. params is
+        a dictionary containig the following:
+
+        - 'dist': str ( this gives the distribution name which will go
+        into a lookup table in random_render.DIstributionFactory, and will
+        return a distribution object identified by the name. Look in
+        RandomLib.random_render.py for a full list)
+        - everything else will be a dict of kwargs that the constructor for
+        the specified distribution expects.
+
+        For instance, to assign a uniform distribution to lamp_energy with
+        lower bound 500.0 and upper bound 1000.0. Since the constructor for
+        UniformCDist is: "def __init__(self, l=None, r=None, **kwargs)", and
+        DistributionFactory maps "UniformD" to that distribution, we should
+        specify param as:
+        {'dist':'UniformD', 'l':500.0, 'r':1000.0}
+
+        :param attr: attribute name
+        :param params: required params to specify distribution
+        :return: None
+        """
         self_dict = vars(self)
         if attr not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
         self_dict[attr] = rnd.DistributionFactory(**params)
 
     def set_attribute_distribution_params(self, attr, param, val):
+        """
+        Sets the parameter of the distribution of an attribute attr.
+        param has to exist in the distribution that is is associated with
+        attr. For instance, if attr is assigned a UniformCDist, and
+        is asked to change the param "mu", this will throw a KeyError.
+
+        :param attr: Attribute name to change
+        :param param: Parameter name to change
+        :param val: Value to set parameter to
+        :return: None
+        """
         self_dict = vars(self)
         if attr not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
