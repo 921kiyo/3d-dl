@@ -50,6 +50,16 @@ def random_cartesian_coords(mux, muy, muz, sigma, lim):
     return x, y, z
 
 def sample_trunc_norm(mu, sigma, a = None , b = None):
+    """
+    Sample from a truncated normal distribution. The distribution of x is
+    normal conditional on a<=x<=b. a = None means a = -inf, b = None means
+    b = inf
+    :param mu: mean of the normal
+    :param sigma: standard deviation of the normal
+    :param a: lower bound, None means -infinity
+    :param b: upper bound, None means infinity
+    :return: x, a sample
+    """
     x = None
     if not(a is None or b is None) and a > b:
         raise ValueError('Lower bound greater than upper bound!')
@@ -89,6 +99,11 @@ def check_required_kwargs(kwarg_dict, kw_list):
             raise KeyError()
 
 class Distribution(object):
+    """
+    Base class for distribution classes. This provides a required interface:
+    A sample_param() must be provided based on the sampling algorithm of the
+    distribution. log_param can be called to log sampled values.
+    """
     def __init__(self, **kwargs):
         self.log = []
         pass
@@ -103,7 +118,19 @@ class Distribution(object):
         self.log = []
 
 class TruncNormDist(Distribution):
+    """
+    The class represents the Truncated Normal distribution. The distribution of
+    x is normal conditional on a<=x<=b. a = None means a = -inf, b = None means
+    b = inf
+    """
     def __init__(self, mu=None, sigmu=None, l=None, r=None, **kwargs):
+        """
+        :param mu: Mean of truncated normal
+        :param sigmu: Ratio of standard deviation over mean
+        :param l: lower bound of distribution l=None means l=-Inf
+        :param r: upper bound of distribution r=None means r=Inf
+        :param kwargs: other kwargs to be passed on to parent class
+        """
         self.mu = mu
         self.sigmu= sigmu
         self.l = l
@@ -114,23 +141,47 @@ class TruncNormDist(Distribution):
         super(TruncNormDist, self).__init__(**kwargs)
 
     def sample_param(self):
+        """
+        Implementation of abstract method sample_param
+        :return: sample from this specified distribution
+        """
         y = sample_trunc_norm(self.mu, self.sigmu*self.mu, self.l, self.r)
         self.log_param(y)
         return y
 
 class NormDist(Distribution):
+    """
+    Regular normal distribution
+    """
     def __init__(self, mu=None, sigma=None, **kwargs):
+        """
+        :param mu: mean
+        :param sigma: standard deviation
+        :param kwargs: other kwargs to be passed on to parent class
+        """
         self.mu = mu
         self.sigma = sigma
         super(NormDist, self).__init__(**kwargs)
 
     def sample_param(self):
+        """
+        Implementation of abstract method sample_param
+        :return: sample from this specified distribution
+        """
         y = random.gauss(self.mu, self.sigma)
         self.log_param(y)
         return y
 
 class UniformCDist(Distribution):
+    """
+    Continuous uniform distribution on an interval
+    """
     def __init__(self, l=None, r=None, **kwargs):
+        """
+        :param l: Lower bound of distribution
+        :param r: Upper bound of distribution
+        :param kwargs: other kwargs to be passed on to parent class
+        """
         self.l = l
         self.r = r
         if self.l > self.r:
@@ -138,12 +189,24 @@ class UniformCDist(Distribution):
         super(UniformCDist, self).__init__(**kwargs)
 
     def sample_param(self):
+        """
+        Implementation of abstract method sample_param
+        :return: sample from this specified distribution
+        """
         y = random.uniform(self.l, self.r)
         self.log_param(y)
         return y
 
 class UniformDDist(Distribution):
+    """
+    Uniform discrete distribution on the interval of integers
+    """
     def __init__(self, l=None, r=None, **kwargs):
+        """
+        :param l: Lower bound of distribution
+        :param r: Upper bound of distribution
+        :param kwargs: other kwargs to be passed on to parent class
+        """
         self.l = l
         self.r = r
         if self.l > self.r:
@@ -151,12 +214,28 @@ class UniformDDist(Distribution):
         super(UniformDDist, self).__init__(**kwargs)
 
     def sample_param(self):
+        """
+        Implementation of abstract method sample_param
+        :return: sample from this specified distribution
+        """
         y = random.randint(self.l, self.r)
         self.log_param(y)
         return y
 
 class ShellRingCoordinateDist(Distribution):
+    """
+    Distribution of 3-D coordinates (x,y,z). Sampling from this distribution
+    will give x,y,z distributed about a  spherical ring in the plane with an
+    axis normal. The width of the ring is distributed according to the parameter
+    phi_sigma. Normal is one of 'X', 'Y' or 'Z'. In the limit of phi_sigma
+    goes towards infinity, this will look like phi is sampled unifromly
+    """
     def __init__(self, phi_sigma = None, normal = None, **kwargs):
+        """
+        :param phi_sigma: 'width' of spherical ring
+        :param normal: 'X', 'Y' or 'Z". dictates the normal of the ring
+        :param kwargs: kwargs to be passed on to parent class
+        """
         self.normal = normal
         self.phi_sigma = phi_sigma
         super(ShellRingCoordinateDist, self).__init__(**kwargs)
@@ -166,7 +245,10 @@ class ShellRingCoordinateDist(Distribution):
         self.phi = TruncNormDist(mu=90.0,sigmu=self.phi_sigma/90.0,l=0.0,r=180.0)
 
     def sample_param(self):
-
+        """
+        Implementation of abstract method sample_param
+        :return: sample from this specified distribution (a triple)
+        """
         theta = math.radians(self.theta.sample_param())
         phi = math.radians(self.phi.sample_param())
 
@@ -186,7 +268,18 @@ class ShellRingCoordinateDist(Distribution):
         return coords
 
 class CompositeShellRingDist(Distribution):
+    """
+    x,y,z here are distributed in a space of between 1 and 3 rings, will
+    equal probability over the different rings. These rings can be
+    specified as 'X', 'Y', 'Z', or any lexical combination of 2 or 3 of
+    those, e.g. 'YZ', 'XZ' or 'XYZ'
+    """
     def __init__(self, phi_sigma = None, normals = None, **kwargs):
+        """
+        :param phi_sigma: the same phi_sigma for every ring
+        :param normals: combination of 'X', 'Y' and 'Z'
+        :param kwargs: kwargs to be passed on to parent class
+        """
         self.phi_sigma = phi_sigma
         self.normals = normals
         super(CompositeShellRingDist, self).__init__(**kwargs)
@@ -198,6 +291,10 @@ class CompositeShellRingDist(Distribution):
         self.distribution_select = UniformDDist(l=0,r=len(self.distributions)-1)
 
     def sample_param(self):
+        """
+        Implementation of abstract method sample_param
+        :return: sample from this specified distribution (a triple)
+        """
         selection = self.distribution_select.sample_param()
         selected_distribution = self.distributions[selection]
         coords = selected_distribution.sample_param()
@@ -206,13 +303,25 @@ class CompositeShellRingDist(Distribution):
 
 
 class UniformShellCoordinateDist(Distribution):
+    """
+    (x,y,z) is distributed according to a uniform shell distribution. This
+    is different from specifying phi to come from a uniform dist. A sigma of
+    about 30.0 gives an approxiamtely radially uniform distribution about
+    the sphere
+    """
     def __init__(self, **kwargs):
+        """
+        :param kwargs: kwargs to be passed on to parent class
+        """
         self.theta = UniformCDist(l=0.0, r=360.0)
         self.phi = TruncNormDist(mu=90.0,sigmu=30.0/90.0,l=0.0,r=180.0)
         super(UniformShellCoordinateDist, self).__init__(**kwargs)
 
     def sample_param(self):
-
+        """
+        Implementation of abstract method sample_param
+        :return: sample from this specified distribution (a triple)
+        """
         theta = math.radians(self.theta.sample_param())
         phi = math.radians(self.phi.sample_param())
 

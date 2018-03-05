@@ -78,8 +78,8 @@ class BlenderScene(object):
         self.data.cycles.transparent_min_bounces = 1
         self.data.cycles.samples = 64
         self.data.cycles.device = 'GPU'
-        self.data.render.tile_x = 512
-        self.data.render.tile_y = 512
+        self.data.render.tile_x = 128
+        self.data.render.tile_y = 128
         self.data.render.resolution_x = 300
         self.data.render.resolution_y = 300
         self.data.render.resolution_percentage = 100
@@ -98,6 +98,9 @@ class BlenderScene(object):
         self.lamps = []
 
 class BlenderRandomScene(BlenderScene):
+    """
+    Subclass of blender scene. Control random variables associated with 
+    """
     def __init__(self, data):
         super(BlenderRandomScene, self).__init__(data)
         '''light params'''
@@ -107,7 +110,7 @@ class BlenderRandomScene(BlenderScene):
         self.lamp_energy   = rnd.TruncNormDist(mu=5000.,sigmu=0.3,l=0.0,r=None)
         self.lamp_size     = rnd.TruncNormDist(mu=5., sigmu=0.3, l=0.0, r=None)
         '''camera params'''
-        self.camera_loc     = rnd.CompositeShellRingDist(phi_sigma=10.0,normals='XZ')
+        self.camera_loc     = rnd.CompositeShellRingDist(phi_sigma=10.0,normals='YZ')
         self.camera_radius  = rnd.TruncNormDist(mu=6.0,sigmu=0.3,l=0.0,r=None)
         self.spin_angle     = rnd.UniformCDist(l=0.0,r=360.0)
         '''mesh params'''
@@ -126,7 +129,7 @@ class BlenderRandomScene(BlenderScene):
 
     def load_subject_from_path(self, obj_path, texture_path):
         self.remove_subject()
-        self.add_subject(BlenderImportedShape(obj_path=obj_path, location=(-1,0,-1) ,orientation=(180,0,1,0)))
+        self.add_subject(BlenderImportedShape(obj_path=obj_path, location=(-1,0,-1) ,orientation=(90,1,0,0)))
         self.subject.set_mesh_bbvol(self.subject_size.sample_param())  # size of original cube
         self.subject.add_image_texture(texture_path)
         # texture appearance are fixed for now
