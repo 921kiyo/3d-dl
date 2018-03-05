@@ -102,9 +102,34 @@ class RenderInterface(object):
         """
         self.scene.set_attribute_distribution(attr, params)
 
-    def render_all(self):
+    def render_all(self, dump_logs=False, visualize=False):
         for i in range(self.num_images):
             # **********************  RENDER N SAVE **********************
             render_path = os.path.join(self.output_file, 'render%d.png' % i)
             self.scene.render_to_file(render_path)
-        return self.scene.retrieve_logs()
+        logs = self.scene.retrieve_logs()
+
+        if dump_logs:
+            import json
+            dump_file = os.path.join(self.output_file, 'randomvars_dump.json')
+            with open(dump_file, "w+") as f:
+                json.dump(logs, f, sort_keys=True, indent=4, separators=(',', ': '))
+
+        if visualize:
+            from mpl_toolkits.mplot3d import Axes3D
+            import matplotlib.pyplot as plt
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            camera_locations = logs['camera_loc']
+            X = [loc[0] for loc in camera_locations]
+            Y = [loc[1] for loc in camera_locations]
+            Z = [loc[2] for loc in camera_locations]
+            ax.scatter(X, Y, zs=Z)
+            ax.set_zlim([-1, 1])
+            ax.set_ylim([-1, 1])
+            ax.set_xlim([-1, 1])
+            dump_file = os.path.join(self.output_file, 'camera_loc.png')
+            plt.savefig(dump_file)
+
+
+        return logs

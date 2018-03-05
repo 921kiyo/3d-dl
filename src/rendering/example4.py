@@ -4,7 +4,7 @@ rendering parameters and produce rendering results
 """
 
 import RenderInterface as Render
-num_images = 20
+num_images = 1
 """ ************* User specified stuff here ************* """
 # required file paths for the script to run
 obj_path = 'D:\\PycharmProjects\\3DModels\\Ocado\\Halloumi\\Halloumi.obj'
@@ -20,7 +20,7 @@ with the default distributions
 """
 RI = Render.RenderInterface(num_images=num_images)
 RI.load_subject(obj_path, texture_path, render_folder)
-RI.render_all()
+RI.render_all(dump_logs = True)
 
 """
 Setting distribution parameters.
