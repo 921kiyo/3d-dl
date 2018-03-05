@@ -4,12 +4,12 @@ rendering parameters and produce rendering results
 """
 
 import RenderInterface as Render
-num_images = 5
+num_images = 20
 """ ************* User specified stuff here ************* """
 # required file paths for the script to run
-obj_path = 'D:\\PycharmProjects\\3DModels\\Tea\\Tea.obj'
-texture_path = 'D:\\PycharmProjects\\3DModels\\Tea\\Tea.jpg'
-render_folder = 'D:\\PycharmProjects\\3DModels\\Tea\\render'
+obj_path = 'D:\\PycharmProjects\\3DModels\\Ocado\\Halloumi\\Halloumi.obj'
+texture_path = 'D:\\PycharmProjects\\3DModels\\Ocado\\Halloumi\\Halloumi.jpg'
+render_folder = 'D:\\PycharmProjects\\3DModels\\Ocado\\Halloumi\\render'
 
 """
 Rendering with default parameters
@@ -52,5 +52,5 @@ RI.set_attribute_distribution(attr_name, dist=dist_name, kwargs)
 Where kwargs is a keyword argument dict of the required parameters
 for each distribution
 """
-RI.set_attribute_distribution('lamp_energy',{'dist':'UniformD','l':400.0,'r':600.0})
+RI.set_attribute_distribution('lamp_energy',{'dist':'UniformD','l':2000.0,'r':2400.0})
 RI.render_all()

@@ -214,6 +214,11 @@ class BlenderRandomScene(BlenderScene):
         blender_lamp.set_size(size)
 
     def scene_setup(self):
+        """
+        To be run before every render. This method performs sampling of all
+        render parameters, and sets the scene up.
+        :return: None
+        """
         # **********************  LIGHTS **********************
         # turn everything off
         for lamp in self.lamps:
@@ -250,7 +255,10 @@ class BlenderRandomScene(BlenderScene):
         bpy.ops.render.render(write_still=True)
 
     def clear_logs(self):
-
+        """
+        Clears the logs of all sampled parameters
+        :return: None
+        """
         self_dict = vars(self)
         for attr_name in self_dict.keys():
             attr = self_dict[attr_name]
@@ -258,7 +266,11 @@ class BlenderRandomScene(BlenderScene):
                 attr.clear_log()
 
     def retrieve_logs(self, clear=True):
-
+        """
+        Returns a dictionary of logs of every parameter
+        :param clear: True to clear logs as soon as retrieved, False to keep
+        :return: dictionary of logs
+        """
         logs = {}
         self_dict = vars(self)
 
