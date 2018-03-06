@@ -82,8 +82,32 @@ class KerasInception:
 
         return model
 
+    # print train classes to txt file in classes_txt_dir
+    def save_class_list(self,train_dir,classes_txt_dir):
+        # assemble path
+        filename = "classes.txt"
+        my_file = os.path.join(classes_txt_dir, filename)
+        print("Writing classes.txt to:\n",my_file,'\n')
+        print("Classes found:")
+        for name in os.listdir(train_dir):
+            print(name)
+
+        # check if file already exists
+        if not os.path.isfile(my_file):
+            # write all folder names to txt file
+            with open(my_file, "w") as classes_file:
+                for name in os.listdir(train_dir):
+                    # exclude files
+                    if not os.path.isfile(name):
+                        classes_file.write(name)
+                        classes_file.write("\n")
+            classes_file.close()
+
     def train(self,train_dir,validation_dir,epochs=5,fine_tune=False,
-            salt_pepper=False,augmentation_params={}):
+            salt_pepper=False,augmentation_params={},classes_txt_dir=None):
+        if classes_txt_dir:
+            self.save_class_list(train_dir,classes_txt_dir)
+
         # model can only be built here after training directory is clear
         # (for number of classes)
         self.model = self.assemble_model(train_dir)
@@ -125,7 +149,15 @@ class KerasInception:
                 class_mode='categorical')
 
         # log everything in tensorboard
-        tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
+        tensorboard = TensorBoard(log_dir="logs/{}".format(time()),
+                            histogram_freq=5,
+                            batch_size=32,
+                            write_graph=True,
+                            write_grads=False,
+                            write_images=True,
+                            embeddings_freq=0,
+                            embeddings_layer_names=None,
+                            embeddings_metadata=None) # histogram_freq=5
 
         # train the model on the new data for a few epochs
         self.model.fit_generator(
@@ -217,7 +249,8 @@ def main():
                 fine_tune=fine_tune,
                 epochs=epochs,
                 salt_pepper=add_salt_pepper_noise,
-                augmentation_params=get_augmentation_params(augmentation_mode))
+                augmentation_params=get_augmentation_params(augmentation_mode),
+                classes_txt_dir="/homes/sk5317/")
 
     model.evaluate(test_dir=test_dir)
 
