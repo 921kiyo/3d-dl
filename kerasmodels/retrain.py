@@ -1,6 +1,7 @@
 from keras.applications.inception_v3 import InceptionV3
 from keras.preprocessing import image
 from keras.models import Model
+from keras.models import load_model
 from keras.layers import Dense, GlobalAveragePooling2D
 from keras import backend as K
 from time import *
@@ -212,6 +213,11 @@ class KerasInception:
         print('Test accuracy:', score[1])
 
         return score
+
+    # expects a path to a model in h5 format (a model, not weights!)
+    # model will be as when saving (i.e. compiled), can then call predict etc
+    def load_model(self,file_path):
+        self.model = load_model(file_path)
 
     def save_model(self,name):
         self.model.save(name)
