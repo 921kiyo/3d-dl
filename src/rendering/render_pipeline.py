@@ -147,24 +147,36 @@ def destroy_folders(target_folder, folder_list):
         if(os.path.isdir(full_path)):
             rmtree(full_path)
 
-def generate_poses(object_folder, output_folder, renders_per_product):
+"""
+only one of attribute_distribution_params or attribute_distribution can be set of each run
+leave the unused element as an empty list, as below
+
+attribute_distribution_params: list(list[string, string, float])
+attribute_distribution: list(list(string, dict(string, float, float)))
+"""
+
+blender_attributes = {
+    "attribute_distribution_params": [["num_lamps","l", 5], ["num_lamps","r", 8], ["lamp_energy","mu", 500.0], ["lamp_size","mu",5], ["camera_radius","sigmu",0.1]],
+    "attribute_distribution" : []
+}
+# "attribute_distribution" : [["lamp_energy", {"dist":"UniformD","l":2000.0,"r":2400.0}]]
+
+def generate_poses(object_folder, output_folder, renders_per_product, blender_attributes):
     """
     This function will call Blender to Generate object poses
-    Wait for Max
     """
-    "Make a call to Blender to generate poses"
-
-    src_dir = ''
     blender_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender'
     blender_script_path = os.path.join(src_dir, 'rendering', 'render_poses.py')
     config_file_path = os.path.join(src_dir, 'rendering', 'config.json')
 
     blender_args = [blender_path, '--background', '--python', blender_script_path, '--',
                     src_dir,
-                    config_file_path,
                     object_folder,
                     output_folder,
-                    str(renders_per_product)]
+                    str(renders_per_product),
+                    json.dumps(blender_attributes)]
+
+    # blender_args = [blender_path, '--background', '--python']
 
     print('Rendering...')
     subprocess.check_call(blender_args)
