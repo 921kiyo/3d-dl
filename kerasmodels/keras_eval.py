@@ -1,3 +1,4 @@
+#!/usr/bin/python
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -345,14 +346,14 @@ def plot_bar(x,heights, heights2=None, title='Bar Chart', xlabel='X', ylabel='Y'
     return image
 
 
-def summarize_results(sess, label2idx, per_class_test_results, print_results=False):
+def summarize_results(sess, label2idx, per_class_test_results, model_source_dir, print_results=False):
     # Check if directory already exists. If so, create a new one
-    if tf.gfile.Exists(FLAGS.model_source_dir + '/test_results'):
-        tf.gfile.DeleteRecursively(FLAGS.model_source_dir + '/test_results')
-    tf.gfile.MakeDirs(FLAGS.model_source_dir + '/test_results')
+    if tf.gfile.Exists(model_source_dir + '/test_results'):
+        tf.gfile.DeleteRecursively(model_source_dir + '/test_results')
+    tf.gfile.MakeDirs(model_source_dir + '/test_results')
 
     # create the summary setup
-    summary_writer = tf.summary.FileWriter(FLAGS.model_source_dir + '/test_results', sess.graph)
+    summary_writer = tf.summary.FileWriter(model_source_dir + '/test_results', sess.graph)
 
     c = len(label2idx.keys())
 
@@ -395,9 +396,32 @@ def summarize_results(sess, label2idx, per_class_test_results, print_results=Fal
         print('Precision: ',precision)
 
     summary_writer.close()
+import sys
 
 
-def main(_):
+# ARguments for main()
+    # /Desktop/output/
+    # /Desktop/test/ (Fixed)
+
+# FLAGS.num_test should stay
+
+# /Desktop/output1/label.txt
+# /Desktop/output1/model.pb
+# /Desktop/output2/label.txt
+# /Desktop/output2/model.pb
+# /Desktop/output3/label.txt
+# /Desktop/output3/model.pb
+# TEst folder
+
+def main(output_folders, test_folder="/vol/project/2017/530/g1753002/matthew/8_class_data/qlone_training_images/"):
+
+    # for output_folder in output_folders:
+        # eval(output_folder, test_folder)
+
+    output_folder = "/vol/project/2017/530/g1753002/output"
+    eval(output_folder, test_folder)
+
+def eval(output_folder, test_folder):
     # Needed to make sure the logging output is visible.
     # See https://github.com/tensorflow/tensorflow/issues/3047
     # tf.logging.set_verbosity(tf.logging.INFO)
@@ -408,21 +432,20 @@ def main(_):
     # graph, resized_input_tensor, bottleneck_tensor, result_tensor = create_model_graph(model_info)
 
     # Look at the folder structure, and create lists of all the images.
-
+    label = os.path.join(output_folder, "labels.txt")
      # label_path is the same as otuput.txt
-    label2idx, idx2label = create_label_lists(FLAGS.label_path)
-    test_data = get_test_files(FLAGS.test_file_dir, label2idx, n=FLAGS.num_test)
-    model_path = os.path.join(FLAGS.model_source_dir, FLAGS.model_name)
+    label2idx, idx2label = create_label_lists(label )
+    test_data = get_test_files(test_folder, label2idx, n=1000000)
+    model_path = os.path.join(output_folder, "model.h5")
     model = load_model(model_path)
-
 
     inputShape = (224, 224)
     preprocess = preprocess_input
 
     if FLAGS.test_result_file is None:
-
         per_class_test_results = {}
         for label in label2idx:
+
             per_class_test_results[label] = []
             features = []
 
@@ -465,7 +488,7 @@ def main(_):
         pickled_test_result = open(FLAGS.test_result_file,'rb')
         per_class_test_results = pickle.load(pickled_test_result)
     with tf.Session() as sess:
-        summarize_results(sess ,label2idx, per_class_test_results, print_results=True)
+        summarize_results(sess ,label2idx, per_class_test_results, output_folder, print_results=True)
 
     with open(FLAGS.test_result_path, 'wb') as f:  # Python 3: open(..., 'wb')
         pickle.dump(per_class_test_results, f)
