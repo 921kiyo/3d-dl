@@ -15,6 +15,7 @@ import random
 #import bpy
 #import csv
 import os
+import subprocess
 
 
 # set use GPU
@@ -37,11 +38,11 @@ workspace  = os.path.join(ocado_folder, "render_workspace")
 
 if not (ocado_folder in sys.path):
     sys.path.append(ocado_folder)
-    
-#    
+
+#
 #sys.path.append("E:/Blender_Foundation/Blender/2.79/python/lib/site-packages/")
 #sys.path.append("E:/Anaconda/Lib/site-packages/scipy/")
-#    
+#
 
 #import argparse
 #import subprocess
@@ -145,13 +146,29 @@ def destroy_folders(target_folder, folder_list):
         full_path = os.path.join(target_folder,folder)
         if(os.path.isdir(full_path)):
             rmtree(full_path)
-            
-def generate_poses():
+
+def generate_poses(object_folder, output_folder, renders_per_product):
     """
     This function will call Blender to Generate object poses
     Wait for Max
     """
-    return
+    "Make a call to Blender to generate poses"
+
+    src_dir = ''
+    blender_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender'
+    blender_script_path = os.path.join(src_dir, 'rendering', 'render_poses.py')
+    config_file_path = os.path.join(src_dir, 'rendering', 'config.json')
+
+    blender_args = [blender_path, '--background', '--python', blender_script_path, '--',
+                    src_dir,
+                    config_file_path,
+                    object_folder,
+                    output_folder,
+                    str(renders_per_product)]
+
+    print('Rendering...')
+    subprocess.check_call(blender_args)
+    print('Rendering done!')
 
 def gen_merge(image, save_as, pixels = 300):
     """
@@ -159,11 +176,11 @@ def gen_merge(image, save_as, pixels = 300):
     background. Instead of generating large quanta and randomly searching
     it will generate one background for each image. Thus it will be faster
     and definitely uniquely random.
-    
+
     !!Careful, the save_as should be full path including the name
     e.g. foo/bar/image1.jpg
     """
-    
+
     back = rb.rand_background(np.random.randint(2,4),pixels)
     scaled = back*256
     print("fine2")
@@ -176,18 +193,18 @@ def gen_merge(image, save_as, pixels = 300):
         final.save(save_as, "JPEG")#, quality=80, optimize=True, progressive=True)
     except KeyError:
         print("IO error")
-    
+
 
 def full_run(zip_name, work_dir = workspace, generate_background = True, backgr_dat = None ):
     """
     Function that will take all the parameters and execute the
     appropriate pipeline
-    
+
     args:
         work_dir : path to the workspace that contains individual folders
         generate_background : Flag, if True, we will generate random background
                 if False, we will use images in a given database
-        backgr_dat : Path to databse of backgrounds to use if 
+        backgr_dat : Path to databse of backgrounds to use if
             generate_background is False
     """
 
@@ -195,13 +212,13 @@ def full_run(zip_name, work_dir = workspace, generate_background = True, backgr_
 
     validate_folders(work_dir,data_folders)
 
-    
+
     """
     code to generate object poses
     """
-    
+
     """------------------------Code to generate final images----------"""
-    """ 
+    """
     We need to distinguish between the case of drawing backrounds
     from a database and when generating ourselves
     """
@@ -219,23 +236,23 @@ def full_run(zip_name, work_dir = workspace, generate_background = True, backgr_
         # have to figure out what method to use
         if(generate_background):
             #for file in os.listdir(sub_obj):
-            
+
             for image in os.listdir(sub_obj):
                 try:
                     path = os.path.join(sub_obj, image)
                     print("the path is", path)
                     foreground=Image.open(path)
-                    
-                    
+
+
                     just_name = os.path.splitext(image)[0]
                     name_jpg = just_name+".jpg"
                     save_to = os.path.join(sub_final, name_jpg)
                     print("here still fine")
                     gen_merge(foreground, save_to, pixels = 300)
                     print(just_name)
-            
+
                     # do stuff
-                except IOError:                
+                except IOError:
                     print("skipping", image)
                     continue
             print("Here I will generate background")
@@ -244,17 +261,17 @@ def full_run(zip_name, work_dir = workspace, generate_background = True, backgr_
             return
         else:
             mi.generate_for_all_objects(sub_obj,backgr_dat ,sub_final)
-            
-        
-    
+
+
+
     # currently we zip the object poses, but once we have the actual
     # training images, it is easy to just change the name
-    
+
     for folder in os.listdir(obj_poses):
         print(folder)
-        
 
-    
+
+
     make_archive(zip_name, 'zip',final_folder)
 
     #input("press enter to continue")

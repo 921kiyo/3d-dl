@@ -37,6 +37,10 @@ parser.add_argument('object_folder',
 parser.add_argument('output_folder',
                     help='path to folder to which poses should be saved')
 
+parser.add_argument('renders_per_product', type=int, default=1,
+                    help='number of renders to per product')
+
+
 args = parser.parse_args(argv)
 
 if not argv:
@@ -53,12 +57,12 @@ sys.path.append(os.path.join(args.project_dir))
 import rendering.RenderInterface as Render
 
 """" --------------- Blender Setup ------------- """
-with open(args.config_file) as config_file:
-    config = json.load(config_file)
-
-print(config)
-
-print(config['images_per_class'])
+# with open(args.config_file) as config_file:
+#     config = json.load(config_file)
+#
+# print(config)
+#
+# print(config['images_per_class'])
 
 """" --------------- Helper functions for folder navigation ------------- """
 
@@ -80,7 +84,10 @@ def find_files(product_folder):
 
 """" --------------- Rendering ------------- """
 
-for product in config['classes']:
+RI = Render.RenderInterface(num_images=args.renders_per_product)
+
+# for product in config['classes']:
+for product in os.listdir(args.object_folder):
     product_folder = os.path.join(args.object_folder, product)
 
     # Validate project
@@ -89,23 +96,25 @@ for product in config['classes']:
         continue
 
     # Create product folder in object_renders
-    render_folder = os.path.join(product_folder)
+    render_folder = os.path.join(args.output_folder, product)
     if not os.path.isdir(render_folder):
+        print('Making render folder', render_folder)
         os.mkdir(render_folder)
 
     # Get model files
     object_file, texture_file = find_files(product_folder)
 
     # Configure model paths
-    obj_path = os.path.join(product_folder, object_file)
+    object_path = os.path.join(product_folder, object_file)
     texture_path = os.path.join(product_folder, texture_file)
 
-    print(object_path, texture_path)
+    print(object_path, '\n', texture_path)
+    print(render_folder)
 
-    # # Do the blender stuff
+    # Do the blender stuff
     # RI = Render.RenderInterface(num_images=config['images_per_class'])
-    # RI.load_subject(obj_path, texture_path, render_folder)
-    # RI.render_all(dump_logs = True)
+    RI.load_subject(object_path, texture_path, render_folder)
+    RI.render_all(dump_logs = True)
 
 
 # Setting distribution parameters.
