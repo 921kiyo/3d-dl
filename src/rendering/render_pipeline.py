@@ -16,6 +16,7 @@ from PIL import Image
 import numpy as np
 import os
 import subprocess
+import json
 
 # set use GPU
 """
@@ -133,17 +134,14 @@ leave the unused element as an empty list, as below
 attribute_distribution_params: list(list[string, string, float])
 attribute_distribution: list(list(string, dict(string, float, float)))
 """
-blender_attributes = {
-    "attribute_distribution_params": [["num_lamps","l", 5], ["num_lamps","r", 8], ["lamp_energy","mu", 500.0], ["lamp_size","mu",5], ["camera_radius","sigmu",0.1]],
-    "attribute_distribution" : []
-}
+
 # "attribute_distribution" : [["lamp_energy", {"dist":"UniformD","l":2000.0,"r":2400.0}]]
 
 def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product, blender_attributes):
 
     """
     This function will call Blender to Generate object poses
-    """"
+    """
     #src_dir =
     #blender_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender'
     print("src dir is", src_dir)
@@ -190,7 +188,7 @@ def gen_merge(image, save_as, pixels = 300):
         print("Key error")
 
 
-def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir = workspace, generate_background = True, backgr_dat = None ):
+def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir = workspace, generate_background = True, backgr_dat = None, blender_attributes = {} ):
     """
     Function that will take all the parameters and execute the
     appropriate pipeline
@@ -215,7 +213,7 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
     """
     src_path = os.path.join(ocado_folder, "src")
     print("src path is", src_path)
-    generate_poses(src_path, blender_path, obj_set, obj_poses, renders_per_class)
+    generate_poses(src_path, blender_path, obj_set, obj_poses, renders_per_class, blender_attributes)
 
 
     """------------------------Code to generate final images----------"""
@@ -248,10 +246,11 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
 
 
 
-                    just_name = os.path.splitext(image)[0]
-                    name_jpg = just_name+".jpg"
-                    save_to = os.path.join(sub_final, name_jpg)
-                    gen_merge(foreground, save_to, pixels = 300)
+                just_name = os.path.splitext(image)[0]
+                name_jpg = just_name+".jpg"
+                save_to = os.path.join(sub_final, name_jpg)
+                gen_merge(foreground, save_to, pixels = 300)
+                foreground.close()
 
 
 
@@ -279,6 +278,13 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
 
 #full_run(zip_save, generate_background = True, backgr_dat = backg_database)
 
+blender_attributes = {
+    "attribute_distribution_params": [["num_lamps","l", 5], ["num_lamps","r", 8], ["lamp_energy","mu", 500.0], ["lamp_size","mu",5], ["camera_radius","sigmu",0.1]],
+    "attribute_distribution" : []
+}
+
+#blender_attributes ={}
+
 """zip name"""
 zip_save1 = os.path.join(workspace, "final_zip/sun_data")
 zip_save2 = os.path.join(workspace, "final_zip/random_data")
@@ -287,10 +293,13 @@ obj_set = os.path.join(workspace, "object_files/two_set")
 bl_path = "E:\Blender_Foundation\Blender\\blender"
 """working_directory"""
 argument_list = []
-arguments1 = {"zip_name": zip_save1, "obj_set": obj_set ,"blender_path": bl_path,"renders_per_class": 10,"work_dir": workspace, "generate_background": False, "backgr_dat": backg_database}
-arguments2 = {"zip_name": zip_save2, "obj_set": obj_set ,"blender_path": bl_path,"renders_per_class": 10,"work_dir": workspace, "generate_background": True, "backgr_dat": backg_database}
+arguments1 = {"zip_name": zip_save1, "obj_set": obj_set ,"blender_path": bl_path,"renders_per_class": 2,"work_dir": workspace, "generate_background": False, "backgr_dat": backg_database, "blender_attributes": blender_attributes}
+arguments2 = {"zip_name": zip_save2, "obj_set": obj_set ,"blender_path": bl_path,"renders_per_class": 2,"work_dir": workspace, "generate_background": True, "backgr_dat": backg_database, "blender_attributes": blender_attributes}
 argument_list.append(arguments1)
-#argument_list.append(arguments2)
+argument_list.append(arguments2)
 
 for value in argument_list:
     full_run(**value)
+    print("One run done")
+
+    
