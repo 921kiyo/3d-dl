@@ -421,16 +421,6 @@ def main(_):
 
     if FLAGS.test_result_file is None:
 
-        # set up jpeg decoding network
-        # jpeg_data_tensor, resized_image_tensor, decoded_jpeg_tensor = add_jpeg_decoding(
-        #     model_info['input_width'], model_info['input_height'],
-        #     model_info['input_depth'], model_info['input_mean'],
-        #     model_info['input_std'])
-
-        # Set up all our weights to their initial default values.
-        # init = tf.global_variables_initializer()
-        # sess.run(init)
-
         per_class_test_results = {}
         for label in label2idx:
             per_class_test_results[label] = []
@@ -444,20 +434,6 @@ def main(_):
 
             test_result = {}
 
-            # # read in image data
-            # image_data = gfile.FastGFile(test_datum[2], 'rb').read()
-            # ground_truth = test_datum[1]
-            #
-            # # fetch resized image from the resizing network
-            # resized_image_data, decoded_jpeg_data = run_resize_data(
-            #     sess, image_data, jpeg_data_tensor, resized_image_tensor, decoded_jpeg_tensor)
-            #
-            # # feed resized image into Inception network, output result
-            # result, bottleneck = sess.run(
-            #     [result_tensor, bottleneck_tensor],
-            #     feed_dict={resized_input_tensor: resized_image_data}
-            # )
-            # path args["image"]
             # input
             image = load_img(test_datum[2], target_size=inputShape)
             image = img_to_array(image)
@@ -473,12 +449,7 @@ def main(_):
             image = preprocess(image)
 
 
-            # classify the image
-            # print("[INFO] classifying image")
             pred = model.predict(image)
-            # print(preds)
-            # cheese_value = '{:.3f}'.format(pred[0][0]*100)
-            # yogurt_value = '{:.3f}'.format(pred[0][1]*100)
             ground_truth = test_datum[1]
 
             # decode result tensor here since we don't have access to the prediction tensor
@@ -495,53 +466,6 @@ def main(_):
         per_class_test_results = pickle.load(pickled_test_result)
     with tf.Session() as sess:
         summarize_results(sess ,label2idx, per_class_test_results, print_results=True)
-    #
-    # features = np.array(features)
-    # print('feature shape: ', features.shape)
-    #
-    # print('Performing dimensionality reduction with tSNE...')
-    #
-    # # dim reduction on the features!
-    # tsne = TSNE(perplexity=30, n_components=2, init='pca', n_iter=5000, method='exact')
-    # two_d_embeddings = tsne.fit_transform(features)
-    #
-    # from textwrap import wrap
-    # # Visualize some data
-    # num_correct = 0
-    # num_incorrect = 0
-    # num_viz = 4
-    # plt.figure()
-    # for result in test_results:
-    #     predicted = result['predicted_label']
-    #     correct = result['correct_label']
-    #     if result['prediction']:
-    #         num_correct += 1
-    #         if(num_correct > num_viz):
-    #             continue
-    #         plt.subplot(2,num_viz,num_correct)
-    #         plt.imshow(result['image'])
-    #         plt.title("\n".join(wrap('Pred: {0}'.format(label2name[correct]),30)))
-    #     if not result['prediction']:
-    #         num_incorrect += 1
-    #         if(num_incorrect > num_viz):
-    #             continue
-    #         plt.subplot(2, num_viz, num_incorrect + num_viz)
-    #         plt.imshow(result['image'])
-    #         plt.title("\n".join(wrap('Pred: {0}, \n Corr: {1}'.format(label2name[predicted], label2name[correct]),30)))
-    # print('accuracy : {}%'.format(100*num_correct/len(test_results)))
-    # plt.show()
-    #
-    # label2col = {}
-    # for label in label2name.keys():
-    #     label_id = int(label)
-    #     label2col[label] = '#' + "{0:0{1}x}".format((label_id + np.random.randint(0,0xFFFFFF)) % 0xFFFFFF,6)
-    #     print(label + ' color is : ' + label2col[label])
-    #
-    # plt.figure()
-    # for i, result in enumerate(test_results):
-    #     x,y = two_d_embeddings[i,:]
-    #     plt.scatter(x,y,color=label2col[result['correct_label']], label=result['correct_label'])
-    # plt.title('2D visualization of features via TSNE reduction')
 
     with open(FLAGS.test_result_path, 'wb') as f:  # Python 3: open(..., 'wb')
         pickle.dump(per_class_test_results, f)
