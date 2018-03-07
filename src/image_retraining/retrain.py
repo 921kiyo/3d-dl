@@ -157,6 +157,7 @@ def create_image_lists(image_dir, testing_percentage, validation_percentage):
       is_root_dir = False
       continue
     extensions = ['jpg', 'jpeg', 'JPG', 'JPEG']
+    #extensions = ['png', 'PNG']
     file_list = []
     dir_name = os.path.basename(sub_dir)
     if dir_name == image_dir:
@@ -309,6 +310,7 @@ def run_bottleneck_on_image(sess, image_data, image_data_tensor,
   Returns:
     Numpy array of bottleneck values.
   """
+
   # First decode the JPEG image, resize it, and rescale the pixel values.
   resized_input_values = sess.run(decoded_image_tensor,
                                   {image_data_tensor: image_data})
@@ -738,6 +740,30 @@ def variable_summaries(var):
     tf.summary.histogram('histogram', var)
 
 
+def misclassified_image_summaries(sess, test_filenames, test_ground_truth, predictions):
+
+     # Check if directory already exists. If so, create a new one
+     if tf.gfile.Exists(FLAGS.summaries_dir + '/testing'):
+         tf.gfile.DeleteRecursively(FLAGS.summaries_dir + '/testing')
+     tf.gfile.MakeDirs(FLAGS.summaries_dir + '/testing')
+
+     # create decoding tensors
+     jpeg_data = tf.placeholder(tf.string, name='DecodeJPGInput')
+     decoded_image = tf.image.decode_jpeg(jpeg_data, channels=3)
+
+     # create the summary setup
+     summary_writer = tf.summary.FileWriter(FLAGS.summaries_dir + '/testing', sess.graph)
+
+     # for i, test_filename in enumerate(test_filenames[0:10]):
+     for i, test_filename in enumerate(test_filenames):
+         if predictions[i] != test_ground_truth[i]:
+           img_summary_buffer = tf.summary.image('misclassified', tf.reshape(decoded_image, [1, 1024, 1280, 3]), 1)
+           jpg = gfile.FastGFile(test_filename, 'rb').read()
+           image_summary, _ = sess.run([img_summary_buffer, decoded_image], feed_dict={jpeg_data:jpg})
+           summary_writer.add_summary(image_summary)
+
+     summary_writer.close()
+
 def add_final_training_ops(class_count, final_tensor_name, bottleneck_tensor,
                            bottleneck_tensor_size, quantize_layer):
   """Adds a new softmax and fully-connected layer for training.
@@ -773,44 +799,69 @@ def add_final_training_ops(class_count, final_tensor_name, bottleneck_tensor,
 
   # Organizing the following ops as `final_training_ops` so they're easier
   # to see in TensorBoard
-  layer_name = 'final_training_ops'
+  layer_name = 'final_training_ops_0'
+  hidden_layer_size = np.int32((class_count  + bottleneck_tensor_size)/2.)
+  #   layer_weights = tf.layers.dropout(inputs=layer_weights, rate = dropout_rate, training=True)
+  #   logits = tf.matmul(bottleneck_input, layer_weights) + layer_biases
+  #   tf.summary.histogram('pre_activations_0', logits)
+
   with tf.name_scope(layer_name):
-    with tf.name_scope('weights'):
+    with tf.name_scope('weights_0'):
+        initial_value = tf.truncated_normal(
+            [bottleneck_tensor_size, hidden_layer_size], stddev=0.001)
+        layer_weights = tf.Variable(initial_value, name='final_weights_0')
+        if quantize_layer:
+          quantized_layer_weights = quant_ops.MovingAvgQuantize(
+              layer_weights, is_training=True)
+          variable_summaries(quantized_layer_weights)
+
+        variable_summaries(layer_weights)
+    with tf.name_scope('biases_0'):
+        layer_biases = tf.Variable(tf.zeros([hidden_layer_size]), name='final_biases_0')
+        if quantize_layer:
+          quantized_layer_biases = quant_ops.MovingAvgQuantize(
+              layer_biases, is_training=True)
+          variable_summaries(quantized_layer_biases)
+
+        variable_summaries(layer_biases)
+
+    with tf.name_scope('Wx_plus_b_0'):
+        if quantize_layer:
+          logits = tf.matmul(bottleneck_input,
+                             quantized_layer_weights) + quantized_layer_biases
+          logits = quant_ops.MovingAvgQuantize(
+              logits,
+              init_min=-32.0,
+              init_max=32.0,
+              is_training=True,
+              num_bits=8,
+              narrow_range=False,
+              ema_decay=0.5)
+          tf.summary.histogram('pre_activations_0', logits)
+        else:
+          logits = tf.matmul(bottleneck_input, layer_weights) + layer_biases
+          tf.summary.histogram('pre_activations_0', logits)
+
+    with tf.name_scope('ReLU_activation'):
+        hidden_layer_output = tf.nn.relu(logits)
+
+  
+  layer_name = 'final_training_ops_1'
+
+  with tf.name_scope(layer_name):
+    with tf.name_scope('weights_1'):
       initial_value = tf.truncated_normal(
-          [bottleneck_tensor_size, class_count], stddev=0.001)
-      layer_weights = tf.Variable(initial_value, name='final_weights')
-      if quantize_layer:
-        quantized_layer_weights = quant_ops.MovingAvgQuantize(
-            layer_weights, is_training=True)
-        variable_summaries(quantized_layer_weights)
-
+          [hidden_layer_size, class_count], stddev=0.001)
+      layer_weights = tf.Variable(initial_value, name='final_weights_1')
       variable_summaries(layer_weights)
-    with tf.name_scope('biases'):
-      layer_biases = tf.Variable(tf.zeros([class_count]), name='final_biases')
-      if quantize_layer:
-        quantized_layer_biases = quant_ops.MovingAvgQuantize(
-            layer_biases, is_training=True)
-        variable_summaries(quantized_layer_biases)
-
+    with tf.name_scope('biases_1'):
+      layer_biases = tf.Variable(tf.zeros([class_count]), name='final_biases_1')
       variable_summaries(layer_biases)
 
-    with tf.name_scope('Wx_plus_b'):
-      if quantize_layer:
-        logits = tf.matmul(bottleneck_input,
-                           quantized_layer_weights) + quantized_layer_biases
-        logits = quant_ops.MovingAvgQuantize(
-            logits,
-            init_min=-32.0,
-            init_max=32.0,
-            is_training=True,
-            num_bits=8,
-            narrow_range=False,
-            ema_decay=0.5)
-        tf.summary.histogram('pre_activations', logits)
-      else:
-        logits = tf.matmul(bottleneck_input, layer_weights) + layer_biases
-        tf.summary.histogram('pre_activations', logits)
-
+    with tf.name_scope('Wx_plus_b_1'):
+      logits = tf.matmul(hidden_layer_output, layer_weights) + layer_biases
+      tf.summary.histogram('pre_activations', logits)
+  
   final_tensor = tf.nn.softmax(logits, name=final_tensor_name)
 
   tf.summary.histogram('activations', final_tensor)
@@ -936,7 +987,7 @@ def create_model_info(architecture):
     if is_quantized:
       data_url = 'http://download.tensorflow.org/models/mobilenet_v1_'
       data_url += version_string + '_' + size_string + '_quantized_frozen.tgz'
-      bottleneck_tensor_name = 'MobilenetV1/Predictions/Reshape:0'
+      bottleneck_tensor_name = 'MobilenetV1/Predinput_depthictions/Reshape:0'
       resized_input_tensor_name = 'Placeholder:0'
       model_dir_name = ('mobilenet_v1_' + version_string + '_' + size_string +
                         '_quantized_frozen')
@@ -1064,6 +1115,11 @@ def main(_):
                         bottleneck_tensor, FLAGS.architecture)
 
     # Add the new layer that we'll be training.
+    # (train_step, cross_entropy, bottleneck_input, ground_truth_input,
+    #  final_tensor) = add_final_training_ops(
+    #      len(image_lists.keys()), FLAGS.final_tensor_name, bottleneck_tensor,
+    #      model_info['bottleneck_tensor_size'], model_info['quantize_layer'])
+
     (train_step, cross_entropy, bottleneck_input, ground_truth_input,
      final_tensor) = add_final_training_ops(
          len(image_lists.keys()), FLAGS.final_tensor_name, bottleneck_tensor,
@@ -1157,6 +1213,7 @@ def main(_):
             FLAGS.bottleneck_dir, FLAGS.image_dir, jpeg_data_tensor,
             decoded_image_tensor, resized_image_tensor, bottleneck_tensor,
             FLAGS.architecture))
+
     test_accuracy, predictions = sess.run(
         [evaluation_step, prediction],
         feed_dict={bottleneck_input: test_bottlenecks,
@@ -1164,6 +1221,9 @@ def main(_):
     tf.logging.info('Final test accuracy = %.1f%% (N=%d)' %
                     (test_accuracy * 100, len(test_bottlenecks)))
 
+    # Add misclassified images to Tensorboard
+    """
+    misclassified_image_summaries(sess, test_filenames, test_ground_truth, predictions)
     if FLAGS.print_misclassified_test_images:
       tf.logging.info('=== MISCLASSIFIED TEST IMAGES ===')
       for i, test_filename in enumerate(test_filenames):
@@ -1171,6 +1231,7 @@ def main(_):
           tf.logging.info('%70s  %s' %
                           (test_filename,
                            list(image_lists.keys())[predictions[i]]))
+    """
 
     # Write out the trained graph and labels with the weights stored as
     # constants.
@@ -1178,19 +1239,20 @@ def main(_):
     with gfile.FastGFile(FLAGS.output_labels, 'w') as f:
       f.write('\n'.join(image_lists.keys()) + '\n')
 
-
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument(
       '--image_dir',
       type=str,
-      default='',
+      default='/home/kiyo/Desktop/Ocado',
       help='Path to folders of labeled images.'
   )
   parser.add_argument(
       '--output_dir',
       type=str,
-      default='/vol/project/2017/530/g1753002/tmp/',
+      # default='/home/kiyo/Desktop/Ocado/tmp/',
+      # When test, use tmp_small which takes less time to train
+      default='/vol/project/2017/530/g1753002/tmp_small/',
       help='Path to folders for all output files'
   )
   parser.add_argument(
@@ -1276,7 +1338,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--validation_batch_size',
       type=int,
-      default=100,
+      default=-1,
       help="""\
       How many images to use in an evaluation batch. This validation set is
       used much more often than the test set, and is an early indicator of how
@@ -1353,6 +1415,14 @@ if __name__ == '__main__':
       input pixels up or down by.\
       """
   )
+  parser.add_argument(
+      '--dropout_rate',
+      type=int,
+      default=0.9,
+      help="""\
+      Specifying dropout rate for the fully connected layer\
+      """
+   )
   parser.add_argument(
       '--architecture',
       type=str,
