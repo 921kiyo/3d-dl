@@ -42,37 +42,12 @@ if not (ocado_folder in sys.path):
 #sys.path.append("E:/Blender_Foundation/Blender/2.79/python/lib/site-packages/")
 #sys.path.append("E:/Anaconda/Lib/site-packages/scipy/")
 #    
-##import src.rendering.RandomLib.random_background as rb
-#import src.rendering.SceneLib.Merge_Images as MI
-#
-#if(os.path.isdir(workspace) is False):
-#    print("Could not find workspace directory")
-#    
-#def create_workspace(workspace, gener_back = True):
-#    """
-#    This function will be called at the begining of any execution
-#    It will prepare all necessary folders for the execution
-#    It will check if it needs to generate its own
-#    """
-#
-#def generate_poses(obj_folder, output_folder, n_of_poses):
-#    """
-#    This will generate poses for a given class, and save it to a given folder
-#    """
-#    return
-#
-#def generate_random_background(folder, number):
-#    return
-#
-#
-#def clean_up():
-#    return    
-#
 
-import argparse
-import subprocess
+#import argparse
+#import subprocess
 from shutil import rmtree, make_archive
 from PIL import Image
+#from Image import save as img_save
 import numpy as np
 
 #import random
@@ -80,6 +55,7 @@ import src.rendering.SceneLib.Merge_Images as mi
 import src.rendering.RandomLib.random_background as rb
 
 """ --------------- CLI setup ------------- """
+"""
 parser = argparse.ArgumentParser(description='Create training images from 3D models and background images')
 
 #parser.add_argument('data_directory',
@@ -104,7 +80,7 @@ parser.add_argument('-g', '--gpu', action='store_true',
 args = parser.parse_args()
 
 #print(args)
-
+"""
 """ --------------- Setup and configuration ------------- """
 # path to blender library
 
@@ -125,7 +101,7 @@ data_folders = ['object_files',
                 'generate_bg',
                 'object_poses',
                 'final_folder',
-                'final_folder/images',
+                #'final_folder\images',
                 'final_zip']
 
 temp_folders = ['generate_bg',
@@ -161,6 +137,7 @@ def validate_folders(target_folder, folder_list):
     print(os.listdir(target_folder))
     if not diff == []:
             for folder in diff:
+                print("making ", folder)
                 os.mkdir(os.path.join(target_folder,folder))
 
 def destroy_folders(target_folder, folder_list):
@@ -189,9 +166,17 @@ def gen_merge(image, save_as, pixels = 300):
     
     back = rb.rand_background(np.random.randint(2,4),pixels)
     scaled = back*256
+    print("fine2")
     background = Image.fromarray(scaled.astype('uint8'), mode = "RGB")
+    print("problem here")
     final = mi.merge_images(image, background)
-    final.save(save_as, "JPEG", quality=80, optimize=True, progressive=True)
+    print("problem 2")
+    print("the save as is", save_as)
+    try:
+        final.save(save_as, "JPEG")#, quality=80, optimize=True, progressive=True)
+    except KeyError:
+        print("IO error")
+    
 
 def full_run(zip_name, work_dir = workspace, generate_background = True, backgr_dat = None ):
     """
@@ -222,7 +207,7 @@ def full_run(zip_name, work_dir = workspace, generate_background = True, backgr_
     """
     obj_poses = os.path.join(work_dir, "object_poses")
     final_folder = os.path.join(work_dir, "final_folder")
-    final_im = os.path.join(work_dir, "final_folder/images")
+    final_im = os.path.join(work_dir, "final_folder")
     for folder in os.listdir(obj_poses):
         sub_obj = os.path.join(obj_poses, folder)
         if(os.path.isdir(sub_obj) is False):
@@ -238,13 +223,14 @@ def full_run(zip_name, work_dir = workspace, generate_background = True, backgr_
             for image in os.listdir(sub_obj):
                 try:
                     path = os.path.join(sub_obj, image)
-                    print(path)
+                    print("the path is", path)
                     foreground=Image.open(path)
                     
                     
                     just_name = os.path.splitext(image)[0]
                     name_jpg = just_name+".jpg"
                     save_to = os.path.join(sub_final, name_jpg)
+                    print("here still fine")
                     gen_merge(foreground, save_to, pixels = 300)
                     print(just_name)
             
@@ -271,7 +257,7 @@ def full_run(zip_name, work_dir = workspace, generate_background = True, backgr_
     
     make_archive(zip_name, 'zip',final_folder)
 
-    input("press enter to continue")
+    #input("press enter to continue")
     destroy_folders(work_dir, temp_folders)
 
 zip_save = os.path.join(workspace, "final_zip/test1")
@@ -300,13 +286,13 @@ full_run(zip_save, generate_background = True, backgr_dat = backg_database)
 #    return object_file, texture_file
 
 
-def render_images(renders_per_product, data_folder):
-    """"Generate object renders and save to renders folder"""
-    blender_args = ['blender', '--background', '--python', 'render_images.py', '--',
-                    data_folder,
-                    str(renders_per_product)]
-
-    subprocess.check_call(blender_args)
+#def render_images(renders_per_product, data_folder):
+#    """"Generate object renders and save to renders folder"""
+#    blender_args = ['blender', '--background', '--python', 'render_images.py', '--',
+#                    data_folder,
+#                    str(renders_per_product)]
+#
+#    subprocess.check_call(blender_args)
 
 #if args.render:
 #    print('Rendering {} images per product'.format(args.render))
@@ -315,29 +301,29 @@ def render_images(renders_per_product, data_folder):
 
 """ --------------- Merge renders and backgrounds to create final images --------------- """
 
-
-def merge_images():
-    """Merge each pose with a random background images and save to final images folder"""
-
-    all_backgrounds = os.listdir('resized_background')
-
-    for object_folder in os.listdir('object_poses'):
-        if not os.path.isdir(os.path.join('object_poses', object_folder)):
-            continue
-
-        print("Merging renders in folder", object_folder)
-        for object_image in os.listdir(os.path.join('object_poses', object_folder)):
-            if not object_image.endswith('.png'):
-                continue
-
-            while True:
-                background = random.choice(all_backgrounds)
-                if background.endswith('.jpeg'):
-                    break
-
-            add_background(os.path.join('object_poses', object_folder, object_image),
-                           os.path.join('resized_background', background),
-                           os.path.join('final_images', object_folder + '-' + object_image))
+#
+#def merge_images():
+#    """Merge each pose with a random background images and save to final images folder"""
+#
+#    all_backgrounds = os.listdir('resized_background')
+#
+#    for object_folder in os.listdir('object_poses'):
+#        if not os.path.isdir(os.path.join('object_poses', object_folder)):
+#            continue
+#
+#        print("Merging renders in folder", object_folder)
+#        for object_image in os.listdir(os.path.join('object_poses', object_folder)):
+#            if not object_image.endswith('.png'):
+#                continue
+#
+#            while True:
+#                background = random.choice(all_backgrounds)
+#                if background.endswith('.jpeg'):
+#                    break
+#
+#            add_background(os.path.join('object_poses', object_folder, object_image),
+#                           os.path.join('resized_background', background),
+#                           os.path.join('final_images', object_folder + '-' + object_image))
 
 #
 #if args.merge:
