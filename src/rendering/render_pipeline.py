@@ -125,7 +125,6 @@ def destroy_folders(target_folder, folder_list):
         full_path = os.path.join(target_folder,folder)
         if(os.path.isdir(full_path)):
             rmtree(full_path)
-<<<<<<< HEAD
 
 """
 only one of attribute_distribution_params or attribute_distribution can be set of each run
@@ -134,31 +133,22 @@ leave the unused element as an empty list, as below
 attribute_distribution_params: list(list[string, string, float])
 attribute_distribution: list(list(string, dict(string, float, float)))
 """
-
 blender_attributes = {
     "attribute_distribution_params": [["num_lamps","l", 5], ["num_lamps","r", 8], ["lamp_energy","mu", 500.0], ["lamp_size","mu",5], ["camera_radius","sigmu",0.1]],
     "attribute_distribution" : []
 }
 # "attribute_distribution" : [["lamp_energy", {"dist":"UniformD","l":2000.0,"r":2400.0}]]
 
-def generate_poses(object_folder, output_folder, renders_per_product, blender_attributes):
-=======
-            
 def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product):
->>>>>>> 7c0894f58e0c5647bb7424635f5e06dfb7d65e29
+
     """
     This function will call Blender to Generate object poses
-    """
-<<<<<<< HEAD
-    blender_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender'
-=======
-    "Make a call to Blender to generate poses"
-
-    #src_dir = 
+    """"
+    #src_dir =
     #blender_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender'
     print("src dir is", src_dir)
     print("blender path is ", blender_path)
->>>>>>> 7c0894f58e0c5647bb7424635f5e06dfb7d65e29
+
     blender_script_path = os.path.join(src_dir, 'rendering', 'render_poses.py')
     config_file_path = os.path.join(src_dir, 'rendering', 'config.json')
 
@@ -216,7 +206,7 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
     print('Checking data directories...')
 
     validate_folders(work_dir,data_folders)
-    
+
     obj_poses = os.path.join(work_dir, "object_poses")
 
 
@@ -225,7 +215,7 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
     """
     src_path = os.path.join(ocado_folder, "src")
     print("src path is", src_path)
-    generate_poses(src_path,blender_path, obj_set, obj_poses, renders_per_class)
+    generate_poses(src_path, blender_path, obj_set, obj_poses, renders_per_class)
 
 
     """------------------------Code to generate final images----------"""
@@ -233,7 +223,7 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
     We need to distinguish between the case of drawing backrounds
     from a database and when generating ourselves
     """
-    
+
     final_folder = os.path.join(work_dir, "final_folder")
     final_im = os.path.join(work_dir, "final_folder/images")
     for folder in os.listdir(obj_poses):
@@ -255,16 +245,16 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
                 except:
                     print("skipping", image)
                     continue
-                
-                
-                
+
+
+
                     just_name = os.path.splitext(image)[0]
                     name_jpg = just_name+".jpg"
                     save_to = os.path.join(sub_final, name_jpg)
                     gen_merge(foreground, save_to, pixels = 300)
 
-                
- 
+
+
         elif(generate_background is False and backgr_dat is None):
             print("We need a background database")
             return
@@ -278,8 +268,8 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
 
     for folder in os.listdir(obj_poses):
         print(folder)
-        
-    # export everything into a zip file    
+
+    # export everything into a zip file
     make_archive(zip_name, 'zip',final_folder)
 
     #input("press enter to continue")

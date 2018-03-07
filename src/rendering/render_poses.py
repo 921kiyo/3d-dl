@@ -61,16 +61,13 @@ import rendering.RenderInterface as Render
 
 """" --------------- Blender Setup ------------- """
 
-<<<<<<< HEAD
+
 if args.blender_attributes:
     io = StringIO(args.blender_attributes)
     blender_attributes = json.load(io)
 
 print(blender_attributes)
-=======
-print("test2")
 
->>>>>>> 7c0894f58e0c5647bb7424635f5e06dfb7d65e29
 """" --------------- Helper functions for folder navigation ------------- """
 
 def find_files(product_folder):
