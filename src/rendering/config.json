@@ -1,0 +1,13 @@
+{
+  "classes" : ["Liberte", "Halloumi"],
+  "images_per_class": 2,
+
+  "blender": {
+    "config" :{
+      "lamps": 8
+    },
+    "logs" : {
+
+    }
+  }
+}
