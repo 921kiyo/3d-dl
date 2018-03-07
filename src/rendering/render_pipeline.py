@@ -12,6 +12,7 @@ blender --background --python render_pipeline.py
 import sys
 #import random
 from shutil import rmtree, make_archive
+from shutil import move as sh_move
 from PIL import Image
 import numpy as np
 import os
@@ -214,7 +215,14 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
     src_path = os.path.join(ocado_folder, "src")
     print("src path is", src_path)
     generate_poses(src_path, blender_path, obj_set, obj_poses, renders_per_class, blender_attributes)
-
+    
+    #now we need to take Ong' stats and move them into final folder
+    orig_stats=os.path.join(obj_poses,"stats")
+    #os.mkdir(orig_stats)
+    
+    final_folder = os.path.join(work_dir, "final_folder")
+    if(os.path.isdir(orig_stats)):
+        sh_move(orig_stats, os.path.join(final_folder, "stats"))
 
     """------------------------Code to generate final images----------"""
     """
@@ -222,7 +230,7 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
     from a database and when generating ourselves
     """
 
-    final_folder = os.path.join(work_dir, "final_folder")
+    
     final_im = os.path.join(work_dir, "final_folder/images")
     for folder in os.listdir(obj_poses):
         sub_obj = os.path.join(obj_poses, folder)
@@ -295,7 +303,7 @@ bl_path = "E:\Blender_Foundation\Blender\\blender"
 argument_list = []
 arguments1 = {"zip_name": zip_save1, "obj_set": obj_set ,"blender_path": bl_path,"renders_per_class": 2,"work_dir": workspace, "generate_background": False, "backgr_dat": backg_database, "blender_attributes": blender_attributes}
 arguments2 = {"zip_name": zip_save2, "obj_set": obj_set ,"blender_path": bl_path,"renders_per_class": 2,"work_dir": workspace, "generate_background": True, "backgr_dat": backg_database, "blender_attributes": blender_attributes}
-argument_list.append(arguments1)
+#argument_list.append(arguments1)
 argument_list.append(arguments2)
 
 for value in argument_list:
