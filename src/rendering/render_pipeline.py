@@ -266,10 +266,17 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
 #full_run(zip_save, generate_background = True, backgr_dat = backg_database)
 
 """zip name"""
-zip_save = os.path.join(workspace, "final_zip/training_data")
+zip_save1 = os.path.join(workspace, "final_zip/sun_data")
+zip_save2 = os.path.join(workspace, "final_zip/random_data")
 backg_database = os.path.join(workspace,"bg_database/SUN_back/")
 obj_set = os.path.join(workspace, "object_files/two_set")
 bl_path = "E:\Blender_Foundation\Blender\\blender"
 """working_directory"""
-arguments = {"zip_name": zip_save, "obj_set": obj_set ,"blender_path": bl_path,"renders_per_class": 10,"work_dir": workspace, "generate_background": False, "backgr_dat": backg_database}
-full_run(**arguments)
+argument_list = []
+arguments1 = {"zip_name": zip_save1, "obj_set": obj_set ,"blender_path": bl_path,"renders_per_class": 10,"work_dir": workspace, "generate_background": False, "backgr_dat": backg_database}
+arguments2 = {"zip_name": zip_save2, "obj_set": obj_set ,"blender_path": bl_path,"renders_per_class": 10,"work_dir": workspace, "generate_background": True, "backgr_dat": backg_database}
+argument_list.append(arguments1)
+#argument_list.append(arguments2)
+
+for value in argument_list:
+    full_run(**value)
