@@ -78,8 +78,8 @@ class BlenderScene(object):
         self.data.cycles.transparent_min_bounces = 1
         self.data.cycles.samples = 64
         self.data.cycles.device = 'GPU'
-        self.data.render.tile_x = 128
-        self.data.render.tile_y = 128
+        self.data.render.tile_x = 512
+        self.data.render.tile_y = 512
         self.data.render.resolution_x = 300
         self.data.render.resolution_y = 300
         self.data.render.resolution_percentage = 100
