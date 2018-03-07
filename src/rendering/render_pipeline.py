@@ -217,12 +217,15 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
     generate_poses(src_path, blender_path, obj_set, obj_poses, renders_per_class, blender_attributes)
     
     #now we need to take Ong' stats and move them into final folder
-    orig_stats=os.path.join(obj_poses,"stats")
+    for folder in os.listdir(obj_poses):
+        print(folder)
+        orig_stats=os.path.join(obj_poses,folder,"stats")
     #os.mkdir(orig_stats)
     
-    final_folder = os.path.join(work_dir, "final_folder")
-    if(os.path.isdir(orig_stats)):
-        sh_move(orig_stats, os.path.join(final_folder, "stats"))
+        
+        if(os.path.isdir(orig_stats)):
+            final_name= folder + "_stats"
+            sh_move(orig_stats, os.path.join(work_dir,"final_folder" ,final_name))
 
     """------------------------Code to generate final images----------"""
     """
@@ -230,7 +233,7 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
     from a database and when generating ourselves
     """
 
-    
+    final_folder = os.path.join(work_dir, "final_folder")
     final_im = os.path.join(work_dir, "final_folder/images")
     for folder in os.listdir(obj_poses):
         sub_obj = os.path.join(obj_poses, folder)
@@ -278,7 +281,7 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
 
     # export everything into a zip file
     make_archive(zip_name, 'zip',final_folder)
-
+    
     #input("press enter to continue")
     destroy_folders(work_dir, temp_folders)
 
@@ -294,8 +297,8 @@ blender_attributes = {
 #blender_attributes ={}
 
 """zip name"""
-zip_save1 = os.path.join(workspace, "final_zip/sun_data")
-zip_save2 = os.path.join(workspace, "final_zip/random_data")
+zip_save1 = os.path.join(workspace, "final_zip/sun_bg_data")
+zip_save2 = os.path.join(workspace, "final_zip/random_bg_data")
 backg_database = os.path.join(workspace,"bg_database/SUN_back/")
 obj_set = os.path.join(workspace, "object_files/two_set")
 bl_path = "E:\Blender_Foundation\Blender\\blender"
