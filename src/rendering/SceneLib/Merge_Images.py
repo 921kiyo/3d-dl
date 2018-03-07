@@ -27,10 +27,20 @@ def add_background(foreground_name, background_name, save_as):
         foregroun_name (string): The name of the RGBA image
         background_name (string): Name of the background image
         save_as (string): Name under which the final image is to be saved
-    """    
-    foreground = Image.open(foreground_name)
-    background = Image.open(background_name)
-
+    """
+    try:
+        foreground=Image.open(foreground_name)
+    except:
+        print("invalid foreground images, skipping", foreground_name)
+        return "ForegroundError"   
+    try:
+        background=Image.open(background_name)
+    except:
+        #This is technically problematic as we might throw away
+        # valid object poses because of invalid backgrounds
+        print("invalid background image skipping", background_name)
+        return "BackgroundError" 
+    
     background.paste(foreground, (0, 0), foreground)
     background.save(save_as, "JPEG", quality=80, optimize=True, progressive=True)
 
