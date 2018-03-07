@@ -139,7 +139,7 @@ blender_attributes = {
 }
 # "attribute_distribution" : [["lamp_energy", {"dist":"UniformD","l":2000.0,"r":2400.0}]]
 
-def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product):
+def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product, blender_attributes):
 
     """
     This function will call Blender to Generate object poses
