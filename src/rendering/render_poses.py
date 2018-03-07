@@ -43,7 +43,7 @@ if not argv:
     parser.print_help()
     exit(-1)
 
-print(args)
+# print(args)
 
 
 """" --------------- Blender Setup ------------- """
@@ -58,27 +58,56 @@ with open(args.config_file) as config_file:
 
 print(config)
 
-#
-# num_images = 1
-#
-# """ ************* User specified stuff here ************* """
-# # required file paths for the script to run
-# texture_path = 'D:\\PycharmProjects\\3DModels\\Ocado\\Halloumi\\Halloumi.jpg'
-# obj_path = 'D:\\PycharmProjects\\3DModels\\Ocado\\Halloumi\\Halloumi.obj'
-# render_folder = 'D:\\PycharmProjects\\3DModels\\Ocado\\Halloumi\\render'
-#
-# """
-# Rendering with default parameters
-# RenderInterface has a BlenderRandomScene obejct that controls
-# random variables responsible for the scene. These random variables
-# have distributions associated with them. Here we show how to render
-# with the default distributions
-# """
-# RI = Render.RenderInterface(num_images=num_images)
-# RI.load_subject(obj_path, texture_path, render_folder)
-# RI.render_all(dump_logs = True)
-#
-# """
+print(config['images_per_class'])
+
+"""" --------------- Helper functions for folder navigation ------------- """
+
+def find_files(product_folder):
+    """Naively return name of object and texture file in a folder"""
+    # TODO add more sophisticated checking once format of object files concrete
+    object_file = ''
+    texture_file = ''
+
+    files = os.listdir(product_folder)
+
+    for file in files:
+        if file.endswith('.obj'):
+            object_file = file
+        elif file.endswith('.jpg'):
+            texture_file = file
+
+    return object_file, texture_file
+
+"""" --------------- Rendering ------------- """
+
+for product in config['classes']:
+    product_folder = os.path.join(args.object_folder, product)
+
+    # Validate project
+    if not os.path.isdir(product_folder):
+        print("Couldn't find {} object folder! Skipping".format(product))
+        continue
+
+    # Create product folder in object_renders
+    render_folder = os.path.join(product_folder)
+    if not os.path.isdir(render_folder):
+        os.mkdir(render_folder)
+
+    # Get model files
+    object_file, texture_file = find_files(product_folder)
+
+    # Configure model paths
+    obj_path = os.path.join(product_folder, object_file)
+    texture_path = os.path.join(product_folder, texture_file)
+
+    print(object_path, texture_path)
+
+    # # Do the blender stuff
+    # RI = Render.RenderInterface(num_images=config['images_per_class'])
+    # RI.load_subject(obj_path, texture_path, render_folder)
+    # RI.render_all(dump_logs = True)
+
+
 # Setting distribution parameters.
 # One can change the distribution parameters of certain attributes
 # in the rendering engine. This involves specifying the attribute

@@ -1,3 +1,5 @@
+# usage: python rendering/render_example.py 
+
 import site
 import os
 import subprocess
@@ -31,7 +33,7 @@ def generate_poses(object_folder, output_folder):
 
     print('Rendering')
     subprocess.check_call(blender_args)
-    print('Renedring done!')
+    print('Rendering done!')
 
 generate_poses('', '');
 
