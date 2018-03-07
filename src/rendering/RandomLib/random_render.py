@@ -117,6 +117,9 @@ class Distribution(object):
     def clear_log(self):
         self.log = []
 
+    def give_param(self):
+        return NotImplementedError
+
 class TruncNormDist(Distribution):
     """
     The class represents the Truncated Normal distribution. The distribution of
@@ -140,6 +143,10 @@ class TruncNormDist(Distribution):
             raise ValueError('Lower bound greater than upper bound!')
         super(TruncNormDist, self).__init__(**kwargs)
 
+
+    def give_param(self):
+        return {"dist": "TruncNormDist", "mu": self.mu, "sigmu": self.sigmu, "l": self.l, "r": self.r}
+        
     def sample_param(self):
         """
         Implementation of abstract method sample_param
@@ -172,6 +179,9 @@ class NormDist(Distribution):
         self.log_param(y)
         return y
 
+    def give_param(self):
+        return {"dist": "NormDist","mu": self.mu, "sigma": self.sigma}
+
 class UniformCDist(Distribution):
     """
     Continuous uniform distribution on an interval
@@ -197,6 +207,9 @@ class UniformCDist(Distribution):
         self.log_param(y)
         return y
 
+    def give_param(self):
+        return {"dist": "UniformCDist","mu": self.mu, "sigmu": self.sigmu, "l": self.l, "r": self.r}
+
 class UniformDDist(Distribution):
     """
     Uniform discrete distribution on the interval of integers
@@ -221,6 +234,9 @@ class UniformDDist(Distribution):
         y = random.randint(self.l, self.r)
         self.log_param(y)
         return y
+
+    def give_param(self):
+        return {"dist": "UniformDDist", "l": self.l, "r": self.r}
 
 class ShellRingCoordinateDist(Distribution):
     """
@@ -267,6 +283,9 @@ class ShellRingCoordinateDist(Distribution):
 
         return coords
 
+    def give_param(self):
+        return {"dist": "ShellRingCoordinateDist", "mu": self.mu, "sigmu": self.sigmu, "l": self.l, "r": self.r}
+
 class CompositeShellRingDist(Distribution):
     """
     x,y,z here are distributed in a space of between 1 and 3 rings, will
@@ -301,6 +320,9 @@ class CompositeShellRingDist(Distribution):
         self.log_param(coords)
         return coords
 
+    def give_param(self):
+        return {"dist": "CompositeShellRingDist", "phi_sigma": self.phi_sigma, "normals": self.normals}
+
 
 class UniformShellCoordinateDist(Distribution):
     """
@@ -331,6 +353,9 @@ class UniformShellCoordinateDist(Distribution):
         coords = (x,y,z)
         self.log_param(coords)
         return coords
+    
+    def give_param(self):
+        return {"dist": "UniformShellCoordinateDist"}
 
 def DistributionFactory(**params):
     check_required_kwargs(params, ['dist'])
