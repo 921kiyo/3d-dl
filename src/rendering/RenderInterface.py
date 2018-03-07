@@ -109,15 +109,25 @@ class RenderInterface(object):
             self.scene.render_to_file(render_path)
         logs = self.scene.retrieve_logs()
 
+        if not os.path.isdir(os.path.join(self.output_file, 'stats')):
+            os.mkdir(os.path.join(self.output_file, 'stats'))
+
         if dump_logs:
             import json
-            dump_file = os.path.join(self.output_file, 'randomvars_dump.json')
+            dump_file = os.path.join(self.output_file, 'stats', 'randomvars_dump.json')
             with open(dump_file, "w+") as f:
                 json.dump(logs, f, sort_keys=True, indent=4, separators=(',', ': '))
 
         if visualize:
+            import sys
+            for path in sys.path:
+                print(path)
+
+            import matplotlib
+            matplotlib.use('agg')
             from mpl_toolkits.mplot3d import Axes3D
             import matplotlib.pyplot as plt
+            
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
             camera_locations = logs['camera_loc']
@@ -128,8 +138,48 @@ class RenderInterface(object):
             ax.set_zlim([-1, 1])
             ax.set_ylim([-1, 1])
             ax.set_xlim([-1, 1])
-            dump_file = os.path.join(self.output_file, 'camera_loc.png')
+            plt.title('Camera Location')
+            dump_file = os.path.join(self.output_file, 'stats','camera_locations.svg')
             plt.savefig(dump_file)
 
+            plt.subplot(211)
+            camera_radii = logs['camera_radius']
+            plt.hist(camera_radii,bins=20)
+            plt.title('Camera Radius Histogram')
+
+            plt.subplot(212)
+            camera_radii = logs['spin_angle']
+            plt.hist(camera_radii,bins=20)
+            plt.title('Spin angle Histogram')
+            dump_file = os.path.join(self.output_file, 'stats', 'camera_stats.svg')
+            plt.savefig(dump_file)
+
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            lamp_locations = logs['lamp_loc']
+            X = [loc[0] for loc in lamp_locations]
+            Y = [loc[1] for loc in lamp_locations]
+            Z = [loc[2] for loc in lamp_locations]
+            ax.scatter(X, Y, zs=Z)
+            ax.set_zlim([-1, 1])
+            ax.set_ylim([-1, 1])
+            ax.set_xlim([-1, 1])
+            plt.title('Lamp Location')
+            dump_file = os.path.join(self.output_file, 'stats', 'lamp_locations.svg')
+            plt.savefig(dump_file)
+
+            fig = plt.figure()
+            plt.subplot(211)
+            lamp_energies = logs['lamp_energy']
+            plt.hist(lamp_energies,bins=20)
+            plt.title('Lamp Energy Histogram')
+
+            plt.subplot(212)
+            lamp_energies = logs['lamp_distance']
+            plt.hist(lamp_energies,bins=20)
+            plt.title('Lamp Distance Histogram')
+            
+            dump_file = os.path.join(self.output_file, 'stats', 'lamp_stats.svg')
+            plt.savefig(dump_file)
 
         return logs
