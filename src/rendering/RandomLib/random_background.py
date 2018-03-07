@@ -4,11 +4,11 @@ metballs!
 
 import os
 import numpy as np
-from scipy.interpolate import interp2d
-from scipy.misc import imresize
-import rendering.RandomLib.turbulence as turbulence
-import rendering.RandomLib.metaballs as metaballs
-import matplotlib.pyplot as plt
+#from scipy.interpolate import interp2d
+#from scipy.misc import imresize
+import src.rendering.RandomLib.turbulence as turbulence
+import src.rendering.RandomLib.metaballs as metaballs
+#import matplotlib.pyplot as plt
 from PIL import Image
 
 base_path = 'D:\\old_files\\aaaaa\\Anglie\\imperial\\2017-2018\\group_project\\OcadoLobster\\data\\resized_background\\random_back\\'

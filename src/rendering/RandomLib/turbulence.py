@@ -4,7 +4,7 @@ metballs!
 
 import numpy as np
 from scipy.interpolate import interp2d
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 def generate_noise(L):
     return np.random.uniform(size=[L,L])
