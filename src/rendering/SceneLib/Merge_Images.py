@@ -33,7 +33,16 @@ def add_background(foreground_name, background_name, save_as):
 
     background.paste(foreground, (0, 0), foreground)
     background.save(save_as, "JPEG", quality=80, optimize=True, progressive=True)
-                          
+
+
+def merge_images(foreground, background):
+    """                          
+    Merges two images. The difference is that this accepts Images as input
+    not path to the image
+    """
+    
+    background.paste(foreground, (0, 0), foreground)
+    return background
                
 def generate_for_all_objects(objects_folder, background_folder, final_folder):
     """
