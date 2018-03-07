@@ -4,10 +4,14 @@
 
   "blender": {
     "config" :{
-      "lamps": 8
-    },
+      "lamps": [[]],
+      dist@
+      name of attr
+      dict definitng disftribution
     "logs" : {
 
     }
   }
 }
+
+[[string, dict][string, dict]]

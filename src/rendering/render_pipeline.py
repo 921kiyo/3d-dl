@@ -15,6 +15,7 @@ from shutil import rmtree, make_archive
 from PIL import Image
 import numpy as np
 import os
+import subprocess
 
 # set use GPU
 """
@@ -36,11 +37,11 @@ workspace  = os.path.join(ocado_folder, "render_workspace")
 
 if not (ocado_folder in sys.path):
     sys.path.append(ocado_folder)
-    
-#    
+
+#
 #sys.path.append("E:/Blender_Foundation/Blender/2.79/python/lib/site-packages/")
 #sys.path.append("E:/Anaconda/Lib/site-packages/scipy/")
-#    
+
 import src.rendering.SceneLib.Merge_Images as mi
 import src.rendering.RandomLib.random_background as rb
 
@@ -83,7 +84,7 @@ data_folders = ['object_files',
                 'final_zip']
 
 temp_folders = ['generate_bg',
-                #'object_poses', #  for testing, otherwise uncomment
+                'object_poses', #  for testing, otherwise uncomment
                 #'final_folder/images',
                 'final_folder']
 
@@ -125,6 +126,31 @@ def destroy_folders(target_folder, folder_list):
         if(os.path.isdir(full_path)):
             rmtree(full_path)
             
+def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product):
+    """
+    This function will call Blender to Generate object poses
+    Wait for Max
+    """
+    "Make a call to Blender to generate poses"
+
+    #src_dir = 
+    #blender_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender'
+    print("src dir is", src_dir)
+    print("blender path is ", blender_path)
+    blender_script_path = os.path.join(src_dir, 'rendering', 'render_poses.py')
+    config_file_path = os.path.join(src_dir, 'rendering', 'config.json')
+
+    blender_args = [blender_path, '--background', '--python', blender_script_path, '--',
+                    src_dir,
+                    config_file_path,
+                    object_folder,
+                    output_folder,
+                    str(renders_per_product)]
+
+    print('Rendering...')
+    subprocess.check_call(blender_args)
+    print('Rendering done!')
+
 
 def gen_merge(image, save_as, pixels = 300):
     """
@@ -132,29 +158,34 @@ def gen_merge(image, save_as, pixels = 300):
     background. Instead of generating large quanta and randomly searching
     it will generate one background for each image. Thus it will be faster
     and definitely uniquely random.
-    
+
     !!Careful, the save_as should be full path including the name
     e.g. foo/bar/image1.jpg
     """
-    
+
     back = rb.rand_background(np.random.randint(2,4),pixels)
     scaled = back*256
     background = Image.fromarray(scaled.astype('uint8'), mode = "RGB")
     final = mi.merge_images(image, background)
-    final.save(save_as, "JPEG")#, quality=80, optimize=True, progressive=True)
 
-    
+    try:
+        final.save(save_as, "JPEG", quality=80, optimize=True, progressive=True)
+    except IOError:
+        print("IO error")
+    except KeyError:
+        print("Key error")
 
-def full_run(zip_name,  obj_set, work_dir = workspace, generate_background = True, backgr_dat = None ):
+
+def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir = workspace, generate_background = True, backgr_dat = None ):
     """
     Function that will take all the parameters and execute the
     appropriate pipeline
-    
+
     args:
         work_dir : path to the workspace that contains individual folders
         generate_background : Flag, if True, we will generate random background
                 if False, we will use images in a given database
-        backgr_dat : Path to databse of backgrounds to use if 
+        backgr_dat : Path to databse of backgrounds to use if
             generate_background is False
     """
 
@@ -163,12 +194,18 @@ def full_run(zip_name,  obj_set, work_dir = workspace, generate_background = Tru
     validate_folders(work_dir,data_folders)
     
     obj_poses = os.path.join(work_dir, "object_poses")
+
+
     """
     code to generate object poses
     """
-    
+    src_path = os.path.join(ocado_folder, "src")
+    print("src path is", src_path)
+    generate_poses(src_path,blender_path, obj_set, obj_poses, renders_per_class)
+
+
     """------------------------Code to generate final images----------"""
-    """ 
+    """
     We need to distinguish between the case of drawing backrounds
     from a database and when generating ourselves
     """
@@ -186,33 +223,35 @@ def full_run(zip_name,  obj_set, work_dir = workspace, generate_background = Tru
         # have to figure out what method to use
         if(generate_background):
             #for file in os.listdir(sub_obj):
-            
+
             for image in os.listdir(sub_obj):
+                path = os.path.join(sub_obj, image)
                 try:
-                    path = os.path.join(sub_obj, image)
                     foreground=Image.open(path)
-                                        
+                except:
+                    print("skipping", image)
+                    continue
+                
+                
+                
                     just_name = os.path.splitext(image)[0]
                     name_jpg = just_name+".jpg"
                     save_to = os.path.join(sub_final, name_jpg)
                     gen_merge(foreground, save_to, pixels = 300)
-            
-                    # do stuff
-                except IOError:                
-                    print("skipping", image)
-                    continue
+
+                
  
         elif(generate_background is False and backgr_dat is None):
             print("We need a background database")
             return
         else:
             mi.generate_for_all_objects(sub_obj,backgr_dat ,sub_final)
-            
-        
-    
+
+
+
     # currently we zip the object poses, but once we have the actual
     # training images, it is easy to just change the name
-    
+
     for folder in os.listdir(obj_poses):
         print(folder)
         
@@ -227,9 +266,10 @@ def full_run(zip_name,  obj_set, work_dir = workspace, generate_background = Tru
 #full_run(zip_save, generate_background = True, backgr_dat = backg_database)
 
 """zip name"""
-zip_save = os.path.join(workspace, "final_zip/test1")
+zip_save = os.path.join(workspace, "final_zip/training_data")
 backg_database = os.path.join(workspace,"bg_database/SUN_back/")
 obj_set = os.path.join(workspace, "object_files/two_set")
+bl_path = "E:\Blender_Foundation\Blender\\blender"
 """working_directory"""
-arguments = {"zip_name": zip_save, "obj_set": obj_set ,"work_dir": workspace, "generate_background": False, "backgr_dat": backg_database}
+arguments = {"zip_name": zip_save, "obj_set": obj_set ,"blender_path": bl_path,"renders_per_class": 10,"work_dir": workspace, "generate_background": False, "backgr_dat": backg_database}
 full_run(**arguments)

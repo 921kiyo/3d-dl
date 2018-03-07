@@ -1,4 +1,4 @@
-# usage: python rendering/render_example.py 
+# usage: python rendering/render_example.py
 
 import site
 import os
@@ -12,9 +12,10 @@ src_dir = str(pathlib.Path(__file__).parents[1].resolve())
 sys.path.append(os.path.join(src_dir))
 
 print(src_dir)
+object_folder = '/vol/project/2017/530/g1753002/max/render_workspace/object_files/two_set'
+output_folder = '/vol/project/2017/530/g1753002/max/render_workspace/object_poses/out'
 
-
-def generate_poses(object_folder, output_folder):
+def generate_poses(object_folder, output_folder, renders_per_product):
     "Make a call to Blender to generate poses"
     # python_sites = site.getsitepackages()[0]
     # python_sites = '/vol/project/2017/530/g1753002/ocadovenv/ocadovenv/lib/python3.5/site-packages'
@@ -27,15 +28,16 @@ def generate_poses(object_folder, output_folder):
                     src_dir,
                     config_file_path,
                     object_folder,
-                    output_folder]
+                    output_folder,
+                    str(renders_per_product)]
 
     # blender_args = [blender_path, '--background', '--python']
 
-    print('Rendering')
+    print('Rendering...')
     subprocess.check_call(blender_args)
     print('Rendering done!')
 
-generate_poses('', '');
+generate_poses(object_folder, output_folder, 2);
 
 
 # """ --------------- Run blender tests ------------- """
