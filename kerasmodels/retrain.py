@@ -1,6 +1,7 @@
 from keras.applications.inception_v3 import InceptionV3
 from keras.preprocessing import image
 from keras.models import Model
+from keras.models import load_model
 from keras.layers import Dense, GlobalAveragePooling2D
 from keras import backend as K
 from time import *
@@ -19,6 +20,13 @@ import numpy as np
 # for leaving the program in case of invalid arguments (sys.exit(0))
 import sys
 
+# for get_config
+from keras.models import Sequential
+
+# for unzipping
+import zipfile
+
+
 # Custom Image Augmentation Function
 def add_salt_pepper_noise(X_img):
     # Need to produce a copy as to not modify the original image
@@ -34,6 +42,7 @@ def add_salt_pepper_noise(X_img):
     X_img[coords[0], coords[1], :] = 1
 
     # Add Pepper noise
+
     coords = [np.random.randint(0, i - 1, int(num_pepper)) for i in X_img.shape]
     X_img[coords[0], coords[1], :] = 0
     return X_img_copy
@@ -82,8 +91,33 @@ class KerasInception:
 
         return model
 
+    # print train classes to txt file in classes_txt_dir
+    def save_class_list(self,train_dir,classes_txt_dir):
+        # assemble path
+        filename = "classes.txt"
+        my_file = os.path.join(classes_txt_dir, filename)
+        print("Writing classes.txt to:\n",my_file,'\n')
+        print("Classes found:")
+        for name in os.listdir(train_dir):
+            if not os.path.isfile(name):
+                print(name)
+
+        # check if file already exists
+        if not os.path.isfile(my_file):
+            # write all folder names to txt file
+            with open(my_file, "w") as classes_file:
+                for name in os.listdir(train_dir):
+                    # exclude files
+                    if not os.path.isfile(name):
+                        classes_file.write(name)
+                        classes_file.write("\n")
+            classes_file.close()
+
     def train(self,train_dir,validation_dir,epochs=5,fine_tune=False,
-            salt_pepper=False,augmentation_params={}):
+            salt_pepper=False,augmentation_params={},classes_txt_dir=None,save_model=False):
+        if classes_txt_dir:
+            self.save_class_list(train_dir,classes_txt_dir)
+
         # model can only be built here after training directory is clear
         # (for number of classes)
         self.model = self.assemble_model(train_dir)
@@ -125,7 +159,15 @@ class KerasInception:
                 class_mode='categorical')
 
         # log everything in tensorboard
-        tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
+        tensorboard = TensorBoard(log_dir="logs/{}".format(time()),
+                            histogram_freq=0,
+                            batch_size=32,
+                            write_graph=True,
+                            write_grads=False,
+                            write_images=True,
+                            embeddings_freq=0,
+                            embeddings_layer_names=None,
+                            embeddings_metadata=None) # histogram_freq=5
 
         # train the model on the new data for a few epochs
         self.model.fit_generator(
@@ -136,8 +178,15 @@ class KerasInception:
                 validation_steps=800 // self.batch_size,
                 callbacks = [tensorboard])
 
+        print(self.model.get_config())
+
         if fine_tune:
             self.fine_tune(train_generator,validation_generator,tensorboard)
+
+        if save_model:
+            base_path,train_folder = os.path.split(train_dir)
+            full_path = os.path.join(base_path, "model.h5")
+            self.save_model(full_path)
 
     def fine_tune(self,train_generator,validation_generator,tensorboard):
         # we chose to train the top 2 inception blocks, i.e. we will freeze
@@ -181,8 +230,13 @@ class KerasInception:
 
         return score
 
-    def save_model(self,name):
-        self.model.save(name)
+    # expects a path to a model in h5 format (a model, not weights!)
+    # model will be as when saving (i.e. compiled), can then call predict etc
+    def load_model(self,file_path):
+        self.model = load_model(file_path)
+
+    def save_model(self,path):
+        self.model.save(path)
 
 def get_augmentation_params(augmentation_mode):
     if augmentation_mode == 0:
@@ -195,6 +249,18 @@ def get_augmentation_params(augmentation_mode):
         print("UNKNOWN AUGMENTATION PARAMETER! (needs to be 0, 1 or 2)")
         sys.exit(0)
 
+def unzip_and_return_path_to_folder(path_to_zip_file):
+    maindirname, filename = os.path.split(path_to_zip_file)
+
+    new_dir = os.path.join(maindirname, filename.split('.')[0])
+    if not os.path.exists(new_dir):
+        os.makedirs(new_dir)
+
+    zip_ref = zipfile.ZipFile(path_to_zip_file, 'r')
+    zip_ref.extractall(new_dir)
+    zip_ref.close()
+
+    return path_to_zip_file.split('.')[0] # name of new folder
 
 def main():
     train_dir = '/vol/project/2017/530/g1753002/keras_test_data/train'
@@ -206,19 +272,56 @@ def main():
     fine_tune = False # if true, some of the inceptionV3 layers will be trained for 5 epochs at the end of training
     add_salt_pepper_noise = False # if True, it adds SP noise
     augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
-    epochs = 5
+    epochs = 1
 
     model = KerasInception(input_dim=input_dim,
                             batch_size=batch_size,
                             dense_layers=dense_layers)
+
 
     model.train(train_dir=train_dir,
                 validation_dir=validation_dir,
                 fine_tune=fine_tune,
                 epochs=epochs,
                 salt_pepper=add_salt_pepper_noise,
-                augmentation_params=get_augmentation_params(augmentation_mode))
+                augmentation_params=get_augmentation_params(augmentation_mode),
+                classes_txt_dir="/homes/sk5317/")
 
     model.evaluate(test_dir=test_dir)
 
-main()
+def main_for_pipeline():
+    path_of_zip = '/vol/project/2017/530/g1753002/keras_test_data/train/train_test_zip.zip'
+    unzipped_dir = unzip_and_return_path_to_folder(path_of_zip)
+    train_dir = unzipped_dir + '/images'
+    main_dir, filename = os.path.split(path_of_zip) # get path for classes.txt
+
+    validation_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
+    test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
+    dense_layers = 1
+    input_dim = 150
+    batch_size = 16
+    fine_tune = False # if true, some of the inceptionV3 layers will be trained for 5 epochs at the end of training
+    add_salt_pepper_noise = False # if True, it adds SP noise
+    augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
+    epochs = 1
+
+    model = KerasInception(input_dim=input_dim,
+                            batch_size=batch_size,
+                            dense_layers=dense_layers)
+
+
+    model.train(train_dir=train_dir,
+                validation_dir=validation_dir,
+                fine_tune=fine_tune,
+                epochs=epochs,
+                salt_pepper=add_salt_pepper_noise,
+                augmentation_params=get_augmentation_params(augmentation_mode),
+                classes_txt_dir=main_dir,
+                save_model=True
+                )
+
+    # model.evaluate(test_dir=test_dir)
+
+# main()
+
+main_for_pipeline()
