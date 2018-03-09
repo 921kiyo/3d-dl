@@ -149,7 +149,7 @@ class BlenderRandomScene(BlenderScene):
         # texture appearance are fixed for now
         self.subject.set_diffuse(color=(1, 0, 0, 1), rough=0.1)
         self.subject.set_gloss(rough=0.1)
-        self.subject.set_mixer(0.3)
+        self.subject.set_mixer(0.1)
         self.subject.set_location(0., 0., 0.)
 
     def set_attribute_distribution(self, attr, params):
