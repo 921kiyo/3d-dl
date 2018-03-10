@@ -36,6 +36,10 @@ class BlenderMesh(BlenderObject):
         self.reference.data.materials[0].use_nodes = True
 
         self.node_tree = self.material.node_tree
+        for node in self.node_tree.nodes:
+            if node == self.node_tree.nodes['Material Output'] or node == self.node_tree.nodes['Diffuse BSDF']:
+                continue
+            self.node_tree.nodes.remove(node)
         self.nodes['node_mat'] = BlenderMaterialOutputNode(self.node_tree,
                                                            reference=self.node_tree.nodes['Material Output'])
         self.nodes['node_diff'] = BlenderDiffuseBSDFNode(self.node_tree, reference=self.node_tree.nodes['Diffuse BSDF'])
