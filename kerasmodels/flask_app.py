@@ -157,13 +157,13 @@ def predict_api():
     print("Utterly Butterly: " + utterlybutterly_value + "%")
     print("Yogurt: " + yogurt_value + "%")
 
-    classified = {"Anchor": anchor_value, "Cheese": cheese_value, "Clinique": clinique_value, "Coconut Water": coconutwater_value, "Neutrogena": neutrogena_value, "Nivea": nivea_value, "UtterlyButterly": utterlybutterly_value, "Yogurt": yogurt_value}
+    classified = {"Anchor": float(anchor_value), "Cheese": float(cheese_value), "Clinique": float(clinique_value), "Coconut Water": float(coconutwater_value), "Neutrogena": float(neutrogena_value), "Nivea": float(nivea_value), "UtterlyButterly": float(utterlybutterly_value), "Yogurt": float(yogurt_value)}
 
     max_key = max(classified.items(), key=operator.itemgetter(1))[0]
 
     max_value = classified.get(max_key, "Error")
 
-    result = {"max_class": max_key, "max_value": max_value}
+    result = {"max_class": max_key, "max_value": str(max_value)}
 
     return jsonify(result)
     #return "Cheese: " + cheese_value + "% and " + "Yogurt: " + yogurt_value + "%"
