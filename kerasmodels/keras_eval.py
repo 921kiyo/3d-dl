@@ -98,6 +98,8 @@ def get_test_files(filedir, label2idx, n=5):
             raise InvalidDirectoryStructureError()
 
         for i in range(num_files):
+            if not (filenames[i].endswith('.jpg')):
+                continue
             filepath = os.path.join(dirpath,filenames[i])
             label = os.path.basename(dirpath)
             test_files.append((label, label2idx[label], filepath))
@@ -435,7 +437,7 @@ def eval(output_folder, test_folder):
     label = os.path.join(output_folder, "labels.txt")
      # label_path is the same as otuput.txt
     label2idx, idx2label = create_label_lists(label )
-    test_data = get_test_files(test_folder, label2idx, n=1000000)
+    test_data = get_test_files(test_folder, label2idx, n=100)
     model_path = os.path.join(output_folder, "model.h5")
     model = load_model(model_path)
 

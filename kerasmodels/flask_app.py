@@ -28,9 +28,9 @@ inputShape = (224, 224)
 preprocess = preprocess_input
 
 #model = load_model('production_model_1.h5')
-model = load_model('8_class_model.h5')
+model = load_model('/vol/project/2017/530/g1753002/Trained_Models/8_class_model.h5')
 
-UPLOAD_FOLDER = '/home/mforcexvi1/mysite'
+UPLOAD_FOLDER = '/vol/project/2017/530/g1753002/Flask_App/'
 
 app = Flask(__name__, static_url_path='')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -41,8 +41,9 @@ def root1():
 
 @app.route('/<image_file>')
 def root(image_file):
-    return app.send_static_file(image_file + '.jpg')
+    return app.send_static_file('image_file' + '.jpg')
 
+# Welcome page
 @app.route('/hello')
 def predict1():
     return '<!DOCTYPE html> <html> <body> <form action="/predict" method="POST" enctype="multipart/form-data"> <input type="file" name="my_image" accept="image/*"> <input type="submit"> </form> </body> </html>'
@@ -58,7 +59,7 @@ def predict():
       my_hash = hashlib.sha1()
       my_hash.update(str(time.time()).encode('utf-8'))
       short_hash = my_hash.hexdigest()[:10]
-      filepath = '/homes/mzw17/Lobster/keras/keras-official/static/' + short_hash + '.jpg'
+      filepath = '/vol/project/2017/530/g1753002/Flask_App/' + short_hash + '.jpg'
       #f.save('/homes/mzw17/Lobster/keras/keras-official/static/image.jpg')
       f.save(filepath)
 
@@ -114,7 +115,7 @@ def predict_api():
       my_hash = hashlib.sha1()
       my_hash.update(str(time.time()).encode('utf-8'))
       short_hash = my_hash.hexdigest()[:10]
-      filepath = '/homes/mzw17/Lobster/kerasmodels/static/' + short_hash + '.jpg'
+      filepath = '/vol/project/2017/530/g1753002/Flask_App/' + short_hash + '.jpg'
       #f.save('/homes/mzw17/Lobster/keras/keras-official/static/image.jpg')
       f.save(filepath)
 
