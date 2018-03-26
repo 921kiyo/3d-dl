@@ -92,17 +92,18 @@ def get_test_files(filedir, label2idx, n=5):
 
         # Extract the last dir name from dirpath
         last_dirname = os.path.basename(os.path.normpath(dirpath))
-        new_dir = os.path.join(filedir, last_dirname)
-        # Check if the directory has only one level below and not more than that
-        if(dirpath != new_dir):
-            raise InvalidDirectoryStructureError()
+        if(last_dirname in label2idx.keys()):
+            new_dir = os.path.join(filedir, last_dirname)
+            # Check if the directory has only one level below and not more than that
+            if(dirpath != new_dir):
+                raise InvalidDirectoryStructureError()
 
-        for i in range(num_files):
-            if not (filenames[i].endswith('.jpg')):
-                continue
-            filepath = os.path.join(dirpath,filenames[i])
-            label = os.path.basename(dirpath)
-            test_files.append((label, label2idx[label], filepath))
+            for i in range(num_files):
+                if not (filenames[i].endswith('.jpg')):
+                    continue
+                filepath = os.path.join(dirpath,filenames[i])
+                label = os.path.basename(dirpath)
+                test_files.append((label, label2idx[label], filepath))
 
     return test_files
 
@@ -435,7 +436,8 @@ def eval(output_folder, test_folder, test_result_file, test_result_path, notify_
 
     # Look at the folder structure, and create lists of all the images.
     label = os.path.join(output_folder, "labels.txt")
-     # label_path is the same as otuput.txt
+
+    # label_path is the same as output.txt
     label2idx, idx2label = create_label_lists(label )
     test_data = get_test_files(test_folder, label2idx, n=100)
     model_path = os.path.join(output_folder, "model.h5")
