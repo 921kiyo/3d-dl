@@ -413,17 +413,17 @@ import sys
 # /Desktop/output2/model.pb
 # /Desktop/output3/label.txt
 # /Desktop/output3/model.pb
-# TEst folder
+# Test folder
 
-def main(output_folders, test_folder="/vol/project/2017/530/g1753002/matthew/8_class_data/qlone_training_images/"):
+def main(args, output_folder="/vol/project/2017/530/g1753002/output", \
+        test_result_path="/vol/project/2017/530/g1753002/training_results.pkl", \
+        test_result_file=None,
+        test_folder="/vol/project/2017/530/g1753002/matthew/8_class_data/qlone_training_images/", notify_interval=20):
+    eval(output_folder, test_folder, test_result_file, test_result_path, notify_interval)
 
-    # for output_folder in output_folders:
-        # eval(output_folder, test_folder)
 
-    output_folder = "/vol/project/2017/530/g1753002/output"
-    eval(output_folder, test_folder)
-
-def eval(output_folder, test_folder):
+# Make this class maybe
+def eval(output_folder, test_folder, test_result_file, test_result_path, notify_interval):
     # Needed to make sure the logging output is visible.
     # See https://github.com/tensorflow/tensorflow/issues/3047
     # tf.logging.set_verbosity(tf.logging.INFO)
@@ -444,7 +444,7 @@ def eval(output_folder, test_folder):
     inputShape = (224, 224)
     preprocess = preprocess_input
 
-    if FLAGS.test_result_file is None:
+    if test_result_file is None:
         per_class_test_results = {}
         for label in label2idx:
 
@@ -454,7 +454,7 @@ def eval(output_folder, test_folder):
             count = 0
 
         for test_datum in test_data:
-            if(count%FLAGS.notify_interval == 0):
+            if(count%notify_interval == 0):
                 print('processed {0}, {1} more to go'.format(count,len(test_data)-count) )
 
             test_result = {}
@@ -487,82 +487,12 @@ def eval(output_folder, test_folder):
             count += 1
     else:
         print('Pre supplied test result file found, loading ... ')
-        pickled_test_result = open(FLAGS.test_result_file,'rb')
+        pickled_test_result = open(test_result_file,'rb')
         per_class_test_results = pickle.load(pickled_test_result)
     with tf.Session() as sess:
         summarize_results(sess ,label2idx, per_class_test_results, output_folder, print_results=True)
 
-    with open(FLAGS.test_result_path, 'wb') as f:  # Python 3: open(..., 'wb')
+    with open(test_result_path, 'wb') as f:  # Python 3: open(..., 'wb')
         pickle.dump(per_class_test_results, f)
 
-
-
-if __name__ == '__main__':
-  parser = argparse.ArgumentParser()
-  parser.add_argument(
-      '--model_source_dir',
-      type=str,
-      default='/vol/project/2017/530/g1753002/',
-      help="""\
-      directory containing the model graph.\
-      """)
-
-  parser.add_argument(
-     '--model_name',
-     type=str,
-     default='8_class_model.h5',
-     help="""\
-     directory containing the model graph.\
-     """)
-
-  parser.add_argument(
-      '--label_path',
-      type=str,
-      default='/vol/project/2017/530/g1753002/output_labels.txt',
-      help="""\
-          file containing the labels associated with the products.\
-          """)
-
-  parser.add_argument(
-      '--test_file_dir',
-      type=str,
-      default='/vol/project/2017/530/g1753002/matthew/8_class_data/qlone_training_images/',
-      help="""\
-              directory containing the test images.\
-              """)
-
-  parser.add_argument(
-      '--test_result_path',
-      type=str,
-      default='/vol/project/2017/530/g1753002/training_results.pkl',
-      help="""\
-              directory to store the test results.\
-              """)
-
-  parser.add_argument(
-      '--test_result_file',
-      type=str,
-      default=None,
-      help="""\
-              directory to store the test results.\
-              """)
-
-  parser.add_argument(
-      '--num_test',
-      type=int,
-      default=1,
-      help="""\
-                number of samples per class to test.\
-                """)
-
-  parser.add_argument(
-      '--notify_interval',
-      type=int,
-      default=20,
-      help="""\
-                    number of classes to test.\
-                    """)
-
-  FLAGS, unparsed = parser.parse_known_args()
-
-  tf.app.run(main=main)
+tf.app.run(main=main)
