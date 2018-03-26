@@ -197,10 +197,8 @@ class BlenderRandomScene(BlenderScene):
         self_dict = vars(self)
         if attr not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
-        dist_dict = vars(self_dict[attr])
-        if param not in dist_dict.keys():
-            raise KeyError('Cannot find specified attribute!')
-        dist_dict[param] = val
+        distribution = self_dict[attr]
+        distribution.change_param(param, val)
 
     def random_lighting_conditions(self, blender_lamp):
         '''location'''
