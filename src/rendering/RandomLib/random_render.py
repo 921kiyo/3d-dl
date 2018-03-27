@@ -117,6 +117,12 @@ class Distribution(object):
     def clear_log(self):
         self.log = []
 
+    def give_param(self):
+        return NotImplementedError
+
+    def change_param(self):
+        return NotImplementedError
+
 class TruncNormDist(Distribution):
     """
     The class represents the Truncated Normal distribution. The distribution of
@@ -140,6 +146,10 @@ class TruncNormDist(Distribution):
             raise ValueError('Lower bound greater than upper bound!')
         super(TruncNormDist, self).__init__(**kwargs)
 
+
+    def give_param(self):
+        return {"dist": "TruncNormDist", "mu": self.mu, "sigmu": self.sigmu, "l": self.l, "r": self.r}
+        
     def sample_param(self):
         """
         Implementation of abstract method sample_param
@@ -148,6 +158,13 @@ class TruncNormDist(Distribution):
         y = sample_trunc_norm(self.mu, self.sigmu*self.mu, self.l, self.r)
         self.log_param(y)
         return y
+    
+    def change_param(self, param_name, param_val):
+        self_dict = vars(self)
+        if param_name not in self_dict.keys():
+            raise KeyError('Cannot find specified attribute!')
+        self_dict[param_name] = param_val
+        
 
 class NormDist(Distribution):
     """
@@ -171,6 +188,16 @@ class NormDist(Distribution):
         y = random.gauss(self.mu, self.sigma)
         self.log_param(y)
         return y
+
+    def give_param(self):
+        return {"dist": "NormDist","mu": self.mu, "sigma": self.sigma}
+
+    def change_param(self, param_name, param_val):
+        self_dict = vars(self)
+        if param_name not in self_dict.keys():
+            raise KeyError('Cannot find specified attribute!')
+        self_dict[param_name] = param_val
+        
 
 class UniformCDist(Distribution):
     """
@@ -197,6 +224,15 @@ class UniformCDist(Distribution):
         self.log_param(y)
         return y
 
+    def give_param(self):
+        return {"dist": "UniformCDist","mu": self.mu, "sigmu": self.sigmu, "l": self.l, "r": self.r}
+
+    def change_param(self, param_name, param_val):
+        self_dict = vars(self)
+        if param_name not in self_dict.keys():
+            raise KeyError('Cannot find specified attribute!')
+        self_dict[param_name] = param_val
+
 class UniformDDist(Distribution):
     """
     Uniform discrete distribution on the interval of integers
@@ -221,6 +257,16 @@ class UniformDDist(Distribution):
         y = random.randint(self.l, self.r)
         self.log_param(y)
         return y
+
+    def give_param(self):
+        return {"dist": "UniformDDist", "l": self.l, "r": self.r}
+
+    def change_param(self, param_name, param_val):
+        self_dict = vars(self)
+        if param_name not in self_dict.keys():
+            raise KeyError('Cannot find specified attribute!')
+        self_dict[param_name] = param_val
+        
 
 class ShellRingCoordinateDist(Distribution):
     """
@@ -248,7 +294,8 @@ class ShellRingCoordinateDist(Distribution):
         """
         Implementation of abstract method sample_param
         :return: sample from this specified distribution (a triple)
-        """
+        """        
+        # sample phi and theta
         theta = math.radians(self.theta.sample_param())
         phi = math.radians(self.phi.sample_param())
 
@@ -266,6 +313,15 @@ class ShellRingCoordinateDist(Distribution):
         self.log_param(coords)
 
         return coords
+
+    def give_param(self):
+        return {"dist": "ShellRingCoordinateDist", "mu": self.mu, "sigmu": self.sigmu, "l": self.l, "r": self.r}
+
+    def change_param(self, param_name, param_val):
+        if param_name=='phi_sigma':
+            self.phi.change_param('sigmu', param_val/90.0)
+            return
+        raise KeyError('Cannot find specified attribute!')
 
 class CompositeShellRingDist(Distribution):
     """
@@ -301,6 +357,28 @@ class CompositeShellRingDist(Distribution):
         self.log_param(coords)
         return coords
 
+    def give_param(self):
+        return {"dist": "CompositeShellRingDist", "phi_sigma": self.phi_sigma, "normals": self.normals}
+
+    def change_param(self, param_name, param_val):
+
+        if param_name=='phi_sigma':
+            self.phi_sigma = param_val
+            for distribution in self.distributions:
+                distribution.change_param('phi_sigma', param_val)
+            return
+
+        if param_name=='normals':
+            self.normals = param_val
+            if self.normals not in ['X','Y','Z','XY','XZ','YZ','XYZ']:
+                raise ValueError('Normals must be one of ["X","Y","Z","XY","XZ","YZ","XYZ"]!')
+            self.distributions = []
+            for normal in self.normals:
+                self.distributions.append(ShellRingCoordinateDist(phi_sigma=self.phi_sigma, normal=normal))
+            return
+
+        raise KeyError('Cannot find specified attribute!')
+
 
 class UniformShellCoordinateDist(Distribution):
     """
@@ -316,7 +394,7 @@ class UniformShellCoordinateDist(Distribution):
         self.theta = UniformCDist(l=0.0, r=360.0)
         self.phi = TruncNormDist(mu=90.0,sigmu=30.0/90.0,l=0.0,r=180.0)
         super(UniformShellCoordinateDist, self).__init__(**kwargs)
-
+        
     def sample_param(self):
         """
         Implementation of abstract method sample_param
@@ -331,6 +409,9 @@ class UniformShellCoordinateDist(Distribution):
         coords = (x,y,z)
         self.log_param(coords)
         return coords
+    
+    def give_param(self):
+        return {"dist": "UniformShellCoordinateDist"}
 
 def DistributionFactory(**params):
     check_required_kwargs(params, ['dist'])

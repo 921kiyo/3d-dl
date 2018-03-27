@@ -83,6 +83,7 @@ class BlenderScene(object):
         self.data.render.resolution_x = 300
         self.data.render.resolution_y = 300
         self.data.render.resolution_percentage = 100
+        self.data.render.use_persistent_data = True
 
     def render_to_file(self, filepath):
         self.data.render.filepath = filepath
@@ -149,7 +150,7 @@ class BlenderRandomScene(BlenderScene):
         # texture appearance are fixed for now
         self.subject.set_diffuse(color=(1, 0, 0, 1), rough=0.1)
         self.subject.set_gloss(rough=0.1)
-        self.subject.set_mixer(0.3)
+        self.subject.set_mixer(0.1)
         self.subject.set_location(0., 0., 0.)
 
     def set_attribute_distribution(self, attr, params):
@@ -196,10 +197,8 @@ class BlenderRandomScene(BlenderScene):
         self_dict = vars(self)
         if attr not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
-        dist_dict = vars(self_dict[attr])
-        if param not in dist_dict.keys():
-            raise KeyError('Cannot find specified attribute!')
-        dist_dict[param] = val
+        distribution = self_dict[attr]
+        distribution.change_param(param, val)
 
     def random_lighting_conditions(self, blender_lamp):
         '''location'''
