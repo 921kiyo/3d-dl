@@ -278,7 +278,7 @@ class BlenderRandomScene(BlenderScene):
         # is directly behind camera origin. Assuming camera FOV is less that 180 deg, unwanted
         # subject is never in FOV
         # bring active object to origin
-        subject_radius = self.subject.get_scale()[0]*self.subject.compute_mesh_bbvol_max_len()
+        subject_radius = self.subject.get_scale()[0]*self.subject.compute_mesh_bbvol_diagonal()
         r = r + subject_radius
         loc = (r*x, r*y, r*z)
         if z>=0.0:

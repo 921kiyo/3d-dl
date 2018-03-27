@@ -130,11 +130,12 @@ class BlenderMesh(BlenderObject):
         VZ = [v.co[2] for v in self.reference.data.vertices]
         return (max(VX) - min(VX))*(max(VY) - min(VY))*(max(VZ) - min(VZ))
 
-    def compute_mesh_bbvol_max_len(self):
+    def compute_mesh_bbvol_diagonal(self):
         VX = [v.co[0] for v in self.reference.data.vertices]
         VY = [v.co[1] for v in self.reference.data.vertices]
         VZ = [v.co[2] for v in self.reference.data.vertices]
-        return max(max(VX) - min(VX),max(VY) - min(VY),max(VZ) - min(VZ))
+        return math.sqrt(
+            (max(VX) - min(VX))**2+(max(VY) - min(VY))**2+(max(VZ) - min(VZ))**2)
 
     def set_mesh_bbvol(self, VReq):
         if not check_scalar_non_negative (VReq):
