@@ -5,6 +5,14 @@ import bpy
 import os
 from io import StringIO
 
+# set use GPU
+"""
+C = bpy.context
+C.user_preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
+C.user_preferences.addons['cycles'].preferences.devices[0].use = True
+C.scene.render.engine = 'CYCLES'
+"""
+
 
 """" --------------- CLI setup ------------- """
 # CLI code from https://developer.blender.org/diffusion/B/browse/master/release/scripts/templates_py/background_job.py
@@ -24,13 +32,12 @@ usage_text = (
     "  blender --background --python " + __file__ + " -- [options]"
 )
 
+
+"""" --------------- Arguments ------------- """
 parser = argparse.ArgumentParser(description=usage_text)
 
 parser.add_argument('project_dir',
                     help='path to source code')
-
-# parser.add_argument('config_file',
-#                     help='json file specifying rendering parameters')
 
 parser.add_argument('object_folder',
                     help='path to folder containing object files')
@@ -52,24 +59,22 @@ if not argv:
 
 # print(args)
 
-print("test2")
 """" --------------- Blender Setup ------------- """
 # Ensure source directory in Blender python path
 sys.path.append(os.path.join(args.project_dir))
 
 import rendering.RenderInterface as Render
 
+
 """" --------------- Blender Setup ------------- """
-
-
 if args.blender_attributes:
     io = StringIO(args.blender_attributes)
     blender_attributes = json.load(io)
 
-print(blender_attributes)
+print('Running blender with the following parameters: \n', blender_attributes)
+
 
 """" --------------- Helper functions for folder navigation ------------- """
-
 def find_files(product_folder):
     """Naively return name of object and texture file in a folder"""
     object_file = ''
@@ -85,11 +90,11 @@ def find_files(product_folder):
 
     return object_file, texture_file
 
-"""" --------------- Rendering ------------- """
 
+"""" --------------- Rendering ------------- """
 RI = Render.RenderInterface(num_images=args.renders_per_product)
 
-# for product in config['classes']:
+
 for product in os.listdir(args.object_folder):
     product_folder = os.path.join(args.object_folder, product)
 
