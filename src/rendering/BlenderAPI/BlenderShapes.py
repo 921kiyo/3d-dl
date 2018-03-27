@@ -130,6 +130,12 @@ class BlenderMesh(BlenderObject):
         VZ = [v.co[2] for v in self.reference.data.vertices]
         return (max(VX) - min(VX))*(max(VY) - min(VY))*(max(VZ) - min(VZ))
 
+    def compute_mesh_bbvol_max_len(self):
+        VX = [v.co[0] for v in self.reference.data.vertices]
+        VY = [v.co[1] for v in self.reference.data.vertices]
+        VZ = [v.co[2] for v in self.reference.data.vertices]
+        return max(max(VX) - min(VX),max(VY) - min(VY),max(VZ) - min(VZ))
+
     def set_mesh_bbvol(self, VReq):
         if not check_scalar_non_negative (VReq):
             raise InvalidInputError('Mesh BB Volume has to be positive!')
