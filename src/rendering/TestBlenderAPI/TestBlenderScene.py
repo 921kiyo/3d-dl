@@ -157,6 +157,7 @@ class BlenderRandomSceneTest(unittest.TestCase):
         self.assertEqual(len(bpy.data.objects), 2, 'Not two objects added!')
         self.assertEqual(bpy.data.objects[0], self.my_scene.subject.reference, 'subject and object reference not equal!')
         self.assertEqual(bpy.data.objects[1], self.my_scene.subject_bot.reference, 'subject and object reference not equal!')
+        
 
 if __name__ == '__main__':
 

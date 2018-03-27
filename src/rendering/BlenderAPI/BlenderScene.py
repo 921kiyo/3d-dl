@@ -268,6 +268,26 @@ class BlenderRandomScene(BlenderScene):
         # ********************* SUBJECT **********************
         self.subject.set_mesh_bbvol(self.subject_size.sample_param())  # size of original cube
 
+        # if we don't have bottom subject
+        if self.subject_bot is None:
+            return
+
+        # if we have bottom subject:
+        # subject mesh bounding box is always contained in the sphere of radius = bbox length
+        # move unwanted side directly behind camera such that origin of mesh bounding sphere
+        # is directly behind camera origin. Assuming camera FOV is less that 180 deg, unwanted
+        # subject is never in FOV
+        # bring active object to origin
+        subject_radius = self.subject.reference.get_scale()[0]
+        r = r + subject_radius
+        loc = (r*x, r*y, r*z)
+        if z>=0.0:
+            self.subject.set_location(0.0,0.0,0.0)
+            self.subject_bot.set_location(*loc)
+        elif z<0.0:
+            self.subject_bot.set_location(0.0,0.0,0.0)
+            self.subject.set_location(*loc)
+
     def render_to_file(self, filepath):
         """Overrides parent class implementation"""
         self.scene_setup()

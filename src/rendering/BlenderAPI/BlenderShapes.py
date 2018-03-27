@@ -137,6 +137,21 @@ class BlenderMesh(BlenderObject):
         VNom = self.compute_mesh_bbvol()
         scale = math.pow(VReq/VNom, 1./3.)
         self.set_scale((scale, scale, scale))
+        
+    def turn_off(self):
+        """
+        push it to second layer to hide
+        """
+        self.reference.layers[1] = True
+        self.reference.layers[0] = False
+
+    def turn_on(self):
+        """
+        push it to the topmost layer to show
+        """
+        self.reference.layers[0] = True
+        self.reference.layers[1] = False
+
 
 
 class BlenderCube(BlenderMesh):
