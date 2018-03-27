@@ -70,8 +70,10 @@ def find_all_files(min_pixels, origin_folder, target_folder):
     #count = 0
     for root, dirs, files in os.walk(origin_folder):
         vis_files = [f for f in files if not f[0] == '.']
+        copy = True
+        """
         copy = False
-                    
+               
         if(root.endswith("indoor")):
             print("I am indoor")
             target_folder = indoor_address
@@ -81,7 +83,7 @@ def find_all_files(min_pixels, origin_folder, target_folder):
             print("I am outdoor")
             target_folder = outdoor_address
             copy = True
-        
+        """
         if(len(vis_files)>0 and copy):
             for image_name in vis_files:
                 #print(root, dirs, image_name)

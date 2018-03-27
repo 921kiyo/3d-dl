@@ -4,13 +4,21 @@ Created on Tue Mar  6 17:51:48 2018
 
 @author: Pavel
 
+Rendering Pipeline. This file contains all necessary calling functions 
+for full rendering from object files to final images.
+The command for running the script can be found in bottom part of the code.
+Two dictionaries of parameters are necessary. One contains the parameters
+for Blender and one contains the parameters for Merging.
+
+For more detailed description and example see the appropriate function
+and an example at the end of file. 
+
 Run on commmand line using this command
-blender --background --python render_pipeline.py
+python render_pipeline.py
 
 """
 
 import sys
-#import random
 from shutil import rmtree, make_archive
 from shutil import move as sh_move
 from PIL import Image
@@ -26,57 +34,44 @@ C.user_preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
 C.user_preferences.addons['cycles'].preferences.devices[0].use = True
 C.scene.render.engine = 'CYCLES'
 """
-# path to blender library
 
-#boop = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/src/rendering/BlenderAPI'
-# above is for Pavel so he does not have to set it every time
-#boop = 'D:/PycharmProjects/Lobster/src/'
+"""
+Here the paths have to be set up.
+In the case that you are running this on your system, you should have
+a directory "render_workspace" with all the necessary files in the same
+folder as is the folder src
+
+If you are running this with the files being in group directory, while this
+script itself is not in the directory, you should change the path
+"workspace" to wherever this "render_workspace is"
+
+Pavel will test it and add further instructions here
+"""
 #boop = '/vol/bitbucket/who11/CO-530/Lobster/src'
+# ocado_folder = '/vol/bitbucket/who11/CO-530/Lobster/src'
 dir_path = os.path.dirname(os.path.realpath(__file__)) # the src folder
 rend_folder = os.path.abspath(os.path.join(dir_path, os.pardir))
 ocado_folder = os.path.abspath(os.path.join(rend_folder,os.pardir))
 workspace  = os.path.join(ocado_folder, "render_workspace")
+# workspace = '/vol/bitbucket/who11/CO-530/Lobster/render_workspace'
+
+#Need to adjust to the local path to Blender executable
+bl_path = "E:\Blender_Foundation\Blender\\blender"
+
+
+
 
 if not (ocado_folder in sys.path):
     sys.path.append(ocado_folder)
 
-#
-#sys.path.append("E:/Blender_Foundation/Blender/2.79/python/lib/site-packages/")
-#sys.path.append("E:/Anaconda/Lib/site-packages/scipy/")
 
 import src.rendering.SceneLib.Merge_Images as mi
 import src.rendering.RandomLib.random_background as rb
 
-""" --------------- CLI setup ------------- """
-"""
-parser = argparse.ArgumentParser(description='Create training images from 3D models and background images')
 
-#parser.add_argument('data_directory',
- #                   help='path to the data folder')
+"""------------ Validate folders ----------- """
 
-
-parser.add_argument('-r', '--render',
-                    help='render poses with Blender [number of renders to per product]')
-
-
-parser.add_argument('-i', '--images',
-                    help='generate random background images [number of images]')
-
-
-parser.add_argument('-m', '--merge', action='store_true',
-                    help='merge each render with random background image')
-
-
-parser.add_argument('-g', '--gpu', action='store_true',
-                    help='render with GPU')
-
-args = parser.parse_args()
-
-#print(args)
-"""
-
-"""------------ Validate data path and content folders ----------- """
-
+# Folders that have to be present or created at the begining of the run
 data_folders = ['object_files',
                 'bg_database',
                 'generate_bg',
@@ -85,71 +80,51 @@ data_folders = ['object_files',
                 'final_folder/images',
                 'final_zip']
 
+# Folders to be destroyed at the end of the run
 temp_folders = ['generate_bg',
-                'object_poses', #  for testing, otherwise uncomment
+                'object_poses', 
                 #'final_folder/images',
                 'final_folder']
 
-
-def confirm_action(question):
-    """Return True if user agrees to question """
-    while "Invalid answer. Type 'y' or 'n' then return.":
-        reply = input(question + ' (y/n): ').lower().strip()
-        if reply[:1] == 'y':
-            return True
-        if reply[:1] == 'n':
-            return False
-
-
-def validate_path():
-    """Check working directory"""
-    try:
-        os.chdir(args.data_directory)
-
-    except FileNotFoundError:
-        print("Couldn't find the data folder!\n")
-        raise
-
-
 def validate_folders(target_folder, folder_list):
-    """Check whether appropriate data folders are there or prompt user to create"""
-    #found = os.listdir(target_folder)
+    """
+    Check whether all folders in folder_list are present in the target_folder
+    If not, create them.
+    """
     diff = sorted(list(set(folder_list) - set(os.listdir(target_folder))))
-    print(os.listdir(target_folder))
-    print(sorted(diff))
+    print("Creating the following folders: ",sorted(diff))
     if not diff == []:
             for folder in diff:
                 print("making ", folder)
                 os.mkdir(os.path.join(target_folder,folder))
 
 def destroy_folders(target_folder, folder_list):
+    """
+    Destroy all folders in the target folder that are on the folder list
+    """
     for folder in folder_list:
         full_path = os.path.join(target_folder,folder)
         if(os.path.isdir(full_path)):
             rmtree(full_path)
 
-"""
-only one of attribute_distribution_params or attribute_distribution can be set of each run
-leave the unused element as an empty list, as below
-
-attribute_distribution_params: list(list[string, string, float])
-attribute_distribution: list(list(string, dict(string, float, float)))
-"""
-
-# "attribute_distribution" : [["lamp_energy", {"dist":"UniformD","l":2000.0,"r":2400.0}]]
-
 def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product, blender_attributes):
 
     """
     This function will call Blender to Generate object poses
+    It needs to be supplied with the path to the src folder, the blender executable.
+    It will create poses for each folder in the object_folder.
+    There will be "renders_per_product" poses for each product (e.g. for each
+    folder in the object_folder).
+    The last attributes is a dictionary of parameters for Blender,
+    see example for the details of these parameters.
+    The blender_attributes can also be left as an empty dictionary in which case
+    a default set of parameters will be used
     """
-    #src_dir =
-    #blender_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender'
     print("src dir is", src_dir)
     print("blender path is ", blender_path)
 
     blender_script_path = os.path.join(src_dir, 'rendering', 'render_poses.py')
-    config_file_path = os.path.join(src_dir, 'rendering', 'config.json')
+    #config_file_path = os.path.join(src_dir, 'rendering', 'config.json')
 
     blender_args = [blender_path, '--background', '--python', blender_script_path, '--',
                     src_dir,
@@ -157,9 +132,6 @@ def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_
                     output_folder,
                     str(renders_per_product),
                     json.dumps(blender_attributes)]
-
-    # blender_args = [blender_path, '--background', '--python']
-
     print('Rendering...')
     subprocess.check_call(blender_args)
     print('Rendering done!')
@@ -174,6 +146,12 @@ def gen_merge(image, save_as, pixels = 300):
 
     !!Careful, the save_as should be full path including the name
     e.g. foo/bar/image1.jpg
+    args:
+        image: a PIL Image type of the object pose
+        save_as: a full path (including a name of the image) to which the final 
+            image should be saved
+        pixels: The number of pixels the final square image will have.
+            Default = 300
     """
 
     back = rb.rand_background(np.random.randint(2,4),pixels)
@@ -218,11 +196,7 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
     
     #now we need to take Ong' stats and move them into final folder
     for folder in os.listdir(obj_poses):
-        print(folder)
-        orig_stats=os.path.join(obj_poses,folder,"stats")
-    #os.mkdir(orig_stats)
-    
-        
+        orig_stats=os.path.join(obj_poses,folder,"stats")      
         if(os.path.isdir(orig_stats)):
             final_name= folder + "_stats"
             sh_move(orig_stats, os.path.join(work_dir,"final_folder" ,final_name))
@@ -232,22 +206,21 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
     We need to distinguish between the case of drawing backrounds
     from a database and when generating ourselves
     """
-    print("test1")
     final_folder = os.path.join(work_dir, "final_folder")
     final_im = os.path.join(work_dir, "final_folder/images")
+    # Generate images for each class poses
     for folder in os.listdir(obj_poses):
         sub_obj = os.path.join(obj_poses, folder)
         if(os.path.isdir(sub_obj) is False):
             print(sub_obj, " is not a folder")
             continue
+        
         sub_final = os.path.join(final_im, folder)
         os.mkdir(sub_final)
-        # now we are ready to merge images
-        # have to figure out what method to use
-        print("test4")
+        
+        # Merge images based on the choice of background
         if(generate_background):
-            #for file in os.listdir(sub_obj):
-            print("test2")
+            # for each object pose
             for image in os.listdir(sub_obj):
                 path = os.path.join(sub_obj, image)
                 try:
@@ -256,66 +229,62 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
                     print("skipping", image)
                     continue
 
-
-
                 just_name = os.path.splitext(image)[0]
                 name_jpg = just_name+".jpg"
                 save_to = os.path.join(sub_final, name_jpg)
                 gen_merge(foreground, save_to, pixels = 300)
                 foreground.close()
 
-
-
         elif(generate_background is False and backgr_dat is None):
             print("We need a background database")
             return
         else:
-            print("test5")
+            # We generate a random mesh background
             mi.generate_for_all_objects(sub_obj,backgr_dat ,sub_final)
-        print("test3")    
 
-
-    # currently we zip the object poses, but once we have the actual
-    # training images, it is easy to just change the name
-    print("just here")
+    
     for folder in os.listdir(obj_poses):
         print(folder)
-    print("got here")
     # export everything into a zip file
     make_archive(zip_name, 'zip',final_folder)
-    print("make an archive")
-    #input("press enter to continue")
     destroy_folders(work_dir, temp_folders)
-    print("destroyed a folder")
 
-
-#full_run(zip_save, generate_background = True, backgr_dat = backg_database)
-
+"""
+The blender parameters. Keywords should be self explanatory. 
+For more details ask Ong.
+A default parameters can be used by passing an empty dictionary
+blender_attributes={}
+"""
 blender_attributes = {
     "attribute_distribution_params": [["num_lamps","l", 5], ["num_lamps","r", 8], ["lamp_energy","mu", 500.0], ["lamp_size","mu",5], ["camera_radius","sigmu",0.1]],
     "attribute_distribution" : []
 }
 
-#blender_attributes ={}
 
-"""zip name"""
+"""zip files name"""
+"""
+One zip file contain all images from the given run
+It is possible and adviced to general several tests at once
+"""
 zip_save1 = os.path.join(workspace, "final_zip/sun_bg_data")
 zip_save2 = os.path.join(workspace, "final_zip/random_bg_data")
 zip_save3 = os.path.join(workspace, "final_zip/white_bg_data")
+
+
+# Set up paths to background databases and which set of object files
+# is to be used for generation
 backg_database = os.path.join(workspace,"bg_database/SUN_back/")
 white_background = os.path.join(workspace, "bg_database/white/")
 obj_set = os.path.join(workspace, "object_files/two_set")
-bl_path = "E:\Blender_Foundation\Blender\\blender"
-"""working_directory"""
 
 
-argument_list = []
+argument_list = [] # Create a list of dictionaries
 arguments1 = {"zip_name": zip_save1, "obj_set": obj_set ,"blender_path": bl_path,"renders_per_class": 2,"work_dir": workspace, "generate_background": False, "backgr_dat": backg_database, "blender_attributes": blender_attributes}
 arguments2 = {"zip_name": zip_save2, "obj_set": obj_set ,"blender_path": bl_path,"renders_per_class": 2,"work_dir": workspace, "generate_background": True, "backgr_dat": backg_database, "blender_attributes": blender_attributes}
 arguments3 = {"zip_name": zip_save3, "obj_set": obj_set ,"blender_path": bl_path,"renders_per_class": 2,"work_dir": workspace, "generate_background": False, "backgr_dat": white_background, "blender_attributes": blender_attributes}
 argument_list.append(arguments1)
 argument_list.append(arguments2)
-#argument_list.append(arguments3)
+argument_list.append(arguments3)
 
 for value in argument_list:
     full_run(**value)
