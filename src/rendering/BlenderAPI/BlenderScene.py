@@ -39,6 +39,7 @@ class BlenderScene(object):
         self.objects_unfixed = []
         self.camera = None
         self.subject = None
+        self.subject_bot = None
         self.data = data
 
     def add_background(self, background):
@@ -47,8 +48,9 @@ class BlenderScene(object):
     def add_camera(self, camera):
         self.camera = camera
 
-    def add_subject(self, subject):
+    def add_subject(self, subject, subject_bot=None):
         self.subject = subject
+        self.subject_bot = subject_bot
 
     def add_object_fixed(self, object):
         self.objects_fixed.append(object)
@@ -67,6 +69,9 @@ class BlenderScene(object):
         if self.subject is not None:
             self.subject.delete()
             self.subject = None
+        if self.subject_bot is not None:
+            self.subject_bot.delete()
+            self.subject_bot = None
         self.objects_fixed = []
         self.objects_unfixed = []
 
@@ -92,6 +97,8 @@ class BlenderScene(object):
     def remove_subject(self):
         if self.subject is not None:
             self.subject.delete()
+        if self.subject_bot is not None:
+            self.subject_bot.delete()
 
     def remove_lamps(self):
         for lamp in self.lamps:
@@ -142,9 +149,15 @@ class BlenderRandomScene(BlenderScene):
         for i in range(self.max_num_lamps):
             self.add_lamp(BlenderPoint(None))
 
-    def load_subject_from_path(self, obj_path, texture_path):
+    def load_subject_from_path(self, obj_path, texture_path, obj_path_bot=None, texture_path_bot=None):
         self.remove_subject()
-        self.add_subject(BlenderImportedShape(obj_path=obj_path, location=(-1,0,-1) ,orientation=(90,1,0,0)))
+        obj_top = BlenderImportedShape(obj_path=obj_path, location=(-1,0,-1) ,orientation=(90,1,0,0))
+        if obj_path_bot is not None:
+            obj_bot = BlenderImportedShape(obj_path=obj_path_bot, location=(-1,0,-1) ,orientation=(90,1,0,0))
+        else:
+            obj_bot = None
+        self.add_subject(obj_top, obj_bot)
+
         self.subject.set_mesh_bbvol(self.subject_size.sample_param())  # size of original cube
         self.subject.add_image_texture(texture_path)
         # texture appearance are fixed for now
@@ -152,6 +165,14 @@ class BlenderRandomScene(BlenderScene):
         self.subject.set_gloss(rough=0.1)
         self.subject.set_mixer(0.1)
         self.subject.set_location(0., 0., 0.)
+
+        if self.subject_bot is not None:
+            self.subject_bot.set_mesh_bbvol(self.subject_size.sample_param())  # size of original cube
+            self.subject_bot.add_image_texture(texture_path_bot)
+            self.subject_bot.set_diffuse(color=(1, 0, 0, 1), rough=0.1)
+            self.subject_bot.set_gloss(rough=0.1)
+            self.subject_bot.set_mixer(0.1)
+            self.subject_bot.set_location(0., 0., 0.)
 
     def set_attribute_distribution(self, attr, params):
         """
