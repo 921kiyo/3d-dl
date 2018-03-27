@@ -28,6 +28,7 @@ def add_background(foreground_name, background_name, save_as):
         background_name (string): Name of the background image
         save_as (string): Name under which the final image is to be saved
     """
+    print("add background start")
     try:
         foreground=Image.open(foreground_name)
     except:
@@ -40,10 +41,12 @@ def add_background(foreground_name, background_name, save_as):
         # valid object poses because of invalid backgrounds
         print("invalid background image skipping", background_name)
         return "BackgroundError" 
-    
+    print("add1")
     background.paste(foreground, (0, 0), foreground)
+    print("add2")
+    print(save_as)
     background.save(save_as, "JPEG", quality=80, optimize=True, progressive=True)
-
+    print("add background done")
 
 def merge_images(foreground, background):
     """                          
@@ -69,13 +72,15 @@ def generate_for_all_objects(objects_folder, background_folder, final_folder):
     Returns:
         Nothing
     """
+    print("generate_test")
     all_backgrounds = os.listdir(background_folder)
     for object_image in os.listdir(objects_folder):
         one_object = random.choice(all_backgrounds)
+        print("the background is", one_object)
         just_name = os.path.splitext(object_image)[0]
         add_background(objects_folder+"/"+object_image, background_folder+"/"+one_object, final_folder+"/"+just_name+".jpg")
-        
+    print("generate test done")
         
 
-#generate_for_all_objects(base_address+"object_poses/Liberte_white", base_address+"resized_background/white_back", base_address+"final_images/white/liberte/train")
+#generate_for_all_objects(base_address+"object_poses/Liberte_white", base_address+"resized_background/SUN_back", base_address+"final_images/white/liberte/train")
 #generate_for_all_objects(base_address+"object_poses/Halloumi_white", base_address+"resized_background/white_back", base_address+"final_images/white/halloumi/train")

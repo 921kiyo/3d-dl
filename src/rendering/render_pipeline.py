@@ -232,7 +232,7 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
     We need to distinguish between the case of drawing backrounds
     from a database and when generating ourselves
     """
-
+    print("test1")
     final_folder = os.path.join(work_dir, "final_folder")
     final_im = os.path.join(work_dir, "final_folder/images")
     for folder in os.listdir(obj_poses):
@@ -244,9 +244,10 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
         os.mkdir(sub_final)
         # now we are ready to merge images
         # have to figure out what method to use
+        print("test4")
         if(generate_background):
             #for file in os.listdir(sub_obj):
-
+            print("test2")
             for image in os.listdir(sub_obj):
                 path = os.path.join(sub_obj, image)
                 try:
@@ -269,22 +270,23 @@ def full_run(zip_name,  obj_set, blender_path, renders_per_class = 10, work_dir 
             print("We need a background database")
             return
         else:
+            print("test5")
             mi.generate_for_all_objects(sub_obj,backgr_dat ,sub_final)
-
+        print("test3")    
 
 
     # currently we zip the object poses, but once we have the actual
     # training images, it is easy to just change the name
-
+    print("just here")
     for folder in os.listdir(obj_poses):
         print(folder)
-
+    print("got here")
     # export everything into a zip file
     make_archive(zip_name, 'zip',final_folder)
-    
+    print("make an archive")
     #input("press enter to continue")
     destroy_folders(work_dir, temp_folders)
-
+    print("destroyed a folder")
 
 
 #full_run(zip_save, generate_background = True, backgr_dat = backg_database)
@@ -299,15 +301,21 @@ blender_attributes = {
 """zip name"""
 zip_save1 = os.path.join(workspace, "final_zip/sun_bg_data")
 zip_save2 = os.path.join(workspace, "final_zip/random_bg_data")
+zip_save3 = os.path.join(workspace, "final_zip/white_bg_data")
 backg_database = os.path.join(workspace,"bg_database/SUN_back/")
+white_background = os.path.join(workspace, "bg_database/white/")
 obj_set = os.path.join(workspace, "object_files/two_set")
 bl_path = "E:\Blender_Foundation\Blender\\blender"
 """working_directory"""
+
+
 argument_list = []
 arguments1 = {"zip_name": zip_save1, "obj_set": obj_set ,"blender_path": bl_path,"renders_per_class": 2,"work_dir": workspace, "generate_background": False, "backgr_dat": backg_database, "blender_attributes": blender_attributes}
 arguments2 = {"zip_name": zip_save2, "obj_set": obj_set ,"blender_path": bl_path,"renders_per_class": 2,"work_dir": workspace, "generate_background": True, "backgr_dat": backg_database, "blender_attributes": blender_attributes}
-#argument_list.append(arguments1)
+arguments3 = {"zip_name": zip_save3, "obj_set": obj_set ,"blender_path": bl_path,"renders_per_class": 2,"work_dir": workspace, "generate_background": False, "backgr_dat": white_background, "blender_attributes": blender_attributes}
+argument_list.append(arguments1)
 argument_list.append(arguments2)
+#argument_list.append(arguments3)
 
 for value in argument_list:
     full_run(**value)
