@@ -15,7 +15,9 @@ Get the correct files by pulling the branch pavel/pipeline
 (Once merged this will be changed)
 
 ssh into the GPU: ssh <username>@gpu04.doc.ic.ac.uk
+
 navigate into src/rendering run:
+
 python render_pipeline.py
 
 The generated zip files are in:
