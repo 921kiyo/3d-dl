@@ -44,7 +44,7 @@ class RenderInterface(object):
         self.scene.set_render()
         self.scene.add_camera(cam)
 
-    def load_subject(self, obj_path, texture_path, output_file):
+    def load_subject(self, obj_path, texture_path, output_file, obj_path_bot=None, texture_path_bot=None):
         """
         Loads a single subject into the RandomScene
         :param obj_path:
@@ -53,7 +53,22 @@ class RenderInterface(object):
         :return:
         """
         self.output_file = output_file
-        self.scene.load_subject_from_path(obj_path=obj_path, texture_path=texture_path)
+        self.scene.load_subject_from_path(
+            obj_path=obj_path, texture_path=texture_path, obj_path_bot=obj_path_bot, texture_path_bot=texture_path_bot)
+
+    def load_subjects(self, obj_path, texture_path, obj_path_bot, texture_path_bot, output_file):
+        """
+        Loads two subjects into the RandomScene
+        :param obj_path:
+        :param texture_path:
+        :param obj_path_bot:
+        :param texture_path_bot:
+        :param output_file:
+        :return:
+        """
+        self.output_file = output_file
+        self.scene.load_subject_from_path(
+            obj_path=obj_path, texture_path=texture_path, obj_path_bot=obj_path_bot, texture_path_bot=texture_path_bot)
 
     def change_output_file(self, new_output_file):
         self.output_file = new_output_file

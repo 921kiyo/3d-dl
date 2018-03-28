@@ -112,6 +112,9 @@ class BlenderObject(object):
         """
         return self.reference.rotation_quaternion
 
+    def get_scale(self):
+        return self.reference.scale
+
     def rotate(self, w, x, y, z):
         """
         rotate object, w.r.t to current pose

@@ -16,7 +16,7 @@ import unittest
 import rendering.BlenderAPI as bld
 
 
-from rendering.BlenderAPI.BlenderScene import BlenderScene
+from rendering.BlenderAPI.BlenderScene import BlenderScene, BlenderRandomScene
 from rendering.BlenderAPI.BlenderScene import BlenderRoom
 from rendering.BlenderAPI.BlenderCamera import BlenderCamera
 from rendering.BlenderAPI.BlenderLamps import BlenderLamp, BlenderSun, BlenderPoint
@@ -62,7 +62,6 @@ class BlenderSceneTest(unittest.TestCase):
         self.my_scene.add_camera(new_camera)
         self.assertEqual(self.my_scene.camera, new_camera, "Camera was not successfully added to scene!")
 
-    #Currently failing this test because line 57 in BlenderScene should be self.lamps
     def test_add_lamps(self):
         # Add one lamp and check that it is successfully added
         new_lamp_sun = BlenderSun()
@@ -120,6 +119,45 @@ class BlenderSceneTest(unittest.TestCase):
         self.my_scene.render_to_file(filepath)
         self.assertTrue(os.path.isfile(filepath))
         os.remove(filepath)
+
+class BlenderRandomSceneTest(unittest.TestCase):
+
+    def setUp(self):
+        # delete all objects
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+        self.my_scene = BlenderRandomScene(bpy.data.scenes[0])
+
+    def tearDown(self):
+        # delete all objects
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+
+    def testImportSingleSubject(self):
+        # delete all the extra stuff added by BlenderRandomScene
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+        # add the object
+        obj_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'example.obj')
+        texture_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'texture.jpg')
+        self.my_scene.load_subject_from_path(obj_path, texture_path)
+        self.assertEqual(len(bpy.data.objects), 1, 'Not one object added!')
+        self.assertEqual(bpy.data.objects[0], self.my_scene.subject.reference, 'subject and object reference not equal!')
+
+    def testImportTwoSubjects(self):
+        # delete all the extra stuff added by BlenderRandomScene
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+        # add the object
+        obj_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'example.obj')
+        texture_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'texture.jpg')
+        obj_path_bot = obj_path
+        texture_path_bot = texture_path
+        self.my_scene.load_subject_from_path(obj_path, texture_path, obj_path_bot, texture_path_bot)
+        self.assertEqual(len(bpy.data.objects), 2, 'Not two objects added!')
+        self.assertEqual(bpy.data.objects[0], self.my_scene.subject.reference, 'subject and object reference not equal!')
+        self.assertEqual(bpy.data.objects[1], self.my_scene.subject_bot.reference, 'subject and object reference not equal!')
+        
 
 if __name__ == '__main__':
 
