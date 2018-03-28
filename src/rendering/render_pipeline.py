@@ -54,12 +54,12 @@ Pavel will test it and add further instructions here
 rendering_path = os.path.dirname(os.path.realpath(__file__))
 src_path = os.path.abspath(os.path.join(rendering_path, os.pardir))
 project_path = os.path.abspath(os.path.join(src_path, os.pardir))
-#project_path = '/vol/bitbucket/who11/CO-530/Lobster/src'
-workspace = os.path.join(project_path, "render_workspace")
-# workspace = '/vol/bitbucket/who11/CO-530/Lobster/render_workspace'
+#project_path = '/vol/bitbucket/who11/CO-530/Lobster/'
+#workspace = os.path.join(project_path, "render_workspace")
+workspace = '/vol/project/2017/530/g1753002/render_workspace'
 
 #Need to adjust to the local path to Blender executable
-bl_path = "E:\Blender_Foundation\Blender\\blender"
+#bl_path = "E:\Blender_Foundation\Blender\\blender"
 
 if not project_path in sys.path:
     sys.path.append(project_path)
@@ -67,9 +67,9 @@ if not project_path in sys.path:
 
 #sys.path.append("E:/Blender_Foundation/Blender/2.79/python/lib/site-packages/")
 #sys.path.append("E:/Anaconda/Lib/site-packages/scipy/")
-
-import src.rendering.SceneLib.Merge_Images as mi
-import src.rendering.RandomLib.random_background as rb
+print(sys.path)
+import SceneLib.Merge_Images as mi
+import RandomLib.random_background as rb
 
 
 
@@ -308,8 +308,8 @@ background_database = os.path.join(workspace, "bg_database/SUN_back/")
 obj_set = os.path.join(workspace, "object_files/two_set")
 
 # Set Blender path
-#bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
-bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
+bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
+#bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
 
 # Construct rendering parameters
 argument_list = []
@@ -336,7 +336,7 @@ arguments2 = {
     "blender_attributes": blender_attributes
     }
 
-argument_list.append(arguments1)
+#argument_list.append(arguments1)
 argument_list.append(arguments2)
 #argument_list.append(arguments3)
 
