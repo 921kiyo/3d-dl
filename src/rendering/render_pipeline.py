@@ -27,26 +27,18 @@ import os
 import subprocess
 import json
 
-# set use GPU
-"""
-C = bpy.context
-C.user_preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
-C.user_preferences.addons['cycles'].preferences.devices[0].use = True
-C.scene.render.engine = 'CYCLES'
-"""
-
-
 """
 Here the paths have to be set up.
-In the case that you are running this on your system, you should have
-a directory "render_workspace" with all the necessary files in the same
-folder as is the folder src
 
-If you are running this with the files being in group directory, while this
-script itself is not in the directory, you should change the path
-"workspace" to wherever this "render_workspace is"
+The file require other modules from the src folder,
+the project_path should point to the folder that contains the src
 
-Pavel will test it and add further instructions here
+The rendering process requires obj files and other images.
+These should be in render_workspace.
+A functioning render_workspace is in the group folder, but feel free
+to download it using psftp and place it on your system. 
+Do not forget to change the path to render_workspace as it is hard coded.
+
 """
 #boop = '/vol/bitbucket/who11/CO-530/Lobster/src'
 
@@ -336,7 +328,7 @@ arguments2 = {
     "blender_attributes": blender_attributes
     }
 
-#argument_list.append(arguments1)
+argument_list.append(arguments1)
 argument_list.append(arguments2)
 #argument_list.append(arguments3)
 
