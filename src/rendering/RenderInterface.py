@@ -3,8 +3,36 @@ This example script creates a box in the middle of a half room
 """
 
 import os
+import shutil
+import fnmatch
+import zipfile
+import uuid
 import bpy
 import rendering.BlenderAPI as bld
+
+def finds(patterns, list):
+    results = []
+    for pattern in patterns:
+        results.extend(find(pattern, list))
+
+def find(pattern, list):
+    result = []
+    for item in list:
+        if fnmatch.fnmatch(item, pattern):
+            result.append(item)
+    return result
+
+def validate_and_extract_model(model):
+    if not (len(model.namelist()) == 4 or len(model.namelist()) == 2):
+        raise ValueError('model file not correct format!')
+    if len(model.namelist()) == 4:
+        if not set(['Bot.jpg', 'Bot.obj', 'Top.obj', 'Top.jpg']) == set(model.namelist()):
+            raise ValueError('model file not correct format!')
+        return ['Bot.obj', 'Bot.jpg', 'Top.obj', 'Top.jpg']
+    if len(model.namelist()) == 2:
+       if not (len(find('*.jpg', model.namelist()))==1 and len(find('*.obj', model.namelist()))==1):
+           raise ValueError('model file not correct format!')
+       return find('*.obj', model.namelist()) + find('*.jpg', model.namelist())
 
 class RenderInterface(object):
     """
@@ -69,6 +97,52 @@ class RenderInterface(object):
         self.output_file = output_file
         self.scene.load_subject_from_path(
             obj_path=obj_path, texture_path=texture_path, obj_path_bot=obj_path_bot, texture_path_bot=texture_path_bot)
+
+    def load_from_model(self, model_path, output_file):
+
+        self.output_file = output_file
+        # check the model file
+        if not model_path.lower().endswith('.model'):
+            raise ValueError('file extension not wrong!')
+        # attempt to create a non-existent folder
+        temp = os.path.join(output_file, str(uuid.uuid4()))
+        if os.path.isdir(temp):
+            raise ValueError('unique ID not unique!') #Fatal
+        os.mkdir(temp)
+
+        with zipfile.ZipFile(model_path, 'r') as model:
+            files = validate_and_extract_model(model)
+            model.extractall(temp)
+
+        error_reading_file = False
+        if len(files) == 4:
+            bot_obj_path = os.path.join(temp, files[0])
+            bot_texture_path = os.path.join(temp, files[1])
+            top_obj_path = os.path.join(temp, files[2])
+            top_texture_path = os.path.join(temp, files[3])
+            try:
+                self.load_subjects(top_obj_path, top_texture_path, bot_obj_path, bot_texture_path, output_file)
+            except E:
+                error_reading_file = True
+        elif len(files) == 2:
+            obj_path = os.path.join(temp, files[0])
+            texture_path = os.path.join(temp, files[1])
+            try:
+                self.load_subject(obj_path, texture_path, output_file)
+            except E:
+                error_reading_file = True
+
+        # this is really ugly, but it does the job - rendering it for the first
+        # time loads the image into Blender's memory, removing the need to
+        # have a persistent texture file
+        self.scene.render_to_file(os.path.join(temp, 'pre-render.png'))
+        # we can now clean house
+        shutil.rmtree(temp)
+
+        if error_reading_file:
+            raise IOError("Error reading model file contents!")
+        return
+
 
     def change_output_file(self, new_output_file):
         self.output_file = new_output_file
