@@ -104,14 +104,14 @@ class RenderInterface(object):
         # check the model file
         if not model_path.lower().endswith('.model'):
             raise ValueError('file extension not wrong!')
-        # attempt to create a non-existent folder
-        temp = os.path.join(output_file, str(uuid.uuid4()))
-        if os.path.isdir(temp):
-            raise ValueError('unique ID not unique!') #Fatal
-        os.mkdir(temp)
 
         with zipfile.ZipFile(model_path, 'r') as model:
             files = validate_and_extract_model(model)
+            # attempt to create a non-existent folder
+            temp = os.path.join(output_file, str(uuid.uuid4()))
+            if os.path.isdir(temp):
+                raise ValueError('unique ID not unique!')  # Fatal
+            os.mkdir(temp)
             model.extractall(temp)
 
         error_reading_file = False
