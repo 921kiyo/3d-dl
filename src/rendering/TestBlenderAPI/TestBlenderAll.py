@@ -14,13 +14,14 @@ cov = coverage.Coverage()
 cov.start()
 
 
-from rendering.testBlenderAPI.TestBlenderObjects import BlenderObjectTest
-from rendering.testBlenderAPI.TestBlenderCamera import BlenderCameraTest
-from rendering.testBlenderAPI.TestBlenderShapes import BlenderShapeTest
-from rendering.testBlenderAPI.TestBlenderScene import BlenderSceneTest
-from rendering.testBlenderAPI.TestBlenderMesh import BlenderMeshTest
-from rendering.testBlenderAPI.TestBlenderLamps import BlenderLampsTest
-from rendering.testBlenderAPI.TestBlenderNode import BlenderNodeTest
+from rendering.TestBlenderAPI.TestBlenderObjects import BlenderObjectTest
+from rendering.TestBlenderAPI.TestBlenderCamera import BlenderCameraTest
+from rendering.TestBlenderAPI.TestBlenderShapes import BlenderShapeTest
+from rendering.TestBlenderAPI.TestBlenderScene import BlenderSceneTest
+from rendering.TestBlenderAPI.TestBlenderScene import BlenderRandomSceneTest
+from rendering.TestBlenderAPI.TestBlenderMesh import BlenderMeshTest
+from rendering.TestBlenderAPI.TestBlenderLamps import BlenderLampsTest
+from rendering.TestBlenderAPI.TestBlenderNode import BlenderNodeTest
 
 
 
@@ -33,6 +34,7 @@ if __name__ == '__main__':
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderCameraTest))
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderShapeTest))
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderSceneTest))
+    suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderRandomSceneTest))
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderMeshTest))
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderLampsTest))
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderNodeTest))

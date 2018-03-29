@@ -27,13 +27,31 @@ def add_background(foreground_name, background_name, save_as):
         foregroun_name (string): The name of the RGBA image
         background_name (string): Name of the background image
         save_as (string): Name under which the final image is to be saved
-    """    
-    foreground = Image.open(foreground_name)
-    background = Image.open(background_name)
-
+    """
+    try:
+        foreground=Image.open(foreground_name)
+    except:
+        print("Invalid foreground images, skipping", foreground_name)
+        return "ForegroundError"   
+    try:
+        background=Image.open(background_name)
+    except:
+        #This is technically problematic as we might throw away
+        # valid object poses because of invalid backgrounds
+        print("Invalid background image skipping", background_name)
+        return "BackgroundError" 
     background.paste(foreground, (0, 0), foreground)
     background.save(save_as, "JPEG", quality=80, optimize=True, progressive=True)
-                          
+
+
+def merge_images(foreground, background):
+    """                          
+    Merges two images. The difference is that this accepts Images as input
+    not path to the image
+    """
+    
+    background.paste(foreground, (0, 0), foreground)
+    return background
                
 def generate_for_all_objects(objects_folder, background_folder, final_folder):
     """
@@ -50,13 +68,13 @@ def generate_for_all_objects(objects_folder, background_folder, final_folder):
     Returns:
         Nothing
     """
+
     all_backgrounds = os.listdir(background_folder)
     for object_image in os.listdir(objects_folder):
         one_object = random.choice(all_backgrounds)
         just_name = os.path.splitext(object_image)[0]
         add_background(objects_folder+"/"+object_image, background_folder+"/"+one_object, final_folder+"/"+just_name+".jpg")
         
-        
 
-#generate_for_all_objects(base_address+"object_poses/Liberte_white", base_address+"resized_background/white_back", base_address+"final_images/white/liberte/train")
+#generate_for_all_objects(base_address+"object_poses/Liberte_white", base_address+"resized_background/SUN_back", base_address+"final_images/white/liberte/train")
 #generate_for_all_objects(base_address+"object_poses/Halloumi_white", base_address+"resized_background/white_back", base_address+"final_images/white/halloumi/train")

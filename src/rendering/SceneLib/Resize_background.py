@@ -16,9 +16,11 @@ from PIL import Image
 from resizeimage import resizeimage
 
 #the below should point to the file containing the alphabet letter folders
-SUN_images_dir = "E:/LabelMeToolbox/real_data/images/z"
+SUN_images_dir = "E:/LabelMeToolbox/real_data/images"
 # The below folder will contain the resized images
-resized_address = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/data/resized_background/SUN_back/"
+#resized_address = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/data/resized_background/indoor/"
+indoor_address = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/data/resized_background/indoor/"
+outdoor_address = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/data/resized_background/outdoor/"
   
 
 def resize_and_crop(image_address, output_address, f_widht, f_height):
@@ -68,7 +70,21 @@ def find_all_files(min_pixels, origin_folder, target_folder):
     #count = 0
     for root, dirs, files in os.walk(origin_folder):
         vis_files = [f for f in files if not f[0] == '.']
-        if(len(vis_files)>0):
+        copy = True
+        """
+        copy = False
+               
+        if(root.endswith("indoor")):
+            print("I am indoor")
+            target_folder = indoor_address
+            copy = True
+       
+        if(root.endswith("outdoor")):
+            print("I am outdoor")
+            target_folder = outdoor_address
+            copy = True
+        """
+        if(len(vis_files)>0 and copy):
             for image_name in vis_files:
                 #print(root, dirs, image_name)
                 with Image.open(root+"/"+ image_name) as tested_image:
@@ -76,10 +92,10 @@ def find_all_files(min_pixels, origin_folder, target_folder):
                         if(width>=min_pixels and height>= min_pixels):                        
                             cover = resizeimage.resize_cover(tested_image, [min_pixels, min_pixels])
                             cover.convert('RGB').save(target_folder+image_name, 'JPEG')
-           
+       
         #count +=1
         #if(count>5):
             #return 
     return root
 
-#roots= find_all_files(300,SUN_images_dir, resized_address)
+#roots= find_all_files(300,SUN_images_dir, "")#resized_address)

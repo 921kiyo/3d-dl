@@ -112,6 +112,25 @@ class BlenderShapeTest(unittest.TestCase):
         success = my_cube.add_image_texture(test_file_path)
         self.assertFalse(success)
 
+    def test_turn_on_off(self):
+
+        my_cube = BlenderCube()
+        my_cube_ref = bpy.data.objects[0]
+        
+        my_cube.turn_off()
+        self.assertTrue(my_cube_ref.layers[1], "Object set to wrong layer")
+        self.assertFalse(my_cube_ref.layers[0], "Object set to wrong layer")
+        my_cube.turn_on()
+        self.assertTrue(my_cube_ref.layers[0], "Object set to wrong layer")
+        self.assertFalse(my_cube_ref.layers[1], "Object set to wrong layer")
+        my_cube.turn_off()
+        self.assertTrue(my_cube_ref.layers[1], "Object set to wrong layer")
+        self.assertFalse(my_cube_ref.layers[0], "Object set to wrong layer")
+        my_cube.turn_on()
+        self.assertTrue(my_cube_ref.layers[0], "Object set to wrong layer")
+        self.assertFalse(my_cube_ref.layers[1], "Object set to wrong layer")
+        
+
 
 if __name__ == '__main__':
 

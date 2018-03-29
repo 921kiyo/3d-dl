@@ -36,6 +36,10 @@ class BlenderMesh(BlenderObject):
         self.reference.data.materials[0].use_nodes = True
 
         self.node_tree = self.material.node_tree
+        for node in self.node_tree.nodes:
+            if node == self.node_tree.nodes['Material Output'] or node == self.node_tree.nodes['Diffuse BSDF']:
+                continue
+            self.node_tree.nodes.remove(node)
         self.nodes['node_mat'] = BlenderMaterialOutputNode(self.node_tree,
                                                            reference=self.node_tree.nodes['Material Output'])
         self.nodes['node_diff'] = BlenderDiffuseBSDFNode(self.node_tree, reference=self.node_tree.nodes['Diffuse BSDF'])
@@ -126,6 +130,13 @@ class BlenderMesh(BlenderObject):
         VZ = [v.co[2] for v in self.reference.data.vertices]
         return (max(VX) - min(VX))*(max(VY) - min(VY))*(max(VZ) - min(VZ))
 
+    def compute_mesh_bbvol_diagonal(self):
+        VX = [v.co[0] for v in self.reference.data.vertices]
+        VY = [v.co[1] for v in self.reference.data.vertices]
+        VZ = [v.co[2] for v in self.reference.data.vertices]
+        return math.sqrt(
+            (max(VX) - min(VX))**2+(max(VY) - min(VY))**2+(max(VZ) - min(VZ))**2)
+
     def set_mesh_bbvol(self, VReq):
         if not check_scalar_non_negative (VReq):
             raise InvalidInputError('Mesh BB Volume has to be positive!')
@@ -133,6 +144,21 @@ class BlenderMesh(BlenderObject):
         VNom = self.compute_mesh_bbvol()
         scale = math.pow(VReq/VNom, 1./3.)
         self.set_scale((scale, scale, scale))
+        
+    def turn_off(self):
+        """
+        push it to second layer to hide
+        """
+        self.reference.layers[1] = True
+        self.reference.layers[0] = False
+
+    def turn_on(self):
+        """
+        push it to the topmost layer to show
+        """
+        self.reference.layers[0] = True
+        self.reference.layers[1] = False
+
 
 
 class BlenderCube(BlenderMesh):
