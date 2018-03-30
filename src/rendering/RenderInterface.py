@@ -135,7 +135,8 @@ class RenderInterface(object):
         # this is really ugly, but it does the job - rendering it for the first
         # time loads the image into Blender's memory, removing the need to
         # have a persistent texture file
-        self.scene.render_to_file(os.path.join(temp, 'pre-render.png'))
+        if not error_reading_file:
+            self.scene.render_to_file(os.path.join(temp, 'pre-render.png'))
         # we can now clean house
         shutil.rmtree(temp)
 
@@ -197,6 +198,7 @@ class RenderInterface(object):
             render_path = os.path.join(self.output_file, 'render%d.png' % i)
             self.scene.render_to_file(render_path)
         logs = self.scene.retrieve_logs()
+        params = self.scene.give_params()
 
         if not os.path.isdir(os.path.join(self.output_file, 'stats')):
             os.mkdir(os.path.join(self.output_file, 'stats'))
@@ -206,6 +208,9 @@ class RenderInterface(object):
             dump_file = os.path.join(self.output_file, 'stats', 'randomvars_dump.json')
             with open(dump_file, "w+") as f:
                 json.dump(logs, f, sort_keys=True, indent=4, separators=(',', ': '))
+            dump_file = os.path.join(self.output_file, 'stats', 'randomparams_dump.json')
+            with open(dump_file, "w+") as f:
+                json.dump(params, f, sort_keys=True, indent=4, separators=(',', ': '))
 
         if visualize:
             import sys

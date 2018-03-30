@@ -7,8 +7,8 @@ import RenderInterface as Render
 num_images = 100
 """ ************* User specified stuff here ************* """
 # required file paths for the script to run
-obj_path = '/vol/project/2017/530/g1753002/3DModels/Halloumi/HalloumiDec.obj'
-texture_path = '/vol/project/2017/530/g1753002/3DModels/Halloumi/HalloumiDec.jpg'
+obj_path = '/vol/project/2017/530/g1753002/3DModels/Halloumi/Halloumi.obj'
+texture_path = '/vol/project/2017/530/g1753002/3DModels/Halloumi/Halloumi.jpg'
 render_folder = '/vol/project/2017/530/g1753002/3DModels/Halloumi/render'
 
 """

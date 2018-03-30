@@ -323,3 +323,14 @@ class BlenderRandomScene(BlenderScene):
             self.clear_logs()
 
         return logs
+
+    def give_params(self):
+        params = {}
+        self_dict = vars(self)
+
+        for attr_name in self_dict.keys():
+            attr = self_dict[attr_name]
+            if hasattr(attr, 'give_param'):
+                params[attr_name] = attr.give_param()
+
+        return params

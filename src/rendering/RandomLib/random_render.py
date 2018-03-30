@@ -225,7 +225,7 @@ class UniformCDist(Distribution):
         return y
 
     def give_param(self):
-        return {"dist": "UniformCDist","mu": self.mu, "sigmu": self.sigmu, "l": self.l, "r": self.r}
+        return {"dist": "UniformCDist", "l": self.l, "r": self.r}
 
     def change_param(self, param_name, param_val):
         self_dict = vars(self)
@@ -315,7 +315,7 @@ class ShellRingCoordinateDist(Distribution):
         return coords
 
     def give_param(self):
-        return {"dist": "ShellRingCoordinateDist", "mu": self.mu, "sigmu": self.sigmu, "l": self.l, "r": self.r}
+        return {"dist": "ShellRingCoordinateDist", "phi_sigma": self.phi_sigma, "normal": self.normal}
 
     def change_param(self, param_name, param_val):
         if param_name=='phi_sigma':
