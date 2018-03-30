@@ -366,7 +366,7 @@ class KerasEval:
         for label in per_class_test_results:
             test_results = per_class_test_results[label]
             n = len(test_results)
-            confidences, class_predictions, class_truth = extract_summary_tensors(test_results, label2idx)
+            confidences, class_predictions, class_truth = self.extract_summary_tensors(test_results, label2idx)
             predictions.extend(class_predictions)
             truth.extend(class_truth)
 
@@ -382,15 +382,15 @@ class KerasEval:
 
         cm = confusion_matrix(truth, predictions)
 
-        cm_img = plot_confusion_matrix(cm, classes=label2idx.keys())
+        cm_img = self.plot_confusion_matrix(cm, classes=label2idx.keys())
         summary_op = tf.summary.image("Confusion_Matrix", cm_img)
         confusion_summary = sess.run(summary_op)
         summary_writer.add_summary(confusion_summary)
 
-        sensitivity = compute_sensitivity(cm)
-        precision = compute_precision(cm)
+        sensitivity = self.compute_sensitivity(cm)
+        precision = self.compute_precision(cm)
 
-        prec_img = plot_bar(range(c), precision,  sensitivity  , title='Class Precision', xlabel='Class', ylabel='Precision and Sensitivity')
+        prec_img = self.plot_bar(range(c), precision,  sensitivity  , title='Class Precision', xlabel='Class', ylabel='Precision and Sensitivity')
         summary_op = tf.summary.image("Precision", prec_img)
         prec_summary = sess.run(summary_op)
         summary_writer.add_summary(prec_summary)
@@ -469,20 +469,20 @@ class KerasEval:
             pickled_test_result = open(test_result_file,'rb')
             per_class_test_results = pickle.load(pickled_test_result)
         with tf.Session() as sess:
-            summarize_results(sess ,label2idx, per_class_test_results, output_folder, print_results=True)
+            self.summarize_results(sess ,label2idx, per_class_test_results, output_folder, print_results=True)
 
         with open(test_result_path, 'wb') as f:  # Python 3: open(..., 'wb')
             pickle.dump(per_class_test_results, f)
 
 
-keras_eval = KerasEval()
-
-keras_eval.eval(output_folder="/vol/project/2017/530/g1753002/output", \
-                test_result_path="/vol/project/2017/530/g1753002/training_results.pkl",
-                test_result_file=None,
-                test_folder="/vol/project/2017/530/g1753002/matthew/8_class_data/qlone_training_images/",
-                notify_interval=20
-)
+# keras_eval = KerasEval()
+#
+# keras_eval.eval(output_folder="/vol/project/2017/530/g1753002/output", \
+#                 test_result_path="/vol/project/2017/530/g1753002/training_results.pkl",
+#                 test_result_file=None,
+#                 test_folder="/vol/project/2017/530/g1753002/matthew/8_class_data/qlone_training_images/",
+#                 notify_interval=20
+# )
 
 # def main(args, output_folder="/vol/project/2017/530/g1753002/output", \
 #         test_result_path="/vol/project/2017/530/g1753002/training_results.pkl", \
