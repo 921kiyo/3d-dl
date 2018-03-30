@@ -1,6 +1,7 @@
 import bpy
 
 import sys
+from copy import copy
 
 boop = '/Users/matthew/Documents/MSc/Group_Project/Lobster/src/'
 if not (boop in sys.path):
@@ -157,9 +158,75 @@ class BlenderRandomSceneTest(unittest.TestCase):
         self.assertEqual(len(bpy.data.objects), 2, 'Not two objects added!')
         self.assertEqual(bpy.data.objects[0], self.my_scene.subject.reference, 'subject and object reference not equal!')
         self.assertEqual(bpy.data.objects[1], self.my_scene.subject_bot.reference, 'subject and object reference not equal!')
+
+    def test_camera_loc(self):
+        # test that the camera location corresponds to the location reported in logs
+        camera = bld.BlenderCamera()
+        bpy.context.scene.camera = camera.reference
+        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+        self.my_scene.set_render()
+        self.my_scene.add_camera(cam)
+
+        # add a subject
+        obj_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'example.obj')
+        texture_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'texture.jpg')
+        self.my_scene.load_subject_from_path(obj_path, texture_path)
+
+        camera_locations = []
+        N = 1000
+        for i in range(N):
+            self.my_scene.scene_setup()
+            camera_locations.append(copy(tuple(self.my_scene.camera.reference.location)))
+
+        logs = self.my_scene.retrieve_logs()
+        loc = logs["camera_loc"]
+        rad = logs["camera_radius"]
+        for i in range(N):
+            left = loc[i]
+            right = camera_locations[i]
+            (x,y,z) = (left[0]*rad[i], left[1]*rad[i], left[2]*rad[i])
+            left = (x,y,z)
+            for l,r in zip(left,right):
+                self.assertAlmostEqual(l, r, places=5)
         
 
-if __name__ == '__main__':
+    def test_lamp_loc(self):
+        # test that the camera location corresponds to the location reported in logs
+        camera = bld.BlenderCamera()
+        bpy.context.scene.camera = camera.reference
+        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+        self.my_scene.set_render()
+        self.my_scene.add_camera(cam)
 
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(BlenderSceneTest)
-    success = unittest.TextTestRunner().run(suite).wasSuccessful()
+        # add a subject
+        obj_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'example.obj')
+        texture_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'texture.jpg')
+        self.my_scene.load_subject_from_path(obj_path, texture_path)
+
+        lamp_locations = []
+        N = 1000
+        for i in range(N):
+            self.my_scene.scene_setup()
+            for lamp in self.my_scene.lamps:
+                if not lamp.is_on() is True:
+                    continue
+                lamp_locations.append(copy(tuple(lamp.reference.location)))
+                
+        logs = self.my_scene.retrieve_logs()
+        loc = logs["lamp_loc"]
+        rad = logs["lamp_distance"]
+        for i in range(len(loc)):
+            left = loc[i]
+            right = lamp_locations[i]
+            (x,y,z) = (left[0]*rad[i], left[1]*rad[i], left[2]*rad[i])
+            left = (x,y,z)
+            for l,r in zip(left,right):
+                self.assertAlmostEqual(l, r, places=5)
+
+                
+if __name__ == '__main__':
+    suites = []
+    suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderSceneTest))
+    suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderRandomSceneTest))
+    alltests = unittest.TestSuite(suites)
+    success = unittest.TextTestRunner().run(alltests).wasSuccessful()

@@ -59,6 +59,9 @@ class BlenderLamp(BlenderObject):
         self.reference.layers[0] = True
         self.reference.layers[1] = False
 
+    def is_on(self):
+        return self.reference.layers[0] is True
+        
     def face_towards(self, x, y, z):
         """
         given a coordinate x, y, z
