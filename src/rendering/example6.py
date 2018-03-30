@@ -16,12 +16,20 @@ Quick introduction to the .model format:
   be included
 '''
 
+RI = Render.RenderInterface(num_images=num_images)
+
+RI.set_attribute_distribution_params('num_lamps','l',5)
+RI.set_attribute_distribution_params('num_lamps','r',8)
+RI.set_attribute_distribution_params('lamp_energy','mu',500.0)
+RI.set_attribute_distribution_params('lamp_size','mu',5.)
+RI.set_attribute_distribution_params('camera_radius','sigmu',0.1)
+
 '''
 example of a double - view model:
 this model file contains a top view and a bottom view obj and jpg files
 '''
-model_path = 'D:\\PycharmProjects\\3DModels\\Ocado\\Coconut\\Coconut.model'
-render_folder = 'D:\\PycharmProjects\\3DModels\\Ocado\\Coconut\\render'
+model_path = '/vol/project/2017/530/g1753002/3DModels/model_format_files/Coconut/Coconut.model'
+render_folder = '/vol/project/2017/530/g1753002/3DModels/model_format_files/Coconut/render'
 RI.load_from_model(model_path, render_folder)
 RI.render_all(dump_logs=True, visualize=False)
 
@@ -29,7 +37,7 @@ RI.render_all(dump_logs=True, visualize=False)
 example of a single - view model:
 this model file contains single view obj and jpg files
 '''
-model_path = 'D:\\PycharmProjects\\3DModels\\Ocado\\Liberte\\Liberte.model'
-render_folder = 'D:\\PycharmProjects\\3DModels\\Ocado\\Liberte\\render'
+model_path = '/vol/project/2017/530/g1753002/3DModels/model_format_files/Liberte/Liberte.model'
+render_folder = '/vol/project/2017/530/g1753002/3DModels/model_format_files/Liberte/render'
 RI.load_from_model(model_path, render_folder)
 RI.render_all(dump_logs=True, visualize=False)
