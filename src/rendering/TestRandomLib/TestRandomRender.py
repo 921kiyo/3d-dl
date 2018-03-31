@@ -130,6 +130,9 @@ class Testturbulence(unittest.TestCase):
         self.assertEqual(D.sigmu, 5.0)
         self.assertEqual(D.l, 30.0)
         self.assertEqual(D.r, None)
+        
+        for i in range(10):
+            X = D.sample_param()
 
         self.assertRaises(ValueError, D.change_param, 'mu', -2.0)
         self.assertRaises(ValueError, D.change_param, 'sigmu', -2.0)
@@ -165,6 +168,9 @@ class Testturbulence(unittest.TestCase):
         self.assertEqual(D.mu, -30.0)
         self.assertEqual(D.sigma, 30.0)
 
+        for i in range(10):
+            X = D.sample_param()
+
         self.assertRaises(ValueError, D.change_param, 'sigma', -2.0)
 
         self.assertRaises(KeyError, D.change_param, 'foo','A')
@@ -186,6 +192,9 @@ class Testturbulence(unittest.TestCase):
 
         self.assertEqual(D.l, 5.0)
         self.assertEqual(D.r, 6.0)
+
+        for i in range(10):
+            X = D.sample_param()
 
         D.change_param('l', 7.0)
         D.change_param('r', 6.9)
@@ -213,6 +222,9 @@ class Testturbulence(unittest.TestCase):
 
         self.assertEqual(D.l, 5.0)
         self.assertEqual(D.r, 6.0)
+
+        for i in range(10):
+            X = D.sample_param()
 
         D.change_param('l', 7.0)
         D.change_param('r', 6.9)
@@ -246,6 +258,9 @@ class Testturbulence(unittest.TestCase):
         self.assertEqual(D.phi_sigma, 3.0)
         self.assertEqual(D.normal, 'Z')
         self.assertAlmostEqual(D.phi.sigmu, 3.0/90.0)
+        
+        for i in range(10):
+            X = D.sample_param()
 
         self.assertRaises(ValueError, D.change_param, 'normal','A')
         self.assertRaises(ValueError, D.change_param, 'phi_sigma',-1.0)
@@ -297,6 +312,9 @@ class Testturbulence(unittest.TestCase):
         self.assertEqual(Z.phi_sigma, 3.0)
         self.assertEqual(Z.normal, 'Z')
 
+        for i in range(10):
+            X = D.sample_param()
+        
         self.assertRaises(ValueError, D.change_param, 'normals','A')
         self.assertRaises(ValueError, D.change_param, 'phi_sigma',-1.0)
 
