@@ -131,6 +131,7 @@ class BlenderRandomSceneTest(unittest.TestCase):
 
     def tearDown(self):
         # delete all objects
+        self.my_scene.delete_all()
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.object.delete()
 
@@ -188,7 +189,24 @@ class BlenderRandomSceneTest(unittest.TestCase):
             left = (x,y,z)
             for l,r in zip(left,right):
                 self.assertAlmostEqual(l, r, places=5)
+
+    def test_render_creation(self):
+        # note CUDA device is not set here, so this might take a bit long
+        camera = bld.BlenderCamera()
+        bpy.context.scene.camera = camera.reference
+        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+        self.my_scene.set_render()
+        self.my_scene.add_camera(cam)
+
+        obj_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'example.obj')
+        texture_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'texture.jpg')
+        self.my_scene.load_subject_from_path(obj_path, texture_path)
         
+        for i in range(5):
+            filepath = os.path.join(os.path.dirname(__file__), 'test_files' , 'render_test_1.png')
+            self.my_scene.render_to_file(filepath)
+            self.assertTrue(os.path.isfile(filepath))
+            os.remove(filepath)
 
     def test_lamp_loc(self):
         # test that the camera location corresponds to the location reported in logs
@@ -225,7 +243,7 @@ class BlenderRandomSceneTest(unittest.TestCase):
 
 
     def test_bad_dist_lamp(self):
-                # test that the camera location corresponds to the location reported in logs
+        # test that the camera location corresponds to the location reported in logs
         camera = bld.BlenderCamera()
         bpy.context.scene.camera = camera.reference
         cam = bld.BlenderCamera(bpy.data.objects['Camera'])
@@ -237,9 +255,10 @@ class BlenderRandomSceneTest(unittest.TestCase):
         texture_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'texture.jpg')
         self.my_scene.load_subject_from_path(obj_path, texture_path)
 
+        self.assertRaises(ValueError, self.my_scene.set_attribute_distribution_params,
+                          'lamp_distance', 'mu', -2)
         self.my_scene.set_attribute_distribution_params('lamp_distance', 'l', -3)
         self.my_scene.set_attribute_distribution_params('lamp_distance', 'r', -1)
-        self.my_scene.set_attribute_distribution_params('lamp_distance', 'mu', -2)
         
         self.assertRaises(ValueError, self.my_scene.scene_setup)
         
@@ -257,9 +276,11 @@ class BlenderRandomSceneTest(unittest.TestCase):
         texture_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'texture.jpg')
         self.my_scene.load_subject_from_path(obj_path, texture_path)
 
+        self.assertRaises(ValueError, self.my_scene.set_attribute_distribution_params,
+                          'camera_radius', 'mu', -2)
         self.my_scene.set_attribute_distribution_params('camera_radius', 'l', -3)
         self.my_scene.set_attribute_distribution_params('camera_radius', 'r', -1)
-        self.my_scene.set_attribute_distribution_params('camera_radius', 'mu', -2)
+        
         
         self.assertRaises(ValueError, self.my_scene.scene_setup)
 
