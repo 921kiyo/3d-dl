@@ -223,6 +223,64 @@ class BlenderRandomSceneTest(unittest.TestCase):
             for l,r in zip(left,right):
                 self.assertAlmostEqual(l, r, places=5)
 
+
+    def test_bad_dist_lamp(self):
+                # test that the camera location corresponds to the location reported in logs
+        camera = bld.BlenderCamera()
+        bpy.context.scene.camera = camera.reference
+        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+        self.my_scene.set_render()
+        self.my_scene.add_camera(cam)
+
+        # add a subject
+        obj_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'example.obj')
+        texture_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'texture.jpg')
+        self.my_scene.load_subject_from_path(obj_path, texture_path)
+
+        self.my_scene.set_attribute_distribution_params('lamp_distance', 'l', -3)
+        self.my_scene.set_attribute_distribution_params('lamp_distance', 'r', -1)
+        self.my_scene.set_attribute_distribution_params('lamp_distance', 'mu', -2)
+        
+        self.assertRaises(ValueError, self.my_scene.scene_setup)
+        
+
+    def test_bad_dist_cam(self):
+        # test that the camera location corresponds to the location reported in logs
+        camera = bld.BlenderCamera()
+        bpy.context.scene.camera = camera.reference
+        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+        self.my_scene.set_render()
+        self.my_scene.add_camera(cam)
+
+        # add a subject
+        obj_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'example.obj')
+        texture_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'texture.jpg')
+        self.my_scene.load_subject_from_path(obj_path, texture_path)
+
+        self.my_scene.set_attribute_distribution_params('camera_radius', 'l', -3)
+        self.my_scene.set_attribute_distribution_params('camera_radius', 'r', -1)
+        self.my_scene.set_attribute_distribution_params('camera_radius', 'mu', -2)
+        
+        self.assertRaises(ValueError, self.my_scene.scene_setup)
+
+    def test_bad_dist_numlamp(self):
+        # test that the camera location corresponds to the location reported in logs
+        camera = bld.BlenderCamera()
+        bpy.context.scene.camera = camera.reference
+        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+        self.my_scene.set_render()
+        self.my_scene.add_camera(cam)
+
+        # add a subject
+        obj_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'example.obj')
+        texture_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'texture.jpg')
+        self.my_scene.load_subject_from_path(obj_path, texture_path)
+
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'l', -3)
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'r', -1)
+        
+        self.assertRaises(ValueError, self.my_scene.scene_setup)
+        
                 
 if __name__ == '__main__':
     suites = []

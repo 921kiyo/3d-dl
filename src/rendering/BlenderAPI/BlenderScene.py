@@ -225,6 +225,8 @@ class BlenderRandomScene(BlenderScene):
         '''location'''
         (x,y,z) = self.lamp_loc.sample_param()
         r = self.lamp_distance.sample_param()
+        if r < 0:
+            raise ValueError('light distance negative! aborting')
         loc = (r*x, r*y, r*z)
         blender_lamp.set_location(*loc)
         '''energy'''
@@ -247,6 +249,8 @@ class BlenderRandomScene(BlenderScene):
         # set random lighting conditions
         self.set_num_lamps(self.num_lamps.r)
         num_active_lamps = self.num_lamps.sample_param()
+        if num_active_lamps < 0:
+            raise ValueError('number of lamps negative! aborting')
         for l in range(num_active_lamps):
             lamp = self.lamps[l]
             lamp.turn_on()
@@ -256,6 +260,8 @@ class BlenderRandomScene(BlenderScene):
         # random location of camera along shell coordinates
         (x, y, z) = self.camera_loc.sample_param()
         r = self.camera_radius.sample_param()
+        if r < 0:
+            raise ValueError('camera distance negative! aborting')
         loc = (r*x, r*y, r*z)
         self.camera.set_location(*loc)
         # face towards the centre
