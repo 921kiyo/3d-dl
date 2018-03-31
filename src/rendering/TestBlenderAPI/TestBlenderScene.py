@@ -280,6 +280,65 @@ class BlenderRandomSceneTest(unittest.TestCase):
         self.my_scene.set_attribute_distribution_params('num_lamps', 'r', -1)
         
         self.assertRaises(ValueError, self.my_scene.scene_setup)
+
+    def test_set_distribution_params(self):
+        # test that the camera location corresponds to the location reported in logs
+        camera = bld.BlenderCamera()
+        bpy.context.scene.camera = camera.reference
+        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+        self.my_scene.set_render()
+        self.my_scene.add_camera(cam)
+
+        # Number of Lamps - Uniform Discrete
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'l', 20)
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'r', 30)
+
+        self.assertEquals(self.my_scene.num_lamps.l, 20)
+        self.assertEquals(self.my_scene.give_params()['num_lamps']['l'], 20)
+        self.assertEquals(self.my_scene.num_lamps.r, 30)
+        self.assertEquals(self.my_scene.give_params()['num_lamps']['r'], 30)
+
+        self.my_scene.set_attribute_distribution_params('num_lamps','l', 1)
+        self.my_scene.set_attribute_distribution_params('num_lamps','r', 2)
+
+        self.assertEquals(self.my_scene.num_lamps.l, 1)
+        self.assertEquals(self.my_scene.give_params()['num_lamps']['l'], 1)
+        self.assertEquals(self.my_scene.num_lamps.r, 2)
+        self.assertEquals(self.my_scene.give_params()['num_lamps']['r'], 2)
+
+        # Lamp Energy - Truncated Normal
+        self.my_scene.set_attribute_distribution_params('lamp_energy', 'mu', 2000.0)
+        self.my_scene.set_attribute_distribution_params('lamp_energy', 'sigmu', 0.5)
+
+        self.assertAlmostEquals(self.my_scene.lamp_energy.mu, 2000.0)
+        self.assertAlmostEquals(self.my_scene.give_params()['lamp_energy']['mu'], 2000.0)
+        self.assertAlmostEquals(self.my_scene.lamp_energy.sigmu, 0.5)
+        self.assertAlmostEquals(self.my_scene.give_params()['lamp_energy']['sigmu'], 0.5)
+
+        self.my_scene.set_attribute_distribution_params('lamp_energy', 'mu', 300.0)
+        self.my_scene.set_attribute_distribution_params('lamp_energy', 'sigmu', 2.0)
+
+        self.assertAlmostEquals(self.my_scene.lamp_energy.mu, 300.0)
+        self.assertAlmostEquals(self.my_scene.give_params()['lamp_energy']['mu'], 300.0)
+        self.assertAlmostEquals(self.my_scene.lamp_energy.sigmu, 2.0)
+        self.assertAlmostEquals(self.my_scene.give_params()['lamp_energy']['sigmu'], 2.0)
+
+        # Camera Location - CompositeShellRing
+        self.my_scene.set_attribute_distribution_params('camera_loc', 'phi_sigma', 6.6)
+        self.my_scene.set_attribute_distribution_params('camera_loc', 'normals', 'X')
+
+        self.assertAlmostEquals(self.my_scene.camera_loc.phi_sigma, 6.6)
+        self.assertAlmostEquals(self.my_scene.give_params()['camera_loc']['phi_sigma'], 6.6)
+        self.assertEquals(self.my_scene.camera_loc.normals, 'X')
+        self.assertEquals(self.my_scene.give_params()['camera_loc']['normals'], 'X')
+
+        self.my_scene.set_attribute_distribution_params('camera_loc', 'phi_sigma', 0.0)
+        self.my_scene.set_attribute_distribution_params('camera_loc', 'normals', 'XZ')
+
+        self.assertAlmostEquals(self.my_scene.camera_loc.phi_sigma, 0.0)
+        self.assertAlmostEquals(self.my_scene.give_params()['camera_loc']['phi_sigma'], 0.0)
+        self.assertEquals(self.my_scene.camera_loc.normals, 'XZ')
+        self.assertEquals(self.my_scene.give_params()['camera_loc']['normals'], 'XZ')
         
                 
 if __name__ == '__main__':
