@@ -241,6 +241,46 @@ class BlenderRandomSceneTest(unittest.TestCase):
             for l,r in zip(left,right):
                 self.assertAlmostEqual(l, r, places=5)
 
+    def test_lamp_num(self):
+        # test that the camera location corresponds to the location reported in logs
+        camera = bld.BlenderCamera()
+        bpy.context.scene.camera = camera.reference
+        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+        self.my_scene.set_render()
+        self.my_scene.add_camera(cam)
+
+        # add a subject
+        obj_path = os.path.join(os.path.dirname(__file__), 'test_files', 'example.obj')
+        texture_path = os.path.join(os.path.dirname(__file__), 'test_files', 'texture.jpg')
+        self.my_scene.load_subject_from_path(obj_path, texture_path)
+
+        lamp_locations = []
+
+        # vary the max number of lamps
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'r', 5)
+        self.my_scene.scene_setup()
+        self.assertEqual(5, self.my_scene.max_num_lamps, "Number of lamps not correct")
+        self.assertEqual(5, len(self.my_scene.lamps), "Number of lamps not correct")
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'r', 7)
+        self.my_scene.scene_setup()
+        self.assertEqual(7, self.my_scene.max_num_lamps, "Number of lamps not correct")
+        self.assertEqual(7, len(self.my_scene.lamps), "Number of lamps not correct")
+
+        self.my_scene.clear_logs()
+        # test the number of turned on lamps
+        N =50
+        counts = []
+        for i in range(N):
+            self.my_scene.scene_setup() # sampling takes place here
+            # count the number of lamps that's turned on
+            count = 0
+            for lamp in self.my_scene.lamps:
+                if lamp.is_on():
+                    count += 1
+            counts.append(count)
+        logs = self.my_scene.retrieve_logs()
+        num_recorded = logs["num_lamps"]
+        self.assertEqual(counts, num_recorded)
 
     def test_bad_dist_lamp(self):
         # test that the camera location corresponds to the location reported in logs
