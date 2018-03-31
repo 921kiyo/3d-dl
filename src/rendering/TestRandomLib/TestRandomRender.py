@@ -103,10 +103,12 @@ class Testturbulence(unittest.TestCase):
     def test_TruncNormDist(self):
 
         D = rr.TruncNormDist(mu=2.0, sigmu=2.0)
+
         self.assertEqual(D.mu, 2.0)
         self.assertEqual(D.sigmu, 2.0)
 
         D = rr.TruncNormDist(mu=3.0, sigmu=5.0)
+
         self.assertEqual(D.mu, 3.0)
         self.assertEqual(D.sigmu, 5.0)
 
@@ -115,6 +117,7 @@ class Testturbulence(unittest.TestCase):
 
         D.change_param('mu', 50.0)
         D.change_param('l', 5.0)
+
         self.assertEqual(D.mu, 50.0)
         self.assertEqual(D.sigmu, 5.0)
         self.assertEqual(D.l, 5.0)
@@ -122,6 +125,7 @@ class Testturbulence(unittest.TestCase):
 
         D.change_param('mu', 50.0)
         D.change_param('l', 30.0)
+
         self.assertEqual(D.mu, 50.0)
         self.assertEqual(D.sigmu, 5.0)
         self.assertEqual(D.l, 30.0)
@@ -138,10 +142,12 @@ class Testturbulence(unittest.TestCase):
     def test_NormDist(self):
 
         D = rr.NormDist(mu=2.0, sigma=2.0)
+
         self.assertEqual(D.mu, 2.0)
         self.assertEqual(D.sigma, 2.0)
 
         D = rr.NormDist(mu=-3.0, sigma=5.0)
+
         self.assertEqual(D.mu, -3.0)
         self.assertEqual(D.sigma, 5.0)
 
@@ -149,15 +155,19 @@ class Testturbulence(unittest.TestCase):
 
         D.change_param('mu', 50.0)
         D.change_param('sigma', 5.0)
+
         self.assertEqual(D.mu, 50.0)
         self.assertEqual(D.sigma, 5.0)
 
         D.change_param('mu', -30.0)
         D.change_param('sigma', 30.0)
+
         self.assertEqual(D.mu, -30.0)
         self.assertEqual(D.sigma, 30.0)
 
         self.assertRaises(ValueError, D.change_param, 'sigma', -2.0)
+
+        self.assertRaises(KeyError, D.change_param, 'foo','A')
 
     def test_UniformCDist(self):
 
@@ -173,20 +183,26 @@ class Testturbulence(unittest.TestCase):
 
         D.change_param('l', 5.0)
         D.change_param('r', 6.0)
+
         self.assertEqual(D.l, 5.0)
         self.assertEqual(D.r, 6.0)
 
         D.change_param('l', 7.0)
         D.change_param('r', 6.9)
+
         self.assertRaises(ValueError, D.sample_param)
+
+        self.assertRaises(KeyError, D.change_param, 'foo','A')
 
     def test_UniformDDist(self):
 
         D = rr.UniformDDist(l=2.0, r=3.0)
+
         self.assertEqual(D.l, 2.0)
         self.assertEqual(D.r, 3.0)
 
         D = rr.UniformDDist(l=-5.0, r=-3.0)
+
         self.assertEqual(D.l, -5.0)
         self.assertEqual(D.r, -3.0)
 
@@ -194,12 +210,97 @@ class Testturbulence(unittest.TestCase):
 
         D.change_param('l', 5.0)
         D.change_param('r', 6.0)
+
         self.assertEqual(D.l, 5.0)
         self.assertEqual(D.r, 6.0)
 
         D.change_param('l', 7.0)
         D.change_param('r', 6.9)
+
         self.assertRaises(ValueError, D.sample_param)
+
+        self.assertRaises(KeyError, D.change_param, 'foo','A')
+
+    def test_ShellRingCoordinateDist(self):
+
+        D = rr.ShellRingCoordinateDist(phi_sigma=0.0, normal='X')
+
+        self.assertEqual(D.phi_sigma, 0.0)
+        self.assertEqual(D.normal, 'X')
+        self.assertEqual(D.phi.sigmu, 0.0)
+
+        D = rr.ShellRingCoordinateDist(phi_sigma=1.0, normal='X')
+
+        self.assertEqual(D.phi_sigma, 1.0)
+        self.assertEqual(D.normal, 'X')
+        self.assertAlmostEqual(D.phi.sigmu, 1.0/90.0)
+
+        D.change_param('phi_sigma', 3.0)
+
+        self.assertEqual(D.phi_sigma, 3.0)
+        self.assertEqual(D.normal, 'X')
+        self.assertAlmostEqual(D.phi.sigmu, 3.0/90.0)
+
+        D.change_param('normal', 'Z')
+
+        self.assertEqual(D.phi_sigma, 3.0)
+        self.assertEqual(D.normal, 'Z')
+        self.assertAlmostEqual(D.phi.sigmu, 3.0/90.0)
+
+        self.assertRaises(ValueError, D.change_param, 'normal','A')
+        self.assertRaises(ValueError, D.change_param, 'phi_sigma',-1.0)
+
+        self.assertRaises(KeyError, D.change_param, 'foo','A')
+
+    def test_CompositeShellRingDist(self):
+
+        D = rr.CompositeShellRingDist(phi_sigma=0.0, normals='XZ')
+
+        self.assertEqual(D.phi_sigma, 0.0)
+        self.assertEqual(D.normals, 'XZ')
+
+        X = D.distributions[0]
+        Z = D.distributions[1]
+
+        self.assertEqual(X.phi_sigma, 0.0)
+        self.assertEqual(X.normal, 'X')
+        self.assertEqual(Z.phi_sigma, 0.0)
+        self.assertEqual(Z.normal, 'Z')
+        self.assertEqual(D.distribution_select.r, 1)
+                
+        D = rr.CompositeShellRingDist(phi_sigma=1.0, normals='X')
+        X = D.distributions[0]
+
+        self.assertEqual(D.phi_sigma, 1.0)
+        self.assertEqual(D.normals, 'X')
+        self.assertEqual(X.phi_sigma, 1.0)
+        self.assertEqual(X.normal, 'X')
+        self.assertEqual(D.distribution_select.r, 0)
+
+        D.change_param('phi_sigma', 3.0)
+
+        self.assertEqual(D.phi_sigma, 3.0)
+        self.assertEqual(D.normals, 'X')
+        self.assertEqual(X.phi_sigma, 3.0)
+        self.assertEqual(X.normal, 'X')
+        self.assertEqual(D.distribution_select.r, 0)
+        
+        D.change_param('normals', 'YZ')
+        Y = D.distributions[0]
+        Z = D.distributions[1]
+
+        self.assertEqual(D.phi_sigma, 3.0)
+        self.assertEqual(D.normals, 'YZ')
+        self.assertEqual(D.distribution_select.r, 1)
+        self.assertEqual(Y.phi_sigma, 3.0)
+        self.assertEqual(Y.normal, 'Y')
+        self.assertEqual(Z.phi_sigma, 3.0)
+        self.assertEqual(Z.normal, 'Z')
+
+        self.assertRaises(ValueError, D.change_param, 'normals','A')
+        self.assertRaises(ValueError, D.change_param, 'phi_sigma',-1.0)
+
+        self.assertRaises(KeyError, D.change_param, 'foo','A')
 
 
 if __name__=='__main__':

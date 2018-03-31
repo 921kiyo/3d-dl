@@ -340,8 +340,18 @@ class ShellRingCoordinateDist(Distribution):
         return {"dist": "ShellRingCoordinateDist", "phi_sigma": self.phi_sigma, "normal": self.normal}
 
     def change_param(self, param_name, param_val):
+        self_dict = vars(self)
+        if param_name=='normal':
+            if param_val not in ['X','Y','Z']:
+                raise ValueError('Normal must be one of X, Y , or Z!')
+            self_dict[param_name] = param_val
+            return
+        
         if param_name=='phi_sigma':
+            if param_val<0:
+                raise ValueError('Phi sigma must be non-negative!')
             self.phi.change_param('sigmu', param_val/90.0)
+            self_dict[param_name] = param_val
             return
         raise KeyError('Cannot find specified attribute!')
 
@@ -397,6 +407,7 @@ class CompositeShellRingDist(Distribution):
             self.distributions = []
             for normal in self.normals:
                 self.distributions.append(ShellRingCoordinateDist(phi_sigma=self.phi_sigma, normal=normal))
+            self.distribution_select = UniformDDist(l=0,r=len(self.distributions)-1)
             return
 
         raise KeyError('Cannot find specified attribute!')
