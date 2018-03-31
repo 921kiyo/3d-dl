@@ -72,6 +72,7 @@ class BlenderScene(object):
         if self.subject_bot is not None:
             self.subject_bot.delete()
             self.subject_bot = None
+        self.remove_lamps()
         self.objects_fixed = []
         self.objects_unfixed = []
 
