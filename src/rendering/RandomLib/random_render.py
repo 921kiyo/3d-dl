@@ -288,7 +288,61 @@ class UniformDDist(Distribution):
         if param_name not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
         self_dict[param_name] = param_val
-        
+
+class PScaledUniformDDist(Distribution):
+    """
+    Uniform discrete distribution on the natural numbers (non-negative integers),
+    specifiable by a midpoint and a scaled range of the midpoint
+    """
+    def __init__(self, mid, scale, **kwargs):
+        """
+        :param mid: midpoint of the distribution
+        :param scale: proportion of the midpoint to be used as half-range
+        :param kwargs: bla
+        """
+        if scale > 1.0 or scale < 0.0:
+            raise ValueError('Scale not in [0,1]')
+        if mid < 0.0:
+            raise ValueError('Midpoint negative!')
+        self.mid = mid
+        self.scale = scale
+        self.l = mid - (mid*scale)
+        self.r = mid + (mid * scale)
+        super(PScaledUniformDDist, self).__init__(**kwargs)
+
+    def sample_param(self):
+        """
+        Implementation of abstract method sample_param
+        :return: sample from this specified distribution
+        """
+        if self.l > self.r:
+            raise ValueError('Lower bound greater than upper bound!')
+        y = random.randint(np.round(self.l), np.round(self.r))
+        self.log_param(y)
+        return y
+
+    def give_param(self):
+        return {"dist": "PScaledUniformDDist", "mid": self.mid, "scale": self.scale}
+
+    def change_param(self, param_name, param_val):
+        self_dict = vars(self)
+
+        if param_name=='scale':
+            if param_val > 1.0 or param_val < 0.0:
+                raise ValueError('Scale greater than 1.0!')
+
+        if param_name == 'mid':
+            if param_val < 0.0:
+                raise ValueError('Midpoint negative!')
+
+        if param_name in ['scale', 'mid']:
+            self_dict[param_name] = param_val
+            self.l = self.mid - (self.mid * self.scale)
+            self.r = self.mid + (self.mid * self.scale)
+            return
+
+        raise KeyError('Cannot find specified attribute!')
+
 
 class ShellRingCoordinateDist(Distribution):
     """
@@ -453,7 +507,8 @@ def DistributionFactory(**params):
         'Norm': TruncNormDist,
         'UniformC': UniformCDist,
         'UniformD': UniformDDist,
+        'PScaledUniformDDist': PScaledUniformDDist,
         'ShellRingCoordinate': ShellRingCoordinateDist,
         'CompositeShellRing': CompositeShellRingDist,
-        'UniformShellCoordinate': UniformShellCoordinateDist
+        'UniformShellCoordinate': UniformShellCoordinateDist,
     }[params['dist']](**params)

@@ -233,6 +233,42 @@ class Testturbulence(unittest.TestCase):
 
         self.assertRaises(KeyError, D.change_param, 'foo','A')
 
+    def test_PScaledUniformDDist(self):
+
+        D = rr.PScaledUniformDDist(mid=2.0, scale=1.0)
+
+        self.assertAlmostEqual(D.mid, 2.0)
+        self.assertAlmostEqual(D.scale, 1.0)
+        self.assertAlmostEqual(D.l, 0.0)
+        self.assertAlmostEqual(D.r, 4.0)
+
+        D = rr.PScaledUniformDDist(mid=5.0, scale=0.5)
+
+        self.assertAlmostEqual(D.mid, 5.0)
+        self.assertAlmostEqual(D.scale, 0.5)
+        self.assertAlmostEqual(D.l, 2.5)
+        self.assertAlmostEqual(D.r, 7.5)
+
+        self.assertRaises(ValueError, rr.PScaledUniformDDist, mid=-0.1, scale=0.5)
+        self.assertRaises(ValueError, rr.PScaledUniformDDist, mid=1.0, scale=1.2)
+
+        D.change_param('mid', 3.0)
+        D.change_param('scale', 0.7)
+
+        self.assertAlmostEqual(D.mid, 3.0)
+        self.assertAlmostEqual(D.scale, 0.7)
+        self.assertAlmostEqual(D.l, 0.9)
+        self.assertAlmostEqual(D.r, 5.1)
+
+        for i in range(10):
+            X = D.sample_param()
+
+        self.assertRaises(ValueError, D.change_param, 'mid', -0.1)
+        self.assertRaises(ValueError, D.change_param, 'scale', -0.1)
+        self.assertRaises(ValueError, D.change_param, 'scale', 1.1)
+
+        self.assertRaises(KeyError, D.change_param, 'foo','A')
+
     def test_ShellRingCoordinateDist(self):
 
         D = rr.ShellRingCoordinateDist(phi_sigma=0.0, normal='X')
