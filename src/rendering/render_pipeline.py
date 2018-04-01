@@ -26,6 +26,7 @@ import numpy as np
 import os
 import subprocess
 import json
+import string
 
 """
 Here the paths have to be set up.
@@ -47,8 +48,8 @@ rendering_path = os.path.dirname(os.path.realpath(__file__))
 src_path = os.path.abspath(os.path.join(rendering_path, os.pardir))
 project_path = os.path.abspath(os.path.join(src_path, os.pardir))
 #project_path = '/vol/bitbucket/who11/CO-530/Lobster/'
-# workspace = os.path.join(project_path, "render_workspace")
-workspace = '/vol/project/2017/530/g1753002/render_workspace'
+workspace = os.path.join(project_path, "render_workspace")
+#workspace = '/vol/project/2017/530/g1753002/render_workspace'
 
 #Need to adjust to the local path to Blender executable
 #bl_path = "E:\Blender_Foundation\Blender\\blender"
@@ -271,6 +272,18 @@ def full_run(zip_name, obj_set, blender_path, renders_per_class=10, work_dir=wor
 
     for folder in os.listdir(obj_poses):
         print(folder)
+    
+    # Dump all merging parameters to a json file
+    all_params= {"object_set": obj_set.split("\\")[-1], 
+                 "images_per_class": renders_per_class,
+                 "background_generated": generate_background,
+                 "background_database": background_database.split("\\")[-1]
+                 #"blender_attributes": blender_attributes
+                 }
+    dump_file = os.path.join(final_folder, 'mergeparams_dump.json')
+    with open(dump_file, "w+") as f:
+        json.dump(all_params, f, sort_keys=True, indent=4, separators=(',', ': '))    
+        
     # export everything into a zip file
     make_archive(zip_name, 'zip',final_folder)
     destroy_folders(work_dir, temp_folders)
@@ -292,19 +305,19 @@ blender_attributes = {
 
 # Default paths
 # Set path for final zip file containing training data
-zip_save1 = os.path.join(workspace, "final_zip/sun_bg_data")
-zip_save2 = os.path.join(workspace, "final_zip/random_bg_data")
+zip_save1 = os.path.join(workspace, "final_zip","sun_bg_data")
+zip_save2 = os.path.join(workspace, "final_zip","random_bg_data")
 
 # Set backround image database path
-background_database = os.path.join(workspace, "bg_database/SUN_back/")
+background_database = os.path.join(workspace, "bg_database","SUN_back")
 
 # Set object file path
 # obj_set = os.path.join(workspace, "object_files/two_set")
-obj_set = os.path.join(workspace, "object_files/two_set_model_format")
+obj_set = os.path.join(workspace, "object_files","two_set_model_format")
 
 # Set Blender path
-bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
-#bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
+#bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
+bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
 
 # Construct rendering parameters
 argument_list = []
