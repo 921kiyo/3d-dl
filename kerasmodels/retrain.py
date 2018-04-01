@@ -2,7 +2,7 @@ from keras.applications.inception_v3 import InceptionV3
 from keras.preprocessing import image
 from keras.models import Model
 from keras.models import load_model
-from keras.layers import Dense, GlobalAveragePooling2D
+from keras.layers import Dense, GlobalAveragePooling2D, Dropout
 from keras import backend as K
 from time import *
 import os
@@ -54,10 +54,11 @@ class KerasInception:
     batch_size = 0
     dense_layers = 0
 
-    def __init__(self,input_dim=150,batch_size=16,dense_layers=1):
+    def __init__(self,input_dim=150,batch_size=16,dense_layers=1,dropout=None):
         self.input_dim = input_dim
         self.batch_size = batch_size
         self.dense_layers = dense_layers
+        self.dropout = dropout
 
     def assemble_model(self,train_dir):
         class_count = len(next(os.walk(train_dir))[1])
