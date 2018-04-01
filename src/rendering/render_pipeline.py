@@ -203,7 +203,7 @@ def full_run(zip_name, obj_set, blender_path, renders_per_class=10, work_dir=wor
     print('Checking data directories...')
 
     # Ensure render_workspace folder exists
-    if not os.path.isdir(workspace):
+    if not os.path.isdir(work_dir):
         print("Can't find rendering workspace folder. Please create the folder",
         workspace, ", containing object files and background database. See " \
         "group folder for example.")
