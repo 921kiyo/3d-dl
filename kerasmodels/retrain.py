@@ -56,11 +56,12 @@ class KerasInception:
     batch_size = 0
     dense_layers = 0
 
-    def __init__(self,input_dim=150,batch_size=16,dense_layers=1,dropout=None):
+    def __init__(self,input_dim=150,batch_size=16,dense_layers=1,dropout=None,lr=0.001):
         self.input_dim = input_dim
         self.batch_size = batch_size
         self.dense_layers = dense_layers
         self.dropout = dropout
+        self.lr = lr
 
     def assemble_model(self,train_dir):
         class_count = len(next(os.walk(train_dir))[1])
@@ -94,7 +95,7 @@ class KerasInception:
             layer.trainable = False
 
         # compile the model (*after* setting layers to non-trainable)
-        model.compile(optimizer=RMSprop(lr=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
+        model.compile(optimizer=RMSprop(lr=self.lr), loss='categorical_crossentropy', metrics=['accuracy'])
 
         return model
 
