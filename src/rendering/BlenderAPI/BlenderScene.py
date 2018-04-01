@@ -82,7 +82,7 @@ class BlenderScene(object):
         self.data.cycles.min_bounces = 1
         self.data.cycles.transparent_max_bounces = 3
         self.data.cycles.transparent_min_bounces = 1
-        self.data.cycles.samples = 64
+        self.data.cycles.samples = 96
         self.data.cycles.device = 'GPU'
         self.data.render.tile_x = 512
         self.data.render.tile_y = 512
