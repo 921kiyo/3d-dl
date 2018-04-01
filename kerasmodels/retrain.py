@@ -26,6 +26,8 @@ from keras.models import Sequential
 # for unzipping
 import zipfile
 
+# for customizing SGD, rmsprop
+from keras.optimizers import SGD, RMSprop
 
 # Custom Image Augmentation Function
 def add_salt_pepper_noise(X_img):
@@ -92,7 +94,7 @@ class KerasInception:
             layer.trainable = False
 
         # compile the model (*after* setting layers to non-trainable)
-        model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
+        model.compile(optimizer=RMSprop(lr=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
 
         return model
 
@@ -203,7 +205,6 @@ class KerasInception:
 
         # we need to recompile the model for these modifications to take effect
         # we use SGD with a low learning rate
-        from keras.optimizers import SGD
         self.model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy'])
 
         # we train our model again (this time fine-tuning the top 2 inception blocks
@@ -300,30 +301,37 @@ def main_for_pipeline():
 
     # create grid of parameters: e.g. to a csv file, then read out line by line, once done, add 1 at the end
     learning_rate_grid = np.logspace(-6,-4,25) # originally 10 pow -5
-    dropout_grid = [0,0.25,0.5]
-    reg_grid = np.logspace(-3,1,25)
+    dropout_grid = [0,0.2,0.5]
     layer_grid = [1,2]
-    size_of_layer_grid = np.linspace(50,1000,20)
+    batch_size_grid = [16,32,64]
 
     # go through grid of parameters
 
 
-    # load one zip file
+    # input directories
     path_of_zip = '/vol/project/2017/530/g1753002/keras_test_data/train/train_test_zip.zip'
-    unzipped_dir = unzip_and_return_path_to_folder(path_of_zip)
-    train_dir = unzipped_dir + '/images'
-    main_dir, filename = os.path.split(path_of_zip) # get path for classes.txt
-
     validation_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
     test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
-    dense_layers = 1
+
+    # load train images from one zip file
+    unzipped_dir = unzip_and_return_path_to_folder(path_of_zip)
+    train_dir = unzipped_dir + '/images'
+
+    # get path for classes.txt
+    main_dir, filename = os.path.split(path_of_zip)
+
+    # set parameters
     input_dim = 150
-    batch_size = 16
     fine_tune = False # if true, some of the inceptionV3 layers will be trained for 5 epochs at the end of training
     add_salt_pepper_noise = False # if True, it adds SP noise
     augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
-    epochs = 1
+    epochs = 10
 
+    learning_rate = 0.001
+    dense_layers = 1
+    batch_size = 16
+
+    # initialize & train model
     model = KerasInception(input_dim=input_dim,
                             batch_size=batch_size,
                             dense_layers=dense_layers)
@@ -339,10 +347,10 @@ def main_for_pipeline():
                 save_model=True
                 )
 
-    # store all parameters in a json file
+    # get accuracy score
+    model.evaluate(test_dir=test_dir)
 
-
-    # model.evaluate(test_dir=test_dir)
+    # store accuracy & model parameters
 
 # main()
 
