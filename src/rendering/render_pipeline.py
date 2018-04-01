@@ -46,10 +46,10 @@ Do not forget to change the path to render_workspace as it is hard coded.
 # Ensure source files are in python path
 rendering_path = os.path.dirname(os.path.realpath(__file__))
 src_path = os.path.abspath(os.path.join(rendering_path, os.pardir))
-project_path = os.path.abspath(os.path.join(src_path, os.pardir))
-#project_path = '/vol/bitbucket/who11/CO-530/Lobster/'
-workspace = os.path.join(project_path, "render_workspace")
-#workspace = '/vol/project/2017/530/g1753002/render_workspace'
+#project_path = os.path.abspath(os.path.join(src_path, os.pardir))
+project_path = '/vol/bitbucket/who11/CO-530/Lobster/'
+#workspace = os.path.join(project_path, "render_workspace")
+workspace = '/vol/project/2017/530/g1753002/render_workspace'
 
 #Need to adjust to the local path to Blender executable
 #bl_path = "E:\Blender_Foundation\Blender\\blender"
@@ -316,8 +316,8 @@ background_database = os.path.join(workspace, "bg_database","SUN_back")
 obj_set = os.path.join(workspace, "object_files","two_set_model_format")
 
 # Set Blender path
-#bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
-bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
+bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
+#bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
 
 # Construct rendering parameters
 argument_list = []
