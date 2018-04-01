@@ -310,7 +310,7 @@ def main_for_pipeline():
 
 
     # input directories
-    path_of_zip = '/vol/project/2017/530/g1753002/keras_test_data/train/train_test_zip.zip'
+    path_of_zip = '/vol/project/2017/530/g1753002/keras_test_data/train/train_test_zip2.zip'
     validation_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
     test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
 
