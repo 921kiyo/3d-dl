@@ -3,6 +3,8 @@ This example script creates a box in the middle of a half room
 """
 
 import os
+import sys
+import time
 import shutil
 import fnmatch
 import zipfile
@@ -50,6 +52,7 @@ class RenderInterface(object):
         self.num_images = num_images
         self.scene = None
         self.setup_blender()
+        self.logfile = 'blender_render.log'
 
     def setup_blender(self):
         """
@@ -136,7 +139,18 @@ class RenderInterface(object):
         # time loads the image into Blender's memory, removing the need to
         # have a persistent texture file
         if not error_reading_file:
+            # start output redirection
+            open(self.logfile, 'a').close()
+            old = os.dup(1)
+            sys.stdout.flush()
+            os.close(1)
+            os.open(self.logfile, os.O_WRONLY)
+            # render
             self.scene.render_to_file(os.path.join(temp, 'pre-render.png'))
+            # end output redirection
+            os.close(1)
+            os.dup(old)
+            os.close(old)
         # we can now clean house
         shutil.rmtree(temp)
 
@@ -192,11 +206,43 @@ class RenderInterface(object):
         """
         self.scene.set_attribute_distribution(attr, params)
 
-    def render_all(self, dump_logs=False, visualize=False):
+    def render_all(self, dump_logs=False, visualize=False, verb=1, progress=False):
+
+        print("BLENDER RENDER INTERFCE : Rendering {} images to {}".
+              format(self.num_images, self.output_file), file=sys.stderr)
+
+        if progress:
+            import progressbar
+            bar = progressbar.ProgressBar(redirect_stdout=True, max_value=self.num_images)
+
+        if verb < 2:
+            # begin output redirection
+            open(self.logfile, 'a').close()
+            old = os.dup(1)
+            sys.stdout.flush()
+            os.close(1)
+            os.open(self.logfile, os.O_WRONLY)
+
         for i in range(self.num_images):
+            start = time.time()
             # **********************  RENDER N SAVE **********************
             render_path = os.path.join(self.output_file, 'render%d.png' % i)
             self.scene.render_to_file(render_path)
+            end = time.time()
+
+            if verb == 1:
+                print('BLENDER RENDER INTERAFCE : Rendered image {} of {}. Elapsed time: {:.3f}s'.
+                      format(i, self.num_images, end-start), file=sys.stderr)
+
+            if progress:
+                bar.update(i)
+
+        if verb < 2:
+            # end output redirection
+            os.close(1)
+            os.dup(old)
+            os.close(old)
+
         logs = self.scene.retrieve_logs()
         params = self.scene.give_params()
 
@@ -213,7 +259,6 @@ class RenderInterface(object):
                 json.dump(params, f, sort_keys=True, indent=4, separators=(',', ': '))
 
         if visualize:
-            import sys
             for path in sys.path:
                 print(path)
 
