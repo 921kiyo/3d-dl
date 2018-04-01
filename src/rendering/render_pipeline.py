@@ -266,6 +266,8 @@ def full_run(zip_name, obj_set, blender_path, renders_per_class=10, work_dir=wor
             # We generate a random mesh background
             mi.generate_for_all_objects(sub_obj,background_database ,sub_final)
 
+    # Dump the parameters used for rendering and merging
+
 
     for folder in os.listdir(obj_poses):
         print(folder)
@@ -332,6 +334,10 @@ argument_list.append(arguments1)
 argument_list.append(arguments2)
 #argument_list.append(arguments3)
 
+
+# First we clean the render workspace so any leftovers from 
+# failed jobs are removed
+destroy_folders(workspace, temp_folders)
 for value in argument_list:
     full_run(**value)
     print("One run done")
