@@ -73,6 +73,10 @@ class KerasInception:
         x = GlobalAveragePooling2D(name='pooling')(x)
 
         for i in range(self.dense_layers):
+            # # dropout
+            # if self.dropout:
+            #     x = Dropout(self.dropout)
+            #
             # fully-connected layer
             x = Dense(1024, activation='relu',name='dense'+str(i))(x)
 
@@ -290,6 +294,20 @@ def main():
     model.evaluate(test_dir=test_dir)
 
 def main_for_pipeline():
+    # get all zip files to iterate over: List parameter, Directory?
+
+
+    # create grid of parameters: e.g. to a csv file, then read out line by line, once done, add 1 at the end
+    learning_rate_grid = np.logspace(-6,-4,25) # originally 10 pow -5
+    dropout_grid = [0,0.25,0.5]
+    reg_grid = np.logspace(-3,1,25)
+    layer_grid = [1,2]
+    size_of_layer_grid = np.linspace(50,1000,20)
+
+    # go through grid of parameters
+
+
+    # load one zip file
     path_of_zip = '/vol/project/2017/530/g1753002/keras_test_data/train/train_test_zip.zip'
     unzipped_dir = unzip_and_return_path_to_folder(path_of_zip)
     train_dir = unzipped_dir + '/images'
@@ -319,6 +337,9 @@ def main_for_pipeline():
                 classes_txt_dir=main_dir,
                 save_model=True
                 )
+
+    # store all parameters in a json file
+
 
     # model.evaluate(test_dir=test_dir)
 
