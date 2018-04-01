@@ -4,14 +4,14 @@ Created on Tue Mar  6 17:51:48 2018
 
 @author: Pavel
 
-Rendering Pipeline. This file contains all necessary calling functions 
+Rendering Pipeline. This file contains all necessary calling functions
 for full rendering from object files to final images.
 The command for running the script can be found in bottom part of the code.
 Two dictionaries of parameters are necessary. One contains the parameters
 for Blender and one contains the parameters for Merging.
 
 For more detailed description and example see the appropriate function
-and an example at the end of file. 
+and an example at the end of file.
 
 Run on commmand line using this command
 python render_pipeline.py
@@ -36,7 +36,7 @@ the project_path should point to the folder that contains the src
 The rendering process requires obj files and other images.
 These should be in render_workspace.
 A functioning render_workspace is in the group folder, but feel free
-to download it using psftp and place it on your system. 
+to download it using psftp and place it on your system.
 Do not forget to change the path to render_workspace as it is hard coded.
 
 """
@@ -47,7 +47,7 @@ rendering_path = os.path.dirname(os.path.realpath(__file__))
 src_path = os.path.abspath(os.path.join(rendering_path, os.pardir))
 project_path = os.path.abspath(os.path.join(src_path, os.pardir))
 #project_path = '/vol/bitbucket/who11/CO-530/Lobster/'
-#workspace = os.path.join(project_path, "render_workspace")
+# workspace = os.path.join(project_path, "render_workspace")
 workspace = '/vol/project/2017/530/g1753002/render_workspace'
 
 #Need to adjust to the local path to Blender executable
@@ -78,7 +78,7 @@ data_folders = ['object_files',
 
 # Folders to be destroyed at the end of the run
 temp_folders = ['generate_bg',
-                'object_poses', 
+                'object_poses',
                 #'final_folder/images',
                 'final_folder']
 
@@ -169,7 +169,7 @@ def gen_merge(image, save_as, pixels=300):
     e.g. foo/bar/image1.jpg
     args:
         image: a PIL Image type of the object pose
-        save_as: a full path (including a name of the image) to which the final 
+        save_as: a full path (including a name of the image) to which the final
             image should be saved
         pixels: The number of pixels the final square image will have.
             Default = 300
@@ -203,7 +203,7 @@ def full_run(zip_name, obj_set, blender_path, renders_per_class=10, work_dir=wor
     print('Checking data directories...')
 
     # Ensure render_workspace folder exists
-    if not os.path.isdir(workspace):
+    if not os.path.isdir(work_dir):
         print("Can't find rendering workspace folder. Please create the folder",
         workspace, ", containing object files and background database. See " \
         "group folder for example.")
@@ -219,7 +219,7 @@ def full_run(zip_name, obj_set, blender_path, renders_per_class=10, work_dir=wor
 
     #now we need to take Ong' stats and move them into final folder
     for folder in os.listdir(obj_poses):
-        orig_stats=os.path.join(obj_poses,folder,"stats")      
+        orig_stats=os.path.join(obj_poses,folder,"stats")
 
         if(os.path.isdir(orig_stats)):
             final_name= folder + "_stats"
@@ -238,10 +238,10 @@ def full_run(zip_name, obj_set, blender_path, renders_per_class=10, work_dir=wor
         if os.path.isdir(sub_obj) is False:
             print(sub_obj, " is not a folder")
             continue
-        
+
         sub_final = os.path.join(final_im, folder)
         os.mkdir(sub_final)
-        
+
         # Merge images based on the choice of background
         if(generate_background):
             # for each object pose
@@ -276,7 +276,7 @@ def full_run(zip_name, obj_set, blender_path, renders_per_class=10, work_dir=wor
     destroy_folders(work_dir, temp_folders)
 
 """
-The blender parameters. Keywords should be self explanatory. 
+The blender parameters. Keywords should be self explanatory.
 For more details ask Ong.
 A default parameters can be used by passing an empty dictionary
 blender_attributes={}
@@ -299,7 +299,8 @@ zip_save2 = os.path.join(workspace, "final_zip/random_bg_data")
 background_database = os.path.join(workspace, "bg_database/SUN_back/")
 
 # Set object file path
-obj_set = os.path.join(workspace, "object_files/two_set")
+# obj_set = os.path.join(workspace, "object_files/two_set")
+obj_set = os.path.join(workspace, "object_files/two_set_model_format")
 
 # Set Blender path
 bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04

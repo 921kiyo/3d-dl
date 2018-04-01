@@ -31,6 +31,18 @@ class BlenderLamp(BlenderObject):
         """
         bpy.ops.object.lamp_add()
 
+    def delete(self):
+        self.turn_on()
+        if self.reference is None:
+            return # object reference already deleted
+        # deselect all
+        bpy.ops.object.select_all(action='DESELECT')
+        # selection
+        self.reference.select = True
+        # remove it
+        bpy.ops.object.delete()
+        self.reference = None
+        
     def set_size(self, size):
         if not check_scalar_non_negative(size):
             raise InvalidInputError('lamp size must be non negative')
@@ -59,6 +71,9 @@ class BlenderLamp(BlenderObject):
         self.reference.layers[0] = True
         self.reference.layers[1] = False
 
+    def is_on(self):
+        return self.reference.layers[0] is True
+        
     def face_towards(self, x, y, z):
         """
         given a coordinate x, y, z

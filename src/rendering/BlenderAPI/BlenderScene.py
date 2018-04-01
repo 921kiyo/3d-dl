@@ -72,6 +72,7 @@ class BlenderScene(object):
         if self.subject_bot is not None:
             self.subject_bot.delete()
             self.subject_bot = None
+        self.remove_lamps()
         self.objects_fixed = []
         self.objects_unfixed = []
 
@@ -225,6 +226,8 @@ class BlenderRandomScene(BlenderScene):
         '''location'''
         (x,y,z) = self.lamp_loc.sample_param()
         r = self.lamp_distance.sample_param()
+        if r < 0:
+            raise ValueError('light distance negative! aborting')
         loc = (r*x, r*y, r*z)
         blender_lamp.set_location(*loc)
         '''energy'''
@@ -247,6 +250,8 @@ class BlenderRandomScene(BlenderScene):
         # set random lighting conditions
         self.set_num_lamps(self.num_lamps.r)
         num_active_lamps = self.num_lamps.sample_param()
+        if num_active_lamps < 0:
+            raise ValueError('number of lamps negative! aborting')
         for l in range(num_active_lamps):
             lamp = self.lamps[l]
             lamp.turn_on()
@@ -256,6 +261,8 @@ class BlenderRandomScene(BlenderScene):
         # random location of camera along shell coordinates
         (x, y, z) = self.camera_loc.sample_param()
         r = self.camera_radius.sample_param()
+        if r < 0:
+            raise ValueError('camera distance negative! aborting')
         loc = (r*x, r*y, r*z)
         self.camera.set_location(*loc)
         # face towards the centre
@@ -323,3 +330,14 @@ class BlenderRandomScene(BlenderScene):
             self.clear_logs()
 
         return logs
+
+    def give_params(self):
+        params = {}
+        self_dict = vars(self)
+
+        for attr_name in self_dict.keys():
+            attr = self_dict[attr_name]
+            if hasattr(attr, 'give_param'):
+                params[attr_name] = attr.give_param()
+
+        return params

@@ -78,6 +78,8 @@ class BlenderLampsTest(unittest.TestCase):
         self.assertEquals(lamp_reference.layers[1], True)
         self.assertEquals(lamp_reference.layers[0], False)
 
+        lamp.turn_on()
+
     def test_turn_on(self):
         bpy.ops.object.lamp_add(type='POINT')
         lamp_reference = bpy.data.objects[0]
