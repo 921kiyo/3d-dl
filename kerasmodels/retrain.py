@@ -289,7 +289,8 @@ def main():
 
     model = KerasInception(input_dim=input_dim,
                             batch_size=batch_size,
-                            dense_layers=dense_layers)
+                            dense_layers=dense_layers,
+                            lr=learning_rate)
 
 
     model.train(train_dir=train_dir,
@@ -371,10 +372,14 @@ def main_for_pipeline():
             if not my_file.is_file():
                 print("writing head")
                 with open(log_filename, "w") as log:
-                    log.write("datetime.date,datetime.time,score[0],score[1]\n")
+                    log.write("datetime.date,datetime.time,learning_rate,score[0],score[1]\n")
             # append numbers
             with open(log_filename, "a") as log:
                 log.write(str(datetime.date))
+                log.write(',')
+                log.write(str(datetime.time))
+                log.write(',')
+                log.write(str(learning_rate))
                 log.write(',')
                 log.write(str(score[0]))
                 log.write(',')
