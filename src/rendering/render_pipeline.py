@@ -46,8 +46,8 @@ Do not forget to change the path to render_workspace as it is hard coded.
 # Ensure source files are in python path
 rendering_path = os.path.dirname(os.path.realpath(__file__))
 src_path = os.path.abspath(os.path.join(rendering_path, os.pardir))
-#project_path = os.path.abspath(os.path.join(src_path, os.pardir))
-project_path = '/vol/bitbucket/who11/CO-530/Lobster/'
+project_path = os.path.abspath(os.path.join(src_path, os.pardir))
+#project_path = '/vol/bitbucket/who11/CO-530/Lobster/'
 #workspace = os.path.join(project_path, "render_workspace")
 workspace = '/vol/project/2017/530/g1753002/render_workspace'
 
