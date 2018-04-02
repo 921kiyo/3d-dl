@@ -345,7 +345,7 @@ def main_for_pipeline():
         # initialize & train model
         model = KerasInception(input_dim=input_dim,
                                 batch_size=batch_size,
-                                dense_layers=dense_layers
+                                dense_layers=dense_layers,
                                 dropout=None)
 
 
