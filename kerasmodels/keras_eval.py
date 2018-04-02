@@ -109,122 +109,6 @@ class KerasEval:
 
         return test_files
 
-    def create_model_graph(self, model_info):
-      """"Creates a graph from saved GraphDef file and returns a Graph object.
-
-      Args:
-        model_info: Dictionary containing information about the model architecture.
-
-      Returns:
-        Graph holding the trained Inception network, and the input tensor and result
-        tensor as built in retraining.py
-      """
-      with tf.Graph().as_default() as graph:
-        model_path = os.path.join(model_info['data_url'], model_info['model_file_name'])
-        print('Model path: ', model_path)
-        with gfile.FastGFile(model_path, 'rb') as f:
-          graph_def = tf.GraphDef()
-          graph_def.ParseFromString(f.read())
-          resized_input_tensor, bottleneck_tensor, result_tensor = (tf.import_graph_def(
-              graph_def,
-              name='',
-              return_elements=[
-                  model_info['resized_input_tensor_name'],
-                  model_info['bottleneck_tensor_name'],
-                  model_info['result_tensor_name'],
-              ]))
-      return graph, resized_input_tensor, bottleneck_tensor, result_tensor
-
-
-
-    def create_model_info(self, data_url):
-      """Given the name of a model architecture, returns information about it.
-
-      Args:
-        Nothing
-
-      Returns:
-        Dictionary of information about the model, or None if the name isn't
-        recognized
-
-      Raises:
-        ValueError: If architecture name is unknown.
-      """
-      model_file_name = 'output_graph.pb'
-      result_tensor_name = 'final_result:0' #keras -- 'output_node0:0' # tflow -- 'final_result:0'
-      resized_input_tensor_name = 'Mul:0' # keras -- 'input_1:0' # tflow -- 'Mul:0'
-      input_width = 299
-      input_height = 299
-      input_depth = 3
-      input_mean = 128
-      input_std = 128
-      bottleneck_tensor_name = 'pool_3/_reshape:0' # keras -- 'global_average_pooling2d_1/Mean:0' #tflow -- 'pool_3/_reshape:0'
-      bottleneck_tensor_size = 2048
-      return {
-          'data_url': data_url,
-          'result_tensor_name': result_tensor_name,
-          'resized_input_tensor_name': resized_input_tensor_name,
-          'model_file_name': model_file_name,
-          'bottleneck_tensor_name' : bottleneck_tensor_name,
-          'bottleneck_tensor_size': bottleneck_tensor_size,
-          'input_width': input_width,
-          'input_height': input_height,
-          'input_depth': input_depth,
-          'input_mean': input_mean,
-          'input_std': input_std,
-      }
-
-
-    def run_resize_data(self, sess, image_data, image_data_tensor, decoded_image_tensor, decoded_jpeg):
-        # Decode the JPEG image, resize it, and rescale the pixel values.
-        resized_input_values, decoded_jpeg_data \
-            = sess.run([decoded_image_tensor, decoded_jpeg],
-                       {image_data_tensor: image_data})
-        return resized_input_values, decoded_jpeg_data
-
-    def adaptive_equalize(self, img):
-        # Adaptive Equalization
-        img = img_as_float(img)
-        img_adapteq = exposure.equalize_adapthist(img, clip_limit=0.05)
-        return img_as_ubyte(img_adapteq)
-
-    def tf_equalize(self, img_tnsr):
-        IMAGE_WIDTH = 1280
-        IMAGE_HEIGHT = 1024
-        IMAGE_DEPTH = 3
-        image_rot = tf.py_func(adaptive_equalize, [img_tnsr], tf.uint8)
-        image_rot.set_shape([IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_DEPTH])  # when using pyfunc, need to do this??
-        return image_rot
-
-    def add_jpeg_decoding(self, input_width, input_height, input_depth, input_mean,
-                          input_std):
-      """Adds operations that perform JPEG decoding and resizing to the graph..
-
-      Args:
-        input_width: Desired width of the image fed into the recognizer graph.
-        input_height: Desired width of the image fed into the recognizer graph.
-        input_depth: Desired channels of the image fed into the recognizer graph.
-        input_mean: Pixel value that should be zero in the image for the graph.
-        input_std: How much to divide the pixel values by before recognition.
-
-      Returns:
-        Tensors for the node to feed JPEG data into, and the output of the
-          preprocessing steps.
-      """
-      if not check_nonnegative_args(input_width, input_height, input_depth, input_std):
-        raise InvalidInputError('Input dimensions must be Nonnegative!')
-      jpeg_data = tf.placeholder(tf.string, name='DecodeJPGInput')
-      decoded_image = tf.image.decode_jpeg(jpeg_data, channels=input_depth)
-      #decoded_image = tf_equalize(decoded_image)
-      decoded_image_as_float = tf.cast(decoded_image, dtype=tf.float32)
-      decoded_image_4d = tf.expand_dims(decoded_image_as_float, 0)
-      resize_shape = tf.stack([input_height, input_width])
-      resize_shape_as_int = tf.cast(resize_shape, dtype=tf.int32)
-      resized_image = tf.image.resize_bilinear(decoded_image_4d,
-                                               resize_shape_as_int)
-      offset_image = tf.subtract(resized_image, input_mean)
-      mul_image = tf.multiply(offset_image, 1.0 / input_std)
-      return jpeg_data, mul_image, decoded_image
 
     def eval_result(self, result_tensor, ground_truth, idx2label):
         print('RESULT TENSOR SUM: ',np.sum(result_tensor, axis=1))
@@ -402,14 +286,6 @@ class KerasEval:
         summary_writer.close()
 
     def eval(self, output_folder, test_folder, test_result_file, test_result_path, notify_interval):
-        # Needed to make sure the logging output is visible.
-        # See https://github.com/tensorflow/tensorflow/issues/3047
-        # tf.logging.set_verbosity(tf.logging.INFO)
-
-        # Gather information about the model architecture we'll be using.
-        # model_info = create_model_info(FLAGS.model_source_dir)
-
-        # graph, resized_input_tensor, bottleneck_tensor, result_tensor = create_model_graph(model_info)
 
         # Look at the folder structure, and create lists of all the images.
         label = os.path.join(output_folder, "labels.txt")
@@ -428,7 +304,6 @@ class KerasEval:
             for label in label2idx:
 
                 per_class_test_results[label] = []
-                features = []
 
                 count = 0
 
@@ -460,7 +335,6 @@ class KerasEval:
                 test_result['prediction'], test_result['correct_label'], test_result['predicted_label'] = \
                     self.eval_result(pred, ground_truth, idx2label)
                 test_result['class_confidences'] = pred
-                #test_result['features'] = bottleneck[0] # won't work here
                 per_class_test_results[test_result['correct_label']].append(test_result)
 
                 count += 1
