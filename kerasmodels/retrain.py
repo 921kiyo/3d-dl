@@ -29,6 +29,12 @@ import zipfile
 # for customizing SGD, rmsprop
 from keras.optimizers import SGD, RMSprop
 
+# for logging
+from pathlib import Path
+import datetime
+
+
+
 # Custom Image Augmentation Function
 def add_salt_pepper_noise(X_img):
     # Need to produce a copy as to not modify the original image
@@ -297,17 +303,17 @@ def main():
     model.evaluate(test_dir=test_dir)
 
 def main_for_pipeline():
+    logging = True
+    log_filename = 'model_log.csv'
+
     # get all zip files to iterate over: List parameter, Directory?
 
 
     # create grid of parameters: e.g. to a csv file, then read out line by line, once done, add 1 at the end
-    learning_rate_grid = np.logspace(-6,-4,25) # originally 10 pow -5
+    learning_rate_grid = np.logspace(-6,-1,25) # originally 10 pow -5
     dropout_grid = [0,0.2,0.5]
     layer_grid = [1,2]
     batch_size_grid = [16,32,64]
-
-    # go through grid of parameters
-
 
     # input directories
     path_of_zip = '/vol/project/2017/530/g1753002/keras_test_data/train/train_test_zip2.zip'
@@ -321,37 +327,58 @@ def main_for_pipeline():
     # get path for classes.txt
     main_dir, filename = os.path.split(path_of_zip)
 
-    # set parameters
-    input_dim = 150
-    fine_tune = False # if true, some of the inceptionV3 layers will be trained for 5 epochs at the end of training
-    add_salt_pepper_noise = False # if True, it adds SP noise
-    augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
-    epochs = 10
-
-    learning_rate = 0.001
-    dense_layers = 1
-    batch_size = 16
-
-    # initialize & train model
-    model = KerasInception(input_dim=input_dim,
-                            batch_size=batch_size,
-                            dense_layers=dense_layers)
+    # go through grid of parameters
+    for lr in learning_rate_grid:
 
 
-    model.train(train_dir=train_dir,
-                validation_dir=validation_dir,
-                fine_tune=fine_tune,
-                epochs=epochs,
-                salt_pepper=add_salt_pepper_noise,
-                augmentation_params=get_augmentation_params(augmentation_mode),
-                classes_txt_dir=main_dir,
-                save_model=True
-                )
+        # set parameters
+        input_dim = 299
+        fine_tune = False # if true, some of the inceptionV3 layers will be trained for 5 epochs at the end of training
+        add_salt_pepper_noise = False # if True, it adds SP noise
+        augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
+        epochs = 1
 
-    # get accuracy score
-    model.evaluate(test_dir=test_dir)
+        learning_rate = lr #0.001
+        dense_layers = 1
+        batch_size = 32
 
-    # store accuracy & model parameters
+        # initialize & train model
+        model = KerasInception(input_dim=input_dim,
+                                batch_size=batch_size,
+                                dense_layers=dense_layers)
+
+
+        model.train(train_dir=train_dir,
+                    validation_dir=validation_dir,
+                    fine_tune=fine_tune,
+                    epochs=epochs,
+                    salt_pepper=add_salt_pepper_noise,
+                    augmentation_params=get_augmentation_params(augmentation_mode),
+                    classes_txt_dir=main_dir,
+                    save_model=True
+                    )
+
+        # get accuracy score
+        score = model.evaluate(test_dir=test_dir)
+
+        # store accuracy & model parameters
+        if logging:
+            print("logging now...")
+            # log all parameters to a file log.txt
+            # write header if this is the first run
+            my_file = Path(log_filename)
+            if not my_file.is_file():
+                print("writing head")
+                with open(log_filename, "w") as log:
+                    log.write("datetime.date,datetime.time,score[0],score[1]\n")
+            # append numbers
+            with open(log_filename, "a") as log:
+                log.write(str(datetime.date))
+                log.write(',')
+                log.write(str(score[0]))
+                log.write(',')
+                log.write(str(score[1]))
+                log.write('\n')
 
 # main()
 
