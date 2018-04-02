@@ -367,7 +367,11 @@ class KerasEval:
             summarized_results = self.summarize_results(sess ,label2idx, per_class_test_results, output_folder, print_results=True)
 
         with open(test_result_path, 'wb') as f:  # Python 3: open(..., 'wb')
-            pickle.dump(per_class_test_results, f)
+            test_results = {
+                'raw_test_results' : per_class_test_results,
+                'summarized_results': summarized_results
+            }
+            pickle.dump(test_results, f)
 
 
 # keras_eval = KerasEval()
