@@ -78,11 +78,11 @@ class BlenderScene(object):
 
     def set_render(self):
         self.data.cycles.film_transparent = True
-        self.data.cycles.max_bounces = 3
+        self.data.cycles.max_bounces = 1
         self.data.cycles.min_bounces = 1
-        self.data.cycles.transparent_max_bounces = 3
+        self.data.cycles.transparent_max_bounces = 1
         self.data.cycles.transparent_min_bounces = 1
-        self.data.cycles.samples = 96
+        self.data.cycles.samples = 128
         self.data.cycles.device = 'GPU'
         self.data.render.tile_x = 512
         self.data.render.tile_y = 512
@@ -164,7 +164,7 @@ class BlenderRandomScene(BlenderScene):
         # texture appearance are fixed for now
         self.subject.set_diffuse(color=(1, 0, 0, 1), rough=0.1)
         self.subject.set_gloss(rough=0.1)
-        self.subject.set_mixer(0.1)
+        self.subject.set_mixer(0.3)
         self.subject.set_location(0., 0., 0.)
 
         if self.subject_bot is not None:
