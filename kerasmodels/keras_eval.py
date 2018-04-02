@@ -109,7 +109,6 @@ class KerasEval:
 
         return test_files
 
-
     def eval_result(self, result_tensor, ground_truth, idx2label):
         print('RESULT TENSOR SUM: ',np.sum(result_tensor, axis=1))
         if not check_confidence_tensor(result_tensor):
@@ -121,7 +120,6 @@ class KerasEval:
         predicted_label = idx2label[result[0]]
         print('predicted: ', predicted_label, ' correct: ', correct_label)
         return prediction, correct_label, predicted_label
-
 
     def extract_summary_tensors(self, test_results, label2idx):
 
@@ -138,7 +136,6 @@ class KerasEval:
         predictions = np.array(predictions)
         truth = np.array(truth)
         return confidences, predictions, truth
-
 
     def plot_confusion_matrix(self, cm, classes, normalize=False,
                               title='Confusion matrix',
@@ -195,7 +192,8 @@ class KerasEval:
                 sensitivity[i] = -1
                 continue
             sensitivity[i] = cm[i,i]/relevant[i]
-        return sensitivity
+        average_sensitivity = np.mean(sensitivity)
+        return sensitivity, average_sensitivity
 
     def compute_precision(self, cm):
 
@@ -210,7 +208,17 @@ class KerasEval:
                 precision[i] = -1
                 continue
             precision[i] = cm[i,i]/relevant[i]
-        return precision
+        average_precision = np.mean(precision)
+        return precision, average_precision
+
+    def compute_accuracy(self, cm):
+        if (not check_confusion_matrix(cm)):
+            raise InvalidInputError('Confusion Matrix Invalid!')
+
+        cm = np.array(cm)
+        relevant = np.sum(np.sum(cm))
+        accuracy = np.sum(np.diag(cm))/relevant
+        return accuracy
 
     def plot_bar(self, x,heights, heights2=None, title='Bar Chart', xlabel='X', ylabel='Y'):
         bar_width = 0.4
@@ -232,7 +240,6 @@ class KerasEval:
         plt.clf()
 
         return image
-
 
     def summarize_results(self, sess, label2idx, per_class_test_results, model_source_dir, print_results=False):
         # Check if directory already exists. If so, create a new one
@@ -263,7 +270,6 @@ class KerasEval:
                 summary_writer.add_summary(confidences_summary,i)
 
         # Confusion Matrix Plot
-
         cm = confusion_matrix(truth, predictions)
 
         cm_img = self.plot_confusion_matrix(cm, classes=label2idx.keys())
@@ -271,19 +277,33 @@ class KerasEval:
         confusion_summary = sess.run(summary_op)
         summary_writer.add_summary(confusion_summary)
 
-        sensitivity = self.compute_sensitivity(cm)
-        precision = self.compute_precision(cm)
+        accuracy = self.compute_accuracy(cm)
+        sensitivity, average_sensitivity = self.compute_sensitivity(cm)
+        precision, average_precision = self.compute_precision(cm)
 
         prec_img = self.plot_bar(range(c), precision,  sensitivity  , title='Class Precision', xlabel='Class', ylabel='Precision and Sensitivity')
         summary_op = tf.summary.image("Precision", prec_img)
         prec_summary = sess.run(summary_op)
         summary_writer.add_summary(prec_summary)
+
         if print_results:
             print('Confusion Matrix: ', cm)
             print('Sensitivity: ', sensitivity)
-            print('Precision: ',precision)
+            print('Average Sensitivity: ', average_sensitivity)
+            print('Precision: ', precision)
+            print('Average Precision: ', average_precision)
+            print('Accuracy: ', accuracy)
 
         summary_writer.close()
+
+        return {
+            'Confusion Matrix':  cm,
+            'Sensitivity': sensitivity,
+            'Average Sensitivity': average_sensitivity,
+            'Precision': precision,
+            'Average Precision': average_precision,
+            'Accuracy': accuracy,
+        }
 
     def eval(self, output_folder, test_folder, test_result_file, test_result_path, notify_interval):
 
@@ -305,7 +325,7 @@ class KerasEval:
 
                 per_class_test_results[label] = []
 
-                count = 0
+            count = 0
 
             for test_datum in test_data:
                 if(count%notify_interval == 0):
@@ -342,8 +362,9 @@ class KerasEval:
             print('Pre supplied test result file found, loading ... ')
             pickled_test_result = open(test_result_file,'rb')
             per_class_test_results = pickle.load(pickled_test_result)
+
         with tf.Session() as sess:
-            self.summarize_results(sess ,label2idx, per_class_test_results, output_folder, print_results=True)
+            summarized_results = self.summarize_results(sess ,label2idx, per_class_test_results, output_folder, print_results=True)
 
         with open(test_result_path, 'wb') as f:  # Python 3: open(..., 'wb')
             pickle.dump(per_class_test_results, f)
