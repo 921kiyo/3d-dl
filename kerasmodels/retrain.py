@@ -336,7 +336,7 @@ def main_for_pipeline():
         fine_tune = False # if true, some of the inceptionV3 layers will be trained for 5 epochs at the end of training
         add_salt_pepper_noise = False # if True, it adds SP noise
         augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
-        epochs = 1
+        epochs = 5
 
         learning_rate = lr #0.001
         dense_layers = 1
@@ -345,7 +345,8 @@ def main_for_pipeline():
         # initialize & train model
         model = KerasInception(input_dim=input_dim,
                                 batch_size=batch_size,
-                                dense_layers=dense_layers)
+                                dense_layers=dense_layers
+                                dropout=None)
 
 
         model.train(train_dir=train_dir,
