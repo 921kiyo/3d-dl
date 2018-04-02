@@ -110,7 +110,6 @@ class KerasEval:
         return test_files
 
     def eval_result(self, result_tensor, ground_truth, idx2label):
-        print('RESULT TENSOR SUM: ',np.sum(result_tensor, axis=1))
         if not check_confidence_tensor(result_tensor):
             raise InvalidInputError('Result confidence tensor invalid!')
 
@@ -118,7 +117,6 @@ class KerasEval:
         prediction = (ground_truth==result[0])
         correct_label = idx2label[ground_truth]
         predicted_label = idx2label[result[0]]
-        print('predicted: ', predicted_label, ' correct: ', correct_label)
         return prediction, correct_label, predicted_label
 
     def extract_summary_tensors(self, test_results, label2idx):
