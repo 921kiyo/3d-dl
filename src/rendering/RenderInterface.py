@@ -206,7 +206,10 @@ class RenderInterface(object):
         """
         self.scene.set_attribute_distribution(attr, params)
 
-    def render_all(self, dump_logs=False, visualize=False, verb=1, progress=False):
+    def render_all(self, dump_logs=False, visualize=False, verb=1, progress=False, dry_run=True):
+
+        if dry_run:
+            print("BLENDER RENDER INTERFCE : DRY RUN MODE")
 
         print("BLENDER RENDER INTERFCE : Rendering {} images to {}".
               format(self.num_images, self.output_file), file=sys.stderr)
@@ -227,6 +230,9 @@ class RenderInterface(object):
             start = time.time()
             # **********************  RENDER N SAVE **********************
             render_path = os.path.join(self.output_file, 'render%d.png' % i)
+            if dry_run:
+                self.scene.scene_setup()
+                continue
             self.scene.render_to_file(render_path)
             end = time.time()
 
