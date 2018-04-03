@@ -287,7 +287,7 @@ def full_run(zip_name, obj_set, blender_path, renders_per_class=10, work_dir=wor
     # export everything into a zip file
     make_archive(zip_name, 'zip',final_folder)
     destroy_folders(work_dir, temp_folders)
-    return(zip_name)
+    return(zip_name+ ".zip")
 
 """
 The blender parameters. Keywords should be self explanatory.
