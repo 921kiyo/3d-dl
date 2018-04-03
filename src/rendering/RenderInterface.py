@@ -125,14 +125,14 @@ class RenderInterface(object):
             top_texture_path = os.path.join(temp, files[3])
             try:
                 self.load_subjects(top_obj_path, top_texture_path, bot_obj_path, bot_texture_path, output_file)
-            except E:
+            except :
                 error_reading_file = True
         elif len(files) == 2:
             obj_path = os.path.join(temp, files[0])
             texture_path = os.path.join(temp, files[1])
             try:
                 self.load_subject(obj_path, texture_path, output_file)
-            except E:
+            except:
                 error_reading_file = True
 
         # this is really ugly, but it does the job - rendering it for the first

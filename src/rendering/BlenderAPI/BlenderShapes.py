@@ -137,12 +137,25 @@ class BlenderMesh(BlenderObject):
         return math.sqrt(
             (max(VX) - min(VX))**2+(max(VY) - min(VY))**2+(max(VZ) - min(VZ))**2)
 
+    def compute_max_axis(self):
+        VX = [v.co[0] for v in self.reference.data.vertices]
+        VY = [v.co[1] for v in self.reference.data.vertices]
+        VZ = [v.co[2] for v in self.reference.data.vertices]
+        return max(
+            (max(VX) - min(VX)),
+            (max(VY) - min(VY)),
+            (max(VZ) - min(VZ))
+        )
+
     def set_mesh_bbvol(self, VReq):
         if not check_scalar_non_negative (VReq):
             raise InvalidInputError('Mesh BB Volume has to be positive!')
         self.set_scale((1.0,1.0,1.0))
         VNom = self.compute_mesh_bbvol()
-        scale = math.pow(VReq/VNom, 1./3.)
+        LNom = self.compute_max_axis()
+        scale_v = math.pow(VReq/VNom, 1./3.)
+        scale_l = math.pow(VReq, 1./3.)/LNom
+        scale = 0.5*(scale_v + scale_l)
         self.set_scale((scale, scale, scale))
         
     def turn_off(self):
