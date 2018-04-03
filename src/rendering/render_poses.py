@@ -32,6 +32,14 @@ usage_text = (
     "  blender --background --python " + __file__ + " -- [options]"
 )
 
+"""Helper functions"""
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 """" --------------- Arguments ------------- """
 parser = argparse.ArgumentParser(description=usage_text)
@@ -49,6 +57,12 @@ parser.add_argument('renders_per_product', type=int, default=1,
                     help='number of renders to per product')
 
 parser.add_argument('blender_attributes',
+                    help='json dump of blender attributes')
+
+parser.add_argument("visualize_dump", type=str2bool, default=False,
+                        help="visualization of blender parameters")
+
+parser.add_argument('dry_run_mode', type=str2bool, default=False,
                     help='json dump of blender attributes')
 
 args = parser.parse_args(argv)
@@ -137,4 +151,4 @@ for product in os.listdir(args.object_folder):
             print(dist)
             RI.set_attribute_distribution(dist[0], dist[1])
 
-    RI.render_all(dump_logs=True)
+    RI.render_all(dump_logs=True, visualize=args.visualize_dump, dry_run=args.dry_run_mode)
