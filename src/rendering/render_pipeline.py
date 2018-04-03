@@ -292,7 +292,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
         back_parameter = "random_bg"
     else:
         back_parameter = os.path.split(background_database)[-1]
-    zip_name = os.path.join(work_dir,"final_zip",os.path.split(obj_set.split)[-1] + "_" + back_parameter + "_" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S").replace(" ","_").replace(":","_"))
+    zip_name = os.path.join(work_dir,"final_zip",os.path.split(obj_set)[-1] + "_" + back_parameter + "_" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S").replace(" ","_").replace(":","_"))
     
     make_archive(zip_name, 'zip',final_folder)
     destroy_folders(work_dir, temp_folders)
