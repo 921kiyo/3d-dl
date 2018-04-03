@@ -286,7 +286,9 @@ class RenderInterface(object):
             plt.title('Camera Location')
             dump_file = os.path.join(self.output_file, 'stats','camera_locations.svg')
             plt.savefig(dump_file)
+            plt.close(fig)
 
+            fig = plt.figure()
             plt.subplot(211)
             camera_radii = logs['camera_radius']
             plt.hist(camera_radii,bins=20)
@@ -298,6 +300,7 @@ class RenderInterface(object):
             plt.title('Spin angle Histogram')
             dump_file = os.path.join(self.output_file, 'stats', 'camera_stats.svg')
             plt.savefig(dump_file)
+            plt.close(fig)
 
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
@@ -312,6 +315,7 @@ class RenderInterface(object):
             plt.title('Lamp Location')
             dump_file = os.path.join(self.output_file, 'stats', 'lamp_locations.svg')
             plt.savefig(dump_file)
+            plt.close(fig)
 
             fig = plt.figure()
             plt.subplot(211)
@@ -326,5 +330,6 @@ class RenderInterface(object):
             
             dump_file = os.path.join(self.output_file, 'stats', 'lamp_stats.svg')
             plt.savefig(dump_file)
+            plt.close(fig)
 
         return logs
