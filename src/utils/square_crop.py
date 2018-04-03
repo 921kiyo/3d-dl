@@ -3,11 +3,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from skimage import data, img_as_float, io
-from skimage.restoration import denoise_nl_means, estimate_sigma
-from skimage.measure import compare_psnr
+from skimage.transform import rotate
 
-src_folder = 'D:\\PycharmProjects\\test_data\\ocado_webcam'
-dest_folder = 'D:\\PycharmProjects\\test_data\\ocado_webcam_test'
+src_folder = '/vol/project/2017/530/g1753002/ong/test_images_raw/phone_cam'
+dest_folder = '/vol/project/2017/530/g1753002/ong/test_images_proc/phone_cam'
+
+def random_rot(image):
+    angles = [0, 90, 180, 270]
+    i = np.random.randint(0,3)
+    angle = angles[i]
+    return rotate(image, angle)
+    
 
 for (dirpath,_,filenames) in os.walk(src_folder):
 
@@ -18,24 +24,49 @@ for (dirpath,_,filenames) in os.walk(src_folder):
         os.mkdir(dest_dir)
 
     for filename in filenames:
-        if filename.lower().endswith('.png'):
+        if filename.lower().endswith('.jpg'):
             img = io.imread(os.path.join(dirpath,filename))
-            w = min(np.ceil(img.shape[0]/2.), np.ceil(img.shape[1]/2.))
-            c = (np.floor(img.shape[0]/2.), np.floor(img.shape[1]/2.))
-            x00 = int(np.floor(c[0]-w))
-            x01 = int((c[0]+w-1))
-            x10 = int(np.floor(c[1]-w))
-            x11 = int((c[1]+w-1))
-            img_new = img[x00:x01,x10:x11]
 
-            dest_filename = os.path.join(dest_dir, filename)
+            shape = np.array([np.ceil(img.shape[0]/2.), np.ceil(img.shape[1]/2.)])
+            length_idx = np.argmax(shape)
+            width_idx = np.argmin(shape)
+            l = shape[length_idx]
+            w = shape[width_idx]
 
-            base = os.path.splitext(dest_filename)[0]
-            dest_filename = base + '.jpg'
-            print(dest_filename)
+            # random pert of offset
+            for i in range(3):
 
-            io.imsave(dest_filename, img_new)
+                off_sigma = 0.5*(l-w)
+                off_mean = 0
+                off = np.random.normal(off_mean, off_sigma)
+            
+                c = (np.floor(img.shape[0]/2.), np.floor(img.shape[1]/2.))
+
+                x0l  = int(min(max(c[length_idx] - w + off, 0), 2*(l-w)))
+                x1l  = x0l + img.shape[width_idx] - 1
+
+                x0w = 0
+                x1w = img.shape[width_idx] - 1
+
+                x0 = [0,0]
+                x0[length_idx] = x0l
+                x0[width_idx] = x0w
+                x1 = [0,0]
+                x1[length_idx] = x1l
+                x1[width_idx] = x1w
+
+                img_new = img[x0[0]:x1[0],x0[1]:x1[1]]
+                img_new = random_rot(img_new)
+
+                assert img_new.shape[0] == img_new.shape[1], "shapes {} and {} don't agree!".format(img_new.shape[0], img_new.shape[1]) 
+            
+                dest_filename = os.path.join(dest_dir, filename)
+
+                base = os.path.splitext(dest_filename)[0]
+                dest_filename = base + str(i) + '.jpg'
+                print(dest_filename)
+                
+                io.imsave(dest_filename, img_new)
 
 
 
-plt.show()
