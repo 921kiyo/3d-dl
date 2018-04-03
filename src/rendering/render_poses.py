@@ -91,9 +91,15 @@ def find_files(product_folder):
     return object_file, texture_file
 
 
+def find_model(product_folder):
+    """Return the name of the .model file in a folder"""
+    for file in os.listdir(product_folder):
+        if file.endswith('.model'):
+            return file
+
+
 """" --------------- Rendering ------------- """
 RI = Render.RenderInterface(num_images=args.renders_per_product)
-
 
 for product in os.listdir(args.object_folder):
     product_folder = os.path.join(args.object_folder, product)
@@ -110,17 +116,17 @@ for product in os.listdir(args.object_folder):
         os.mkdir(render_folder)
 
     # Get model files
-    object_file, texture_file = find_files(product_folder)
+    model_file = find_model(product_folder)
 
     # Configure model paths
-    object_path = os.path.join(product_folder, object_file)
-    texture_path = os.path.join(product_folder, texture_file)
+    model_path = os.path.join(product_folder, model_file)
 
-    print(object_path, '\n', texture_path)
+    # print(object_path, '\n', texture_path)
+    print(model_path)
     print(render_folder)
 
     # Do the blender stuff
-    RI.load_subject(object_path, texture_path, render_folder)
+    RI.load_from_model(model_path, render_folder)
 
     if blender_attributes:
         for param in blender_attributes['attribute_distribution_params']:
@@ -131,4 +137,4 @@ for product in os.listdir(args.object_folder):
             print(dist)
             RI.set_attribute_distribution(dist[0], dist[1])
 
-    RI.render_all(dump_logs = True)
+    RI.render_all(dump_logs=True)

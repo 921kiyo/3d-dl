@@ -3,8 +3,38 @@ This example script creates a box in the middle of a half room
 """
 
 import os
+import sys
+import time
+import shutil
+import fnmatch
+import zipfile
+import uuid
 import bpy
 import rendering.BlenderAPI as bld
+
+def finds(patterns, list):
+    results = []
+    for pattern in patterns:
+        results.extend(find(pattern, list))
+
+def find(pattern, list):
+    result = []
+    for item in list:
+        if fnmatch.fnmatch(item, pattern):
+            result.append(item)
+    return result
+
+def validate_and_extract_model(model):
+    if not (len(model.namelist()) == 4 or len(model.namelist()) == 2):
+        raise ValueError('model file not correct format!')
+    if len(model.namelist()) == 4:
+        if not set(['Bot.jpg', 'Bot.obj', 'Top.obj', 'Top.jpg']) == set(model.namelist()):
+            raise ValueError('model file not correct format!')
+        return ['Bot.obj', 'Bot.jpg', 'Top.obj', 'Top.jpg']
+    if len(model.namelist()) == 2:
+       if not (len(find('*.jpg', model.namelist()))==1 and len(find('*.obj', model.namelist()))==1):
+           raise ValueError('model file not correct format!')
+       return find('*.obj', model.namelist()) + find('*.jpg', model.namelist())
 
 class RenderInterface(object):
     """
@@ -22,6 +52,7 @@ class RenderInterface(object):
         self.num_images = num_images
         self.scene = None
         self.setup_blender()
+        self.logfile = 'blender_render.log'
 
     def setup_blender(self):
         """
@@ -70,6 +101,64 @@ class RenderInterface(object):
         self.scene.load_subject_from_path(
             obj_path=obj_path, texture_path=texture_path, obj_path_bot=obj_path_bot, texture_path_bot=texture_path_bot)
 
+    def load_from_model(self, model_path, output_file):
+
+        self.output_file = output_file
+        # check the model file
+        if not model_path.lower().endswith('.model'):
+            raise ValueError('file extension not wrong!')
+
+        with zipfile.ZipFile(model_path, 'r') as model:
+            files = validate_and_extract_model(model)
+            # attempt to create a non-existent folder
+            temp = os.path.join(output_file, str(uuid.uuid4()))
+            if os.path.isdir(temp):
+                raise ValueError('unique ID not unique!')  # Fatal
+            os.mkdir(temp)
+            model.extractall(temp)
+
+        error_reading_file = False
+        if len(files) == 4:
+            bot_obj_path = os.path.join(temp, files[0])
+            bot_texture_path = os.path.join(temp, files[1])
+            top_obj_path = os.path.join(temp, files[2])
+            top_texture_path = os.path.join(temp, files[3])
+            try:
+                self.load_subjects(top_obj_path, top_texture_path, bot_obj_path, bot_texture_path, output_file)
+            except :
+                error_reading_file = True
+        elif len(files) == 2:
+            obj_path = os.path.join(temp, files[0])
+            texture_path = os.path.join(temp, files[1])
+            try:
+                self.load_subject(obj_path, texture_path, output_file)
+            except:
+                error_reading_file = True
+
+        # this is really ugly, but it does the job - rendering it for the first
+        # time loads the image into Blender's memory, removing the need to
+        # have a persistent texture file
+        if not error_reading_file:
+            # start output redirection
+            open(self.logfile, 'a').close()
+            old = os.dup(1)
+            sys.stdout.flush()
+            os.close(1)
+            os.open(self.logfile, os.O_WRONLY)
+            # render
+            self.scene.render_to_file(os.path.join(temp, 'pre-render.png'))
+            # end output redirection
+            os.close(1)
+            os.dup(old)
+            os.close(old)
+        # we can now clean house
+        shutil.rmtree(temp)
+
+        if error_reading_file:
+            raise IOError("Error reading model file contents!")
+        return
+
+
     def change_output_file(self, new_output_file):
         self.output_file = new_output_file
 
@@ -117,12 +206,45 @@ class RenderInterface(object):
         """
         self.scene.set_attribute_distribution(attr, params)
 
-    def render_all(self, dump_logs=False, visualize=False):
+    def render_all(self, dump_logs=False, visualize=False, verb=1, progress=False):
+
+        print("BLENDER RENDER INTERFCE : Rendering {} images to {}".
+              format(self.num_images, self.output_file), file=sys.stderr)
+
+        if progress:
+            import progressbar
+            bar = progressbar.ProgressBar(redirect_stdout=True, max_value=self.num_images)
+
+        if verb < 2:
+            # begin output redirection
+            open(self.logfile, 'a').close()
+            old = os.dup(1)
+            sys.stdout.flush()
+            os.close(1)
+            os.open(self.logfile, os.O_WRONLY)
+
         for i in range(self.num_images):
+            start = time.time()
             # **********************  RENDER N SAVE **********************
             render_path = os.path.join(self.output_file, 'render%d.png' % i)
             self.scene.render_to_file(render_path)
+            end = time.time()
+
+            if verb == 1:
+                print('BLENDER RENDER INTERAFCE : Rendered image {} of {}. Elapsed time: {:.3f}s'.
+                      format(i, self.num_images, end-start), file=sys.stderr)
+
+            if progress:
+                bar.update(i)
+
+        if verb < 2:
+            # end output redirection
+            os.close(1)
+            os.dup(old)
+            os.close(old)
+
         logs = self.scene.retrieve_logs()
+        params = self.scene.give_params()
 
         if not os.path.isdir(os.path.join(self.output_file, 'stats')):
             os.mkdir(os.path.join(self.output_file, 'stats'))
@@ -132,9 +254,11 @@ class RenderInterface(object):
             dump_file = os.path.join(self.output_file, 'stats', 'randomvars_dump.json')
             with open(dump_file, "w+") as f:
                 json.dump(logs, f, sort_keys=True, indent=4, separators=(',', ': '))
+            dump_file = os.path.join(self.output_file, 'stats', 'randomparams_dump.json')
+            with open(dump_file, "w+") as f:
+                json.dump(params, f, sort_keys=True, indent=4, separators=(',', ': '))
 
         if visualize:
-            import sys
             for path in sys.path:
                 print(path)
 

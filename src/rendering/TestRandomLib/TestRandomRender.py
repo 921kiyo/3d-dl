@@ -24,7 +24,8 @@ if not (base_path in sys.path):
     sys.path.append(base_path)
 
 
-import rendering.randomLib.random_render as rr
+import rendering.RandomLib.random_render as rr
+from rendering.RandomLib.random_exceptions import ImprobableError
 import itertools as it
 
 class Testturbulence(unittest.TestCase):
@@ -98,6 +99,263 @@ class Testturbulence(unittest.TestCase):
 
         self.assertRaises(ValueError, rr.random_shell_coords_cons, -5, 30.0)
         self.assertRaises(ValueError, rr.random_shell_coords_cons, 5, -30.0)
+
+    def test_TruncNormDist(self):
+
+        D = rr.TruncNormDist(mu=2.0, sigmu=2.0)
+
+        self.assertEqual(D.mu, 2.0)
+        self.assertEqual(D.sigmu, 2.0)
+
+        D = rr.TruncNormDist(mu=3.0, sigmu=5.0)
+
+        self.assertEqual(D.mu, 3.0)
+        self.assertEqual(D.sigmu, 5.0)
+
+        self.assertRaises(ValueError, rr.TruncNormDist, mu=-2.0, sigmu=-1.0)
+        self.assertRaises(ValueError, rr.TruncNormDist, mu=2.0, sigmu=-1.0)
+
+        D.change_param('mu', 50.0)
+        D.change_param('l', 5.0)
+
+        self.assertEqual(D.mu, 50.0)
+        self.assertEqual(D.sigmu, 5.0)
+        self.assertEqual(D.l, 5.0)
+        self.assertEqual(D.r, None)
+
+        D.change_param('mu', 50.0)
+        D.change_param('l', 30.0)
+
+        self.assertEqual(D.mu, 50.0)
+        self.assertEqual(D.sigmu, 5.0)
+        self.assertEqual(D.l, 30.0)
+        self.assertEqual(D.r, None)
+        
+        for i in range(10):
+            X = D.sample_param()
+
+        self.assertRaises(ValueError, D.change_param, 'mu', -2.0)
+        self.assertRaises(ValueError, D.change_param, 'sigmu', -2.0)
+
+        
+        # way out of range
+        D = rr.TruncNormDist(mu=3.0, sigmu=5.0, l=1e05, r = 5e05)
+        self.assertRaises(ImprobableError, D.sample_param)
+
+    def test_NormDist(self):
+
+        D = rr.NormDist(mu=2.0, sigma=2.0)
+
+        self.assertEqual(D.mu, 2.0)
+        self.assertEqual(D.sigma, 2.0)
+
+        D = rr.NormDist(mu=-3.0, sigma=5.0)
+
+        self.assertEqual(D.mu, -3.0)
+        self.assertEqual(D.sigma, 5.0)
+
+        self.assertRaises(ValueError, rr.NormDist, mu=2.0, sigma=-1.0)
+
+        D.change_param('mu', 50.0)
+        D.change_param('sigma', 5.0)
+
+        self.assertEqual(D.mu, 50.0)
+        self.assertEqual(D.sigma, 5.0)
+
+        D.change_param('mu', -30.0)
+        D.change_param('sigma', 30.0)
+
+        self.assertEqual(D.mu, -30.0)
+        self.assertEqual(D.sigma, 30.0)
+
+        for i in range(10):
+            X = D.sample_param()
+
+        self.assertRaises(ValueError, D.change_param, 'sigma', -2.0)
+
+        self.assertRaises(KeyError, D.change_param, 'foo','A')
+
+    def test_UniformCDist(self):
+
+        D = rr.UniformCDist(l=2.0, r=3.0)
+        self.assertEqual(D.l, 2.0)
+        self.assertEqual(D.r, 3.0)
+
+        D = rr.UniformCDist(l=-5.0, r=-3.0)
+        self.assertEqual(D.l, -5.0)
+        self.assertEqual(D.r, -3.0)
+
+        self.assertRaises(ValueError, rr.UniformCDist, l=2.0, r=1.9)
+
+        D.change_param('l', 5.0)
+        D.change_param('r', 6.0)
+
+        self.assertEqual(D.l, 5.0)
+        self.assertEqual(D.r, 6.0)
+
+        for i in range(10):
+            X = D.sample_param()
+
+        D.change_param('l', 7.0)
+        D.change_param('r', 6.9)
+
+        self.assertRaises(ValueError, D.sample_param)
+
+        self.assertRaises(KeyError, D.change_param, 'foo','A')
+
+    def test_UniformDDist(self):
+
+        D = rr.UniformDDist(l=2.0, r=3.0)
+
+        self.assertEqual(D.l, 2.0)
+        self.assertEqual(D.r, 3.0)
+
+        D = rr.UniformDDist(l=-5.0, r=-3.0)
+
+        self.assertEqual(D.l, -5.0)
+        self.assertEqual(D.r, -3.0)
+
+        self.assertRaises(ValueError, rr.UniformDDist, l=2.0, r=1.9)
+
+        D.change_param('l', 5.0)
+        D.change_param('r', 6.0)
+
+        self.assertEqual(D.l, 5.0)
+        self.assertEqual(D.r, 6.0)
+
+        for i in range(10):
+            X = D.sample_param()
+
+        D.change_param('l', 7.0)
+        D.change_param('r', 6.9)
+
+        self.assertRaises(ValueError, D.sample_param)
+
+        self.assertRaises(KeyError, D.change_param, 'foo','A')
+
+    def test_PScaledUniformDDist(self):
+
+        D = rr.PScaledUniformDDist(mid=2.0, scale=1.0)
+
+        self.assertAlmostEqual(D.mid, 2.0)
+        self.assertAlmostEqual(D.scale, 1.0)
+        self.assertAlmostEqual(D.l, 0.0)
+        self.assertAlmostEqual(D.r, 4.0)
+
+        D = rr.PScaledUniformDDist(mid=5.0, scale=0.5)
+
+        self.assertAlmostEqual(D.mid, 5.0)
+        self.assertAlmostEqual(D.scale, 0.5)
+        self.assertAlmostEqual(D.l, 2.5)
+        self.assertAlmostEqual(D.r, 7.5)
+
+        self.assertRaises(ValueError, rr.PScaledUniformDDist, mid=-0.1, scale=0.5)
+        self.assertRaises(ValueError, rr.PScaledUniformDDist, mid=1.0, scale=1.2)
+
+        D.change_param('mid', 3.0)
+        D.change_param('scale', 0.7)
+
+        self.assertAlmostEqual(D.mid, 3.0)
+        self.assertAlmostEqual(D.scale, 0.7)
+        self.assertAlmostEqual(D.l, 0.9)
+        self.assertAlmostEqual(D.r, 5.1)
+
+        for i in range(10):
+            X = D.sample_param()
+
+        self.assertRaises(ValueError, D.change_param, 'mid', -0.1)
+        self.assertRaises(ValueError, D.change_param, 'scale', -0.1)
+        self.assertRaises(ValueError, D.change_param, 'scale', 1.1)
+
+        self.assertRaises(KeyError, D.change_param, 'foo','A')
+
+    def test_ShellRingCoordinateDist(self):
+
+        D = rr.ShellRingCoordinateDist(phi_sigma=0.0, normal='X')
+
+        self.assertEqual(D.phi_sigma, 0.0)
+        self.assertEqual(D.normal, 'X')
+        self.assertEqual(D.phi.sigmu, 0.0)
+
+        D = rr.ShellRingCoordinateDist(phi_sigma=1.0, normal='X')
+
+        self.assertEqual(D.phi_sigma, 1.0)
+        self.assertEqual(D.normal, 'X')
+        self.assertAlmostEqual(D.phi.sigmu, 1.0/90.0)
+
+        D.change_param('phi_sigma', 3.0)
+
+        self.assertEqual(D.phi_sigma, 3.0)
+        self.assertEqual(D.normal, 'X')
+        self.assertAlmostEqual(D.phi.sigmu, 3.0/90.0)
+
+        D.change_param('normal', 'Z')
+
+        self.assertEqual(D.phi_sigma, 3.0)
+        self.assertEqual(D.normal, 'Z')
+        self.assertAlmostEqual(D.phi.sigmu, 3.0/90.0)
+        
+        for i in range(10):
+            X = D.sample_param()
+
+        self.assertRaises(ValueError, D.change_param, 'normal','A')
+        self.assertRaises(ValueError, D.change_param, 'phi_sigma',-1.0)
+
+        self.assertRaises(KeyError, D.change_param, 'foo','A')
+
+    def test_CompositeShellRingDist(self):
+
+        D = rr.CompositeShellRingDist(phi_sigma=0.0, normals='XZ')
+
+        self.assertEqual(D.phi_sigma, 0.0)
+        self.assertEqual(D.normals, 'XZ')
+
+        X = D.distributions[0]
+        Z = D.distributions[1]
+
+        self.assertEqual(X.phi_sigma, 0.0)
+        self.assertEqual(X.normal, 'X')
+        self.assertEqual(Z.phi_sigma, 0.0)
+        self.assertEqual(Z.normal, 'Z')
+        self.assertEqual(D.distribution_select.r, 1)
+                
+        D = rr.CompositeShellRingDist(phi_sigma=1.0, normals='X')
+        X = D.distributions[0]
+
+        self.assertEqual(D.phi_sigma, 1.0)
+        self.assertEqual(D.normals, 'X')
+        self.assertEqual(X.phi_sigma, 1.0)
+        self.assertEqual(X.normal, 'X')
+        self.assertEqual(D.distribution_select.r, 0)
+
+        D.change_param('phi_sigma', 3.0)
+
+        self.assertEqual(D.phi_sigma, 3.0)
+        self.assertEqual(D.normals, 'X')
+        self.assertEqual(X.phi_sigma, 3.0)
+        self.assertEqual(X.normal, 'X')
+        self.assertEqual(D.distribution_select.r, 0)
+        
+        D.change_param('normals', 'YZ')
+        Y = D.distributions[0]
+        Z = D.distributions[1]
+
+        self.assertEqual(D.phi_sigma, 3.0)
+        self.assertEqual(D.normals, 'YZ')
+        self.assertEqual(D.distribution_select.r, 1)
+        self.assertEqual(Y.phi_sigma, 3.0)
+        self.assertEqual(Y.normal, 'Y')
+        self.assertEqual(Z.phi_sigma, 3.0)
+        self.assertEqual(Z.normal, 'Z')
+
+        for i in range(10):
+            X = D.sample_param()
+        
+        self.assertRaises(ValueError, D.change_param, 'normals','A')
+        self.assertRaises(ValueError, D.change_param, 'phi_sigma',-1.0)
+
+        self.assertRaises(KeyError, D.change_param, 'foo','A')
+
 
 if __name__=='__main__':
     unittest.main()

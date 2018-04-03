@@ -1,6 +1,7 @@
 import bpy
 
 import sys
+from copy import copy
 
 boop = '/Users/matthew/Documents/MSc/Group_Project/Lobster/src/'
 if not (boop in sys.path):
@@ -130,6 +131,7 @@ class BlenderRandomSceneTest(unittest.TestCase):
 
     def tearDown(self):
         # delete all objects
+        self.my_scene.delete_all()
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.object.delete()
 
@@ -157,9 +159,252 @@ class BlenderRandomSceneTest(unittest.TestCase):
         self.assertEqual(len(bpy.data.objects), 2, 'Not two objects added!')
         self.assertEqual(bpy.data.objects[0], self.my_scene.subject.reference, 'subject and object reference not equal!')
         self.assertEqual(bpy.data.objects[1], self.my_scene.subject_bot.reference, 'subject and object reference not equal!')
+
+    def test_camera_loc(self):
+        # test that the camera location corresponds to the location reported in logs
+        camera = bld.BlenderCamera()
+        bpy.context.scene.camera = camera.reference
+        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+        self.my_scene.set_render()
+        self.my_scene.add_camera(cam)
+
+        # add a subject
+        obj_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'example.obj')
+        texture_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'texture.jpg')
+        self.my_scene.load_subject_from_path(obj_path, texture_path)
+
+        camera_locations = []
+        N = 1000
+        for i in range(N):
+            self.my_scene.scene_setup()
+            camera_locations.append(copy(tuple(self.my_scene.camera.reference.location)))
+
+        logs = self.my_scene.retrieve_logs()
+        loc = logs["camera_loc"]
+        rad = logs["camera_radius"]
+        for i in range(N):
+            left = loc[i]
+            right = camera_locations[i]
+            (x,y,z) = (left[0]*rad[i], left[1]*rad[i], left[2]*rad[i])
+            left = (x,y,z)
+            for l,r in zip(left,right):
+                self.assertAlmostEqual(l, r, places=5)
+
+    def test_render_creation(self):
+        # note CUDA device is not set here, so this might take a bit long
+        camera = bld.BlenderCamera()
+        bpy.context.scene.camera = camera.reference
+        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+        self.my_scene.set_render()
+        self.my_scene.add_camera(cam)
+
+        obj_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'example.obj')
+        texture_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'texture.jpg')
+        self.my_scene.load_subject_from_path(obj_path, texture_path)
+        
+        for i in range(5):
+            filepath = os.path.join(os.path.dirname(__file__), 'test_files' , 'render_test_1.png')
+            self.my_scene.render_to_file(filepath)
+            self.assertTrue(os.path.isfile(filepath))
+            os.remove(filepath)
+
+    def test_lamp_loc(self):
+        # test that the camera location corresponds to the location reported in logs
+        camera = bld.BlenderCamera()
+        bpy.context.scene.camera = camera.reference
+        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+        self.my_scene.set_render()
+        self.my_scene.add_camera(cam)
+
+        # add a subject
+        obj_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'example.obj')
+        texture_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'texture.jpg')
+        self.my_scene.load_subject_from_path(obj_path, texture_path)
+
+        lamp_locations = []
+        N = 1000
+        for i in range(N):
+            self.my_scene.scene_setup()
+            for lamp in self.my_scene.lamps:
+                if not lamp.is_on() is True:
+                    continue
+                lamp_locations.append(copy(tuple(lamp.reference.location)))
+                
+        logs = self.my_scene.retrieve_logs()
+        loc = logs["lamp_loc"]
+        rad = logs["lamp_distance"]
+        for i in range(len(loc)):
+            left = loc[i]
+            right = lamp_locations[i]
+            (x,y,z) = (left[0]*rad[i], left[1]*rad[i], left[2]*rad[i])
+            left = (x,y,z)
+            for l,r in zip(left,right):
+                self.assertAlmostEqual(l, r, places=5)
+
+    def test_lamp_num(self):
+        # test that the camera location corresponds to the location reported in logs
+        camera = bld.BlenderCamera()
+        bpy.context.scene.camera = camera.reference
+        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+        self.my_scene.set_render()
+        self.my_scene.add_camera(cam)
+
+        # add a subject
+        obj_path = os.path.join(os.path.dirname(__file__), 'test_files', 'example.obj')
+        texture_path = os.path.join(os.path.dirname(__file__), 'test_files', 'texture.jpg')
+        self.my_scene.load_subject_from_path(obj_path, texture_path)
+
+        lamp_locations = []
+
+        # vary the max number of lamps
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'r', 5)
+        self.my_scene.scene_setup()
+        self.assertEqual(5, self.my_scene.max_num_lamps, "Number of lamps not correct")
+        self.assertEqual(5, len(self.my_scene.lamps), "Number of lamps not correct")
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'r', 7)
+        self.my_scene.scene_setup()
+        self.assertEqual(7, self.my_scene.max_num_lamps, "Number of lamps not correct")
+        self.assertEqual(7, len(self.my_scene.lamps), "Number of lamps not correct")
+
+        self.my_scene.clear_logs()
+        # test the number of turned on lamps
+        N =50
+        counts = []
+        for i in range(N):
+            self.my_scene.scene_setup() # sampling takes place here
+            # count the number of lamps that's turned on
+            count = 0
+            for lamp in self.my_scene.lamps:
+                if lamp.is_on():
+                    count += 1
+            counts.append(count)
+        logs = self.my_scene.retrieve_logs()
+        num_recorded = logs["num_lamps"]
+        self.assertEqual(counts, num_recorded)
+
+    def test_bad_dist_lamp(self):
+        # test that the camera location corresponds to the location reported in logs
+        camera = bld.BlenderCamera()
+        bpy.context.scene.camera = camera.reference
+        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+        self.my_scene.set_render()
+        self.my_scene.add_camera(cam)
+
+        # add a subject
+        obj_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'example.obj')
+        texture_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'texture.jpg')
+        self.my_scene.load_subject_from_path(obj_path, texture_path)
+
+        self.assertRaises(ValueError, self.my_scene.set_attribute_distribution_params,
+                          'lamp_distance', 'mu', -2)
+        self.my_scene.set_attribute_distribution_params('lamp_distance', 'l', -3)
+        self.my_scene.set_attribute_distribution_params('lamp_distance', 'r', -1)
+        
+        self.assertRaises(ValueError, self.my_scene.scene_setup)
         
 
-if __name__ == '__main__':
+    def test_bad_dist_cam(self):
+        # test that the camera location corresponds to the location reported in logs
+        camera = bld.BlenderCamera()
+        bpy.context.scene.camera = camera.reference
+        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+        self.my_scene.set_render()
+        self.my_scene.add_camera(cam)
 
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(BlenderSceneTest)
-    success = unittest.TextTestRunner().run(suite).wasSuccessful()
+        # add a subject
+        obj_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'example.obj')
+        texture_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'texture.jpg')
+        self.my_scene.load_subject_from_path(obj_path, texture_path)
+
+        self.assertRaises(ValueError, self.my_scene.set_attribute_distribution_params,
+                          'camera_radius', 'mu', -2)
+        self.my_scene.set_attribute_distribution_params('camera_radius', 'l', -3)
+        self.my_scene.set_attribute_distribution_params('camera_radius', 'r', -1)
+        
+        
+        self.assertRaises(ValueError, self.my_scene.scene_setup)
+
+    def test_bad_dist_numlamp(self):
+        # test that the camera location corresponds to the location reported in logs
+        camera = bld.BlenderCamera()
+        bpy.context.scene.camera = camera.reference
+        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+        self.my_scene.set_render()
+        self.my_scene.add_camera(cam)
+
+        # add a subject
+        obj_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'example.obj')
+        texture_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'texture.jpg')
+        self.my_scene.load_subject_from_path(obj_path, texture_path)
+
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'l', -3)
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'r', -1)
+        
+        self.assertRaises(ValueError, self.my_scene.scene_setup)
+
+    def test_set_distribution_params(self):
+        # test that the camera location corresponds to the location reported in logs
+        camera = bld.BlenderCamera()
+        bpy.context.scene.camera = camera.reference
+        cam = bld.BlenderCamera(bpy.data.objects['Camera'])
+        self.my_scene.set_render()
+        self.my_scene.add_camera(cam)
+
+        # Number of Lamps - Uniform Discrete
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'l', 20)
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'r', 30)
+
+        self.assertEquals(self.my_scene.num_lamps.l, 20)
+        self.assertEquals(self.my_scene.give_params()['num_lamps']['l'], 20)
+        self.assertEquals(self.my_scene.num_lamps.r, 30)
+        self.assertEquals(self.my_scene.give_params()['num_lamps']['r'], 30)
+
+        self.my_scene.set_attribute_distribution_params('num_lamps','l', 1)
+        self.my_scene.set_attribute_distribution_params('num_lamps','r', 2)
+
+        self.assertEquals(self.my_scene.num_lamps.l, 1)
+        self.assertEquals(self.my_scene.give_params()['num_lamps']['l'], 1)
+        self.assertEquals(self.my_scene.num_lamps.r, 2)
+        self.assertEquals(self.my_scene.give_params()['num_lamps']['r'], 2)
+
+        # Lamp Energy - Truncated Normal
+        self.my_scene.set_attribute_distribution_params('lamp_energy', 'mu', 2000.0)
+        self.my_scene.set_attribute_distribution_params('lamp_energy', 'sigmu', 0.5)
+
+        self.assertAlmostEquals(self.my_scene.lamp_energy.mu, 2000.0)
+        self.assertAlmostEquals(self.my_scene.give_params()['lamp_energy']['mu'], 2000.0)
+        self.assertAlmostEquals(self.my_scene.lamp_energy.sigmu, 0.5)
+        self.assertAlmostEquals(self.my_scene.give_params()['lamp_energy']['sigmu'], 0.5)
+
+        self.my_scene.set_attribute_distribution_params('lamp_energy', 'mu', 300.0)
+        self.my_scene.set_attribute_distribution_params('lamp_energy', 'sigmu', 2.0)
+
+        self.assertAlmostEquals(self.my_scene.lamp_energy.mu, 300.0)
+        self.assertAlmostEquals(self.my_scene.give_params()['lamp_energy']['mu'], 300.0)
+        self.assertAlmostEquals(self.my_scene.lamp_energy.sigmu, 2.0)
+        self.assertAlmostEquals(self.my_scene.give_params()['lamp_energy']['sigmu'], 2.0)
+
+        # Camera Location - CompositeShellRing
+        self.my_scene.set_attribute_distribution_params('camera_loc', 'phi_sigma', 6.6)
+        self.my_scene.set_attribute_distribution_params('camera_loc', 'normals', 'X')
+
+        self.assertAlmostEquals(self.my_scene.camera_loc.phi_sigma, 6.6)
+        self.assertAlmostEquals(self.my_scene.give_params()['camera_loc']['phi_sigma'], 6.6)
+        self.assertEquals(self.my_scene.camera_loc.normals, 'X')
+        self.assertEquals(self.my_scene.give_params()['camera_loc']['normals'], 'X')
+
+        self.my_scene.set_attribute_distribution_params('camera_loc', 'phi_sigma', 0.0)
+        self.my_scene.set_attribute_distribution_params('camera_loc', 'normals', 'XZ')
+
+        self.assertAlmostEquals(self.my_scene.camera_loc.phi_sigma, 0.0)
+        self.assertAlmostEquals(self.my_scene.give_params()['camera_loc']['phi_sigma'], 0.0)
+        self.assertEquals(self.my_scene.camera_loc.normals, 'XZ')
+        self.assertEquals(self.my_scene.give_params()['camera_loc']['normals'], 'XZ')
+        
+                
+if __name__ == '__main__':
+    suites = []
+    suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderSceneTest))
+    suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderRandomSceneTest))
+    alltests = unittest.TestSuite(suites)
+    success = unittest.TextTestRunner().run(alltests).wasSuccessful()

@@ -5,6 +5,7 @@ metballs!
 import numpy as np
 import random
 import math
+from rendering.RandomLib.random_exceptions import ImprobableError
 
 def random_color():
     """
@@ -49,7 +50,7 @@ def random_cartesian_coords(mux, muy, muz, sigma, lim):
     z = min(random.gauss(muz, sigma), lim)
     return x, y, z
 
-def sample_trunc_norm(mu, sigma, a = None , b = None):
+def sample_trunc_norm(mu, sigma, a = None , b = None, tol=1e06):
     """
     Sample from a truncated normal distribution. The distribution of x is
     normal conditional on a<=x<=b. a = None means a = -inf, b = None means
@@ -63,8 +64,12 @@ def sample_trunc_norm(mu, sigma, a = None , b = None):
     x = None
     if not(a is None or b is None) and a > b:
         raise ValueError('Lower bound greater than upper bound!')
+    count = 0
     while((x is None) or ((a is not None) and (x < a)) or ((b is not None) and (x > b))):
+        if count > tol:
+            raise ImprobableError('rejected samples has exceeded {}!'.format(tol))
         x = random.gauss(mu, sigma)
+        count += 1
     return x
 
 def random_shell_coords_cons(radius, phi_sigma):
@@ -129,7 +134,7 @@ class TruncNormDist(Distribution):
     x is normal conditional on a<=x<=b. a = None means a = -inf, b = None means
     b = inf
     """
-    def __init__(self, mu=None, sigmu=None, l=None, r=None, **kwargs):
+    def __init__(self, mu, sigmu, l=None, r=None, **kwargs):
         """
         :param mu: Mean of truncated normal
         :param sigmu: Ratio of standard deviation over mean
@@ -144,6 +149,10 @@ class TruncNormDist(Distribution):
 
         if not(self.l is None or self.r is None) and (self.l > self.r):
             raise ValueError('Lower bound greater than upper bound!')
+        if mu < 0:
+            raise ValueError('TruncNormDist accepts only non-negative means!')
+        if sigmu < 0:
+            raise ValueError('TruncNormDist accepts only non-negative sigmus!')
         super(TruncNormDist, self).__init__(**kwargs)
 
 
@@ -163,6 +172,10 @@ class TruncNormDist(Distribution):
         self_dict = vars(self)
         if param_name not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
+        if param_name=='mu' and param_val<0:
+            raise ValueError('TruncNormDist accepts only non-negative means!')
+        if param_name=='sigmu' and param_val<0:
+            raise ValueError('TruncNormDist accepts only non-negative sigmus!')
         self_dict[param_name] = param_val
         
 
@@ -170,12 +183,14 @@ class NormDist(Distribution):
     """
     Regular normal distribution
     """
-    def __init__(self, mu=None, sigma=None, **kwargs):
+    def __init__(self, mu, sigma, **kwargs):
         """
         :param mu: mean
         :param sigma: standard deviation
         :param kwargs: other kwargs to be passed on to parent class
         """
+        if sigma < 0:
+            raise ValueError('NormDist accepts only non-negative sigmas!')
         self.mu = mu
         self.sigma = sigma
         super(NormDist, self).__init__(**kwargs)
@@ -196,6 +211,9 @@ class NormDist(Distribution):
         self_dict = vars(self)
         if param_name not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
+        if param_name=='sigma' and param_val<0:
+            raise ValueError('NormDist accepts only non-negative sigmas!')
+
         self_dict[param_name] = param_val
         
 
@@ -203,7 +221,7 @@ class UniformCDist(Distribution):
     """
     Continuous uniform distribution on an interval
     """
-    def __init__(self, l=None, r=None, **kwargs):
+    def __init__(self, l, r, **kwargs):
         """
         :param l: Lower bound of distribution
         :param r: Upper bound of distribution
@@ -220,12 +238,14 @@ class UniformCDist(Distribution):
         Implementation of abstract method sample_param
         :return: sample from this specified distribution
         """
+        if self.l > self.r:
+            raise ValueError('Lower bound greater than upper bound!')
         y = random.uniform(self.l, self.r)
         self.log_param(y)
         return y
 
     def give_param(self):
-        return {"dist": "UniformCDist","mu": self.mu, "sigmu": self.sigmu, "l": self.l, "r": self.r}
+        return {"dist": "UniformCDist", "l": self.l, "r": self.r}
 
     def change_param(self, param_name, param_val):
         self_dict = vars(self)
@@ -237,7 +257,7 @@ class UniformDDist(Distribution):
     """
     Uniform discrete distribution on the interval of integers
     """
-    def __init__(self, l=None, r=None, **kwargs):
+    def __init__(self, l, r, **kwargs):
         """
         :param l: Lower bound of distribution
         :param r: Upper bound of distribution
@@ -254,6 +274,8 @@ class UniformDDist(Distribution):
         Implementation of abstract method sample_param
         :return: sample from this specified distribution
         """
+        if self.l > self.r:
+            raise ValueError('Lower bound greater than upper bound!')
         y = random.randint(self.l, self.r)
         self.log_param(y)
         return y
@@ -266,7 +288,61 @@ class UniformDDist(Distribution):
         if param_name not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
         self_dict[param_name] = param_val
-        
+
+class PScaledUniformDDist(Distribution):
+    """
+    Uniform discrete distribution on the natural numbers (non-negative integers),
+    specifiable by a midpoint and a scaled range of the midpoint
+    """
+    def __init__(self, mid, scale, **kwargs):
+        """
+        :param mid: midpoint of the distribution
+        :param scale: proportion of the midpoint to be used as half-range
+        :param kwargs: bla
+        """
+        if scale > 1.0 or scale < 0.0:
+            raise ValueError('Scale not in [0,1]')
+        if mid < 0.0:
+            raise ValueError('Midpoint negative!')
+        self.mid = mid
+        self.scale = scale
+        self.l = mid - (mid*scale)
+        self.r = mid + (mid * scale)
+        super(PScaledUniformDDist, self).__init__(**kwargs)
+
+    def sample_param(self):
+        """
+        Implementation of abstract method sample_param
+        :return: sample from this specified distribution
+        """
+        if self.l > self.r:
+            raise ValueError('Lower bound greater than upper bound!')
+        y = random.randint(np.round(self.l), np.round(self.r))
+        self.log_param(y)
+        return y
+
+    def give_param(self):
+        return {"dist": "PScaledUniformDDist", "mid": self.mid, "scale": self.scale}
+
+    def change_param(self, param_name, param_val):
+        self_dict = vars(self)
+
+        if param_name=='scale':
+            if param_val > 1.0 or param_val < 0.0:
+                raise ValueError('Scale greater than 1.0!')
+
+        if param_name == 'mid':
+            if param_val < 0.0:
+                raise ValueError('Midpoint negative!')
+
+        if param_name in ['scale', 'mid']:
+            self_dict[param_name] = param_val
+            self.l = self.mid - (self.mid * self.scale)
+            self.r = self.mid + (self.mid * self.scale)
+            return
+
+        raise KeyError('Cannot find specified attribute!')
+
 
 class ShellRingCoordinateDist(Distribution):
     """
@@ -276,7 +352,7 @@ class ShellRingCoordinateDist(Distribution):
     phi_sigma. Normal is one of 'X', 'Y' or 'Z'. In the limit of phi_sigma
     goes towards infinity, this will look like phi is sampled unifromly
     """
-    def __init__(self, phi_sigma = None, normal = None, **kwargs):
+    def __init__(self, phi_sigma, normal, **kwargs):
         """
         :param phi_sigma: 'width' of spherical ring
         :param normal: 'X', 'Y' or 'Z". dictates the normal of the ring
@@ -315,11 +391,21 @@ class ShellRingCoordinateDist(Distribution):
         return coords
 
     def give_param(self):
-        return {"dist": "ShellRingCoordinateDist", "mu": self.mu, "sigmu": self.sigmu, "l": self.l, "r": self.r}
+        return {"dist": "ShellRingCoordinateDist", "phi_sigma": self.phi_sigma, "normal": self.normal}
 
     def change_param(self, param_name, param_val):
+        self_dict = vars(self)
+        if param_name=='normal':
+            if param_val not in ['X','Y','Z']:
+                raise ValueError('Normal must be one of X, Y , or Z!')
+            self_dict[param_name] = param_val
+            return
+        
         if param_name=='phi_sigma':
+            if param_val<0:
+                raise ValueError('Phi sigma must be non-negative!')
             self.phi.change_param('sigmu', param_val/90.0)
+            self_dict[param_name] = param_val
             return
         raise KeyError('Cannot find specified attribute!')
 
@@ -330,7 +416,7 @@ class CompositeShellRingDist(Distribution):
     specified as 'X', 'Y', 'Z', or any lexical combination of 2 or 3 of
     those, e.g. 'YZ', 'XZ' or 'XYZ'
     """
-    def __init__(self, phi_sigma = None, normals = None, **kwargs):
+    def __init__(self, phi_sigma, normals, **kwargs):
         """
         :param phi_sigma: the same phi_sigma for every ring
         :param normals: combination of 'X', 'Y' and 'Z'
@@ -375,6 +461,7 @@ class CompositeShellRingDist(Distribution):
             self.distributions = []
             for normal in self.normals:
                 self.distributions.append(ShellRingCoordinateDist(phi_sigma=self.phi_sigma, normal=normal))
+            self.distribution_select = UniformDDist(l=0,r=len(self.distributions)-1)
             return
 
         raise KeyError('Cannot find specified attribute!')
@@ -420,7 +507,8 @@ def DistributionFactory(**params):
         'Norm': TruncNormDist,
         'UniformC': UniformCDist,
         'UniformD': UniformDDist,
+        'PScaledUniformDDist': PScaledUniformDDist,
         'ShellRingCoordinate': ShellRingCoordinateDist,
         'CompositeShellRing': CompositeShellRingDist,
-        'UniformShellCoordinate': UniformShellCoordinateDist
+        'UniformShellCoordinate': UniformShellCoordinateDist,
     }[params['dist']](**params)

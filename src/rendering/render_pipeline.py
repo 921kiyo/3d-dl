@@ -4,14 +4,14 @@ Created on Tue Mar  6 17:51:48 2018
 
 @author: Pavel
 
-Rendering Pipeline. This file contains all necessary calling functions 
+Rendering Pipeline. This file contains all necessary calling functions
 for full rendering from object files to final images.
 The command for running the script can be found in bottom part of the code.
 Two dictionaries of parameters are necessary. One contains the parameters
 for Blender and one contains the parameters for Merging.
 
 For more detailed description and example see the appropriate function
-and an example at the end of file. 
+and an example at the end of file.
 
 Run on commmand line using this command
 python render_pipeline.py
@@ -26,6 +26,8 @@ import numpy as np
 import os
 import subprocess
 import json
+import string
+import datetime
 
 """
 Here the paths have to be set up.
@@ -36,7 +38,7 @@ the project_path should point to the folder that contains the src
 The rendering process requires obj files and other images.
 These should be in render_workspace.
 A functioning render_workspace is in the group folder, but feel free
-to download it using psftp and place it on your system. 
+to download it using psftp and place it on your system.
 Do not forget to change the path to render_workspace as it is hard coded.
 
 """
@@ -50,8 +52,10 @@ project_path = os.path.abspath(os.path.join(src_path, os.pardir))
 #workspace = os.path.join(project_path, "render_workspace")
 workspace = '/vol/project/2017/530/g1753002/render_workspace'
 
-#Need to adjust to the local path to Blender executable
-#bl_path = "E:\Blender_Foundation\Blender\\blender"
+# Set Blender path
+bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
+#bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
+
 
 if not project_path in sys.path:
     sys.path.append(project_path)
@@ -78,7 +82,7 @@ data_folders = ['object_files',
 
 # Folders to be destroyed at the end of the run
 temp_folders = ['generate_bg',
-                'object_poses', 
+                'object_poses',
                 #'final_folder/images',
                 'final_folder']
 
@@ -169,7 +173,7 @@ def gen_merge(image, save_as, pixels=300):
     e.g. foo/bar/image1.jpg
     args:
         image: a PIL Image type of the object pose
-        save_as: a full path (including a name of the image) to which the final 
+        save_as: a full path (including a name of the image) to which the final
             image should be saved
         pixels: The number of pixels the final square image will have.
             Default = 300
@@ -188,7 +192,7 @@ def gen_merge(image, save_as, pixels=300):
         print("Key error")
 
 
-def full_run(zip_name, obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}):
+def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}):
     """
     Function that will take all the parameters and execute the
     appropriate pipeline
@@ -203,7 +207,7 @@ def full_run(zip_name, obj_set, blender_path, renders_per_class=10, work_dir=wor
     print('Checking data directories...')
 
     # Ensure render_workspace folder exists
-    if not os.path.isdir(workspace):
+    if not os.path.isdir(work_dir):
         print("Can't find rendering workspace folder. Please create the folder",
         workspace, ", containing object files and background database. See " \
         "group folder for example.")
@@ -219,7 +223,7 @@ def full_run(zip_name, obj_set, blender_path, renders_per_class=10, work_dir=wor
 
     #now we need to take Ong' stats and move them into final folder
     for folder in os.listdir(obj_poses):
-        orig_stats=os.path.join(obj_poses,folder,"stats")      
+        orig_stats=os.path.join(obj_poses,folder,"stats")
 
         if(os.path.isdir(orig_stats)):
             final_name= folder + "_stats"
@@ -238,10 +242,10 @@ def full_run(zip_name, obj_set, blender_path, renders_per_class=10, work_dir=wor
         if os.path.isdir(sub_obj) is False:
             print(sub_obj, " is not a folder")
             continue
-        
+
         sub_final = os.path.join(final_im, folder)
         os.mkdir(sub_final)
-        
+
         # Merge images based on the choice of background
         if(generate_background):
             # for each object pose
@@ -266,73 +270,99 @@ def full_run(zip_name, obj_set, blender_path, renders_per_class=10, work_dir=wor
             # We generate a random mesh background
             mi.generate_for_all_objects(sub_obj,background_database ,sub_final)
 
+    # Dump the parameters used for rendering and merging
+
 
     for folder in os.listdir(obj_poses):
         print(folder)
+    
+    # Dump all merging parameters to a json file
+    all_params= {"object_set": obj_set.split("\\")[-1], 
+                 "images_per_class": renders_per_class,
+                 "background_generated": generate_background,
+                 "background_database": background_database.split("\\")[-1]
+                 #"blender_attributes": blender_attributes
+                 }
+    dump_file = os.path.join(final_folder, 'mergeparams_dump.json')
+    with open(dump_file, "w+") as f:
+        json.dump(all_params, f, sort_keys=True, indent=4, separators=(',', ': '))    
+        
     # export everything into a zip file
+    if generate_background:
+        back_parameter = "random_bg"
+    else:
+        back_parameter = background_database.split("\\")[-1]
+    zip_name = os.path.join(work_dir,"final_zip",obj_set.split("\\")[-1] + "_" + back_parameter + "_" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S").replace(" ","_").replace(":","_"))
+    
     make_archive(zip_name, 'zip',final_folder)
     destroy_folders(work_dir, temp_folders)
+    return(zip_name+ ".zip")
 
 """
-The blender parameters. Keywords should be self explanatory. 
+The blender parameters. Keywords should be self explanatory.
 For more details ask Ong.
 A default parameters can be used by passing an empty dictionary
 blender_attributes={}
 """
 
 """------------------ Running the pipeline ------------------"""
-
-blender_attributes = {
-    "attribute_distribution_params": [["num_lamps","l", 5], ["num_lamps","r", 8], ["lamp_energy","mu", 500.0], ["lamp_size","mu",5], ["camera_radius","sigmu",0.1]],
-    "attribute_distribution" : []
-}
-
-
-# Default paths
-# Set path for final zip file containing training data
-zip_save1 = os.path.join(workspace, "final_zip/sun_bg_data")
-zip_save2 = os.path.join(workspace, "final_zip/random_bg_data")
-
-# Set backround image database path
-background_database = os.path.join(workspace, "bg_database/SUN_back/")
-
-# Set object file path
-obj_set = os.path.join(workspace, "object_files/two_set")
-
-# Set Blender path
-bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
-#bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
-
-# Construct rendering parameters
-argument_list = []
-
-arguments1 = {
-    "zip_name": zip_save1,
-    "obj_set": obj_set,
-    "blender_path": bl_path,
-    "renders_per_class": 2,
-    "work_dir": workspace,
-    "generate_background": False,
-    "background_database": background_database,
-    "blender_attributes": blender_attributes
+def example_run():
+    blender_attributes = {
+        "attribute_distribution_params": [["num_lamps","l", 5], ["num_lamps","r", 8], ["lamp_energy","mu", 500.0], ["lamp_size","mu",5], ["camera_radius","sigmu",0.1]],
+        "attribute_distribution" : []
     }
+    
+    
+    # Default paths
+    # Set path for final zip file containing training data
+    zip_save1 = os.path.join(workspace, "final_zip","sun_bg_data")
+    zip_save2 = os.path.join(workspace, "final_zip","random_bg_data")
+    
+    # Set backround image database path
+    background_database = os.path.join(workspace, "bg_database","SUN_back")
+    
+    # Set object file path
+    # obj_set = os.path.join(workspace, "object_files/two_set")
+    obj_set = os.path.join(workspace, "object_files","two_set_model_format")
+    
+    # Construct rendering parameters
+    argument_list = []
+    
+    arguments1 = {
+        #"zip_name": zip_save1,
+        "obj_set": obj_set,
+        "blender_path": bl_path,
+        "renders_per_class": 2,
+        "work_dir": workspace,
+        "generate_background": False,
+        "background_database": background_database,
+        "blender_attributes": blender_attributes
+        }
+    
+    arguments2 = {
+        #"zip_name": zip_save2,
+        "obj_set": obj_set,
+        "blender_path": bl_path,
+        "renders_per_class": 2,
+        "work_dir": workspace,
+        "generate_background": True,
+        "background_database": background_database,
+        "blender_attributes": blender_attributes
+        }
+    
+    argument_list.append(arguments1)
+    argument_list.append(arguments2)
+    #argument_list.append(arguments3)
+    
+    
+    # First we clean the render workspace so any leftovers from 
+    # failed jobs are removed
+    destroy_folders(workspace, temp_folders)
+    for value in argument_list:
+        full_run(**value)
+        print("One run done")
 
-arguments2 = {
-    "zip_name": zip_save2,
-    "obj_set": obj_set,
-    "blender_path": bl_path,
-    "renders_per_class": 2,
-    "work_dir": workspace,
-    "generate_background": True,
-    "background_database": background_database,
-    "blender_attributes": blender_attributes
-    }
 
-argument_list.append(arguments1)
-argument_list.append(arguments2)
-#argument_list.append(arguments3)
-
-for value in argument_list:
-    full_run(**value)
-    print("One run done")
-
+if __name__=="__main__":
+    print("running the experiment")
+    example_run()

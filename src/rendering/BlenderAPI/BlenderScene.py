@@ -72,16 +72,17 @@ class BlenderScene(object):
         if self.subject_bot is not None:
             self.subject_bot.delete()
             self.subject_bot = None
+        self.remove_lamps()
         self.objects_fixed = []
         self.objects_unfixed = []
 
     def set_render(self):
         self.data.cycles.film_transparent = True
-        self.data.cycles.max_bounces = 3
+        self.data.cycles.max_bounces = 1
         self.data.cycles.min_bounces = 1
-        self.data.cycles.transparent_max_bounces = 3
+        self.data.cycles.transparent_max_bounces = 1
         self.data.cycles.transparent_min_bounces = 1
-        self.data.cycles.samples = 64
+        self.data.cycles.samples = 128
         self.data.cycles.device = 'GPU'
         self.data.render.tile_x = 512
         self.data.render.tile_y = 512
@@ -163,7 +164,7 @@ class BlenderRandomScene(BlenderScene):
         # texture appearance are fixed for now
         self.subject.set_diffuse(color=(1, 0, 0, 1), rough=0.1)
         self.subject.set_gloss(rough=0.1)
-        self.subject.set_mixer(0.1)
+        self.subject.set_mixer(0.3)
         self.subject.set_location(0., 0., 0.)
 
         if self.subject_bot is not None:
@@ -225,6 +226,8 @@ class BlenderRandomScene(BlenderScene):
         '''location'''
         (x,y,z) = self.lamp_loc.sample_param()
         r = self.lamp_distance.sample_param()
+        if r < 0:
+            raise ValueError('light distance negative! aborting')
         loc = (r*x, r*y, r*z)
         blender_lamp.set_location(*loc)
         '''energy'''
@@ -247,6 +250,8 @@ class BlenderRandomScene(BlenderScene):
         # set random lighting conditions
         self.set_num_lamps(self.num_lamps.r)
         num_active_lamps = self.num_lamps.sample_param()
+        if num_active_lamps < 0:
+            raise ValueError('number of lamps negative! aborting')
         for l in range(num_active_lamps):
             lamp = self.lamps[l]
             lamp.turn_on()
@@ -256,6 +261,8 @@ class BlenderRandomScene(BlenderScene):
         # random location of camera along shell coordinates
         (x, y, z) = self.camera_loc.sample_param()
         r = self.camera_radius.sample_param()
+        if r < 0:
+            raise ValueError('camera distance negative! aborting')
         loc = (r*x, r*y, r*z)
         self.camera.set_location(*loc)
         # face towards the centre
@@ -323,3 +330,14 @@ class BlenderRandomScene(BlenderScene):
             self.clear_logs()
 
         return logs
+
+    def give_params(self):
+        params = {}
+        self_dict = vars(self)
+
+        for attr_name in self_dict.keys():
+            attr = self_dict[attr_name]
+            if hasattr(attr, 'give_param'):
+                params[attr_name] = attr.give_param()
+
+        return params
