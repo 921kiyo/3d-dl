@@ -265,8 +265,6 @@ class RenderInterface(object):
                 json.dump(params, f, sort_keys=True, indent=4, separators=(',', ': '))
 
         if visualize:
-            for path in sys.path:
-                print(path)
 
             import matplotlib
             matplotlib.use('agg')
