@@ -26,7 +26,7 @@ import numpy as np
 import os
 import subprocess
 import json
-import string
+#import string
 import datetime
 
 """
@@ -49,12 +49,12 @@ rendering_path = os.path.dirname(os.path.realpath(__file__))
 src_path = os.path.abspath(os.path.join(rendering_path, os.pardir))
 project_path = os.path.abspath(os.path.join(src_path, os.pardir))
 #project_path = '/vol/bitbucket/who11/CO-530/Lobster/'
-#workspace = os.path.join(project_path, "render_workspace")
-workspace = '/vol/project/2017/530/g1753002/render_workspace'
+workspace = os.path.join(project_path, "render_workspace")
+#workspace = '/vol/project/2017/530/g1753002/render_workspace'
 
 # Set Blender path
-bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
-#bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
+#bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
+bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
 
 
 if not project_path in sys.path:
@@ -163,7 +163,7 @@ def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_
     print('Rendering done!')
 
 
-def gen_merge(image, save_as, pixels=300):
+def gen_merge(image, save_as, pixels=300, adjust_brightness = False):
     """
     This functionw will be called whenever you need to generate your own
     background. Instead of generating large quanta and randomly searching
@@ -178,10 +178,32 @@ def gen_merge(image, save_as, pixels=300):
             image should be saved
         pixels: The number of pixels the final square image will have.
             Default = 300
+        adjust_brigtness (boolean): Whether the brigthness of the background
+            should be adjusted to match on average the brightness of the 
+            foreground image. Default = False
     """
 
     back = rb.rand_background(np.random.randint(2,4),pixels)
     scaled = back*256
+    
+    if adjust_brightness:
+        for_array = np.array(image)
+        frgdnumber = np.count_nonzero(np.count_nonzero(for_array, axis=2))
+        frgdsum = np.sum(np.sum(np.sum(for_array, axis=0), axis=0)[0:3])
+        
+        bcgdnumber = pixels*pixels#np.count_nonzero(np.count_nonzero(back_array, axis=2))
+        bcgdsum = np.sum(np.sum(np.sum(scaled, axis=0), axis=0))
+        
+        frmean = frgdsum/frgdnumber
+        bcmean = bcgdsum/bcgdnumber 
+        factor = frmean/bcmean
+        # Imposing boundaries on the factor
+        factor = min(factor, 1.5)
+        factor = max(factor, 0.5)
+
+        scaled = scaled*factor
+        scaled[scaled>255]=255
+    
     background = Image.fromarray(scaled.astype('uint8'), mode = "RGB")
     final = mi.merge_images(image, background)
 
@@ -193,7 +215,7 @@ def gen_merge(image, save_as, pixels=300):
         print("Key error")
 
 
-def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}, visualize_dump=False, dry_run_mode=False):
+def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}, visualize_dump=False, dry_run_mode=False, adjust_brightness =False):
     """
     Function that will take all the parameters and execute the
     appropriate pipeline
@@ -204,6 +226,9 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
                 if False, we will use images in a given database
         background_database : Path to databse of backgrounds to use if
             generate_background is False
+        adjust_brigtness (boolean): Whether the brigthness of the background
+            should be adjusted to match on average the brightness of the 
+            foreground image. Default = False
     """
     print('Checking data directories...')
 
@@ -261,7 +286,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
                 just_name = os.path.splitext(image)[0]
                 name_jpg = just_name + ".jpg"
                 save_to = os.path.join(sub_final, name_jpg)
-                gen_merge(foreground, save_to, pixels = 300)
+                gen_merge(foreground, save_to, 300, adjust_brightness)
                 foreground.close()
 
         elif(generate_background is False and background_database is None):
@@ -269,7 +294,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
             return
         else:
             # We generate a random mesh background
-            mi.generate_for_all_objects(sub_obj,background_database ,sub_final)
+            mi.generate_for_all_objects(sub_obj,background_database ,sub_final, adjust_brightness)
 
     # Dump the parameters used for rendering and merging
 
@@ -281,7 +306,8 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
     all_params= {"object_set": obj_set.split("\\")[-1], 
                  "images_per_class": renders_per_class,
                  "background_generated": generate_background,
-                 "background_database": background_database.split("\\")[-1]
+                 "background_database": background_database.split("\\")[-1],
+                 "brightness_adjusted": adjust_brightness
                  #"blender_attributes": blender_attributes
                  }
     dump_file = os.path.join(final_folder, 'mergeparams_dump.json')
@@ -337,18 +363,20 @@ def example_run():
         "work_dir": workspace,
         "generate_background": False,
         "background_database": background_database,
-        "blender_attributes": blender_attributes
+        "blender_attributes": blender_attributes,
+        "adjust_brightness": True
         }
     
     arguments2 = {
         #"zip_name": zip_save2,
         "obj_set": obj_set,
         "blender_path": bl_path,
-        "renders_per_class": 2,
+        "renders_per_class": 20,
         "work_dir": workspace,
         "generate_background": True,
         "background_database": background_database,
-        "blender_attributes": blender_attributes
+        "blender_attributes": blender_attributes,
+        "adjust_brightness": False
         }
     
     argument_list.append(arguments1)

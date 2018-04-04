@@ -29,7 +29,9 @@ def add_background(foreground_name, background_name, save_as, adjust_brightness 
         foregroun_name (string): The name of the RGBA image
         background_name (string): Name of the background image
         save_as (string): Name under which the final image is to be saved
-        adjust_brigthness (boolean): If the adjust brightness algorithm should be used
+        adjust_brigtness (boolean): Whether the brigthness of the background
+            should be adjusted to match on average the brightness of the 
+            foreground image. Default = False
     """
     try:
         foreground=Image.open(foreground_name)
@@ -110,7 +112,7 @@ def merge_images(foreground, background):
     background.paste(foreground, (0, 0), foreground)
     return background
                
-def generate_for_all_objects(objects_folder, background_folder, final_folder):
+def generate_for_all_objects(objects_folder, background_folder, final_folder, adjust_brightness = False):
     """
     This function takes every image in objects_folder, merge it
     with a random image from background_folder and saves it in final_folder.
@@ -130,10 +132,11 @@ def generate_for_all_objects(objects_folder, background_folder, final_folder):
     for object_image in os.listdir(objects_folder):
         one_object = random.choice(all_backgrounds)
         just_name = os.path.splitext(object_image)[0]
-        add_background(objects_folder+"/"+object_image, background_folder+"/"+one_object, final_folder+"/"+just_name+".jpg", True)
+        add_background(objects_folder+"/"+object_image, background_folder+"/"+one_object, final_folder+"/"+just_name+".jpg", adjust_brightness)
         
 if __name__ == "__main__":
     start_time = time.time()
-    generate_for_all_objects(base_address+"object_poses/test", base_address+"resized_background/test", base_address+"test_results")
+    #generate_for_all_objects(base_address+"object_poses/test", base_address+"resized_background/test", base_address+"test_results")
+    
+    generate_for_all_objects(base_address+"object_poses/Halloumi_white", base_address+"resized_background/SUN_back", base_address+"final_images/sun/halloumi/train", True)
     print("--- %s seconds ---" % (time.time() - start_time))
-    #generate_for_all_objects(base_address+"object_poses/Halloumi_white", base_address+"resized_background/white_back", base_address+"final_images/white/halloumi/train")
