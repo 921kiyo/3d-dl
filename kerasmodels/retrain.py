@@ -201,7 +201,9 @@ class KerasInception:
                 epochs=epochs,
                 validation_data=validation_generator,
                 validation_steps=800 // self.batch_size,
-                callbacks = [tensorboard,history])
+                callbacks = [tensorboard,history],
+                use_multiprocessing=True, # not sure if working properly!
+                workers=8)
 
         # print(self.model.get_config())
 
@@ -459,7 +461,8 @@ def train_model(learning_rate,dense_layers,batch_size,dropout):
     # print(max(history.val_accs))
 
     # get accuracy score
-    # score = model.evaluate(test_dir=test_dir)
+    score = model.evaluate(test_dir=test_dir)
+    print(score[1])
     # test_accuracy = score[1]
 
     # store accuracy & model parameters
@@ -516,6 +519,6 @@ def bayes_optimization():
 
 # main()
 
-# main_for_pipeline()
+main_for_pipeline()
 
-bayes_optimization()
+# bayes_optimization()
