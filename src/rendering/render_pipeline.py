@@ -49,12 +49,12 @@ rendering_path = os.path.dirname(os.path.realpath(__file__))
 src_path = os.path.abspath(os.path.join(rendering_path, os.pardir))
 project_path = os.path.abspath(os.path.join(src_path, os.pardir))
 #project_path = '/vol/bitbucket/who11/CO-530/Lobster/'
-workspace = os.path.join(project_path, "render_workspace")
-#workspace = '/vol/project/2017/530/g1753002/render_workspace'
+#workspace = os.path.join(project_path, "render_workspace")
+workspace = '/vol/project/2017/530/g1753002/render_workspace'
 
 # Set Blender path
-#bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
-bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
+bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
+#bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
 
 
 if not project_path in sys.path:
