@@ -109,7 +109,7 @@ def destroy_folders(target_folder, folder_list):
             rmtree(full_path)
 
 """------------ Helper functions ----------- """
-def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product, blender_attributes):
+def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product, blender_attributes, visualize_dump=False, dry_run_mode=False):
     """
     Make a system call to Blender, passing the configuration for this run
     and wait for Blender to return.
@@ -149,13 +149,14 @@ def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_
 
     blender_script_path = os.path.join(src_dir, 'rendering', 'render_poses.py')
     #config_file_path = os.path.join(src_dir, 'rendering', 'config.json')
-
     blender_args = [blender_path, '--background', '--python', blender_script_path, '--',
                     src_dir,
                     object_folder,
                     output_folder,
                     str(renders_per_product),
-                    json.dumps(blender_attributes)]
+                    json.dumps(blender_attributes),
+                    str(visualize_dump),
+                    str(dry_run_mode)]
 
     print('Rendering...')
     subprocess.check_call(blender_args)
@@ -192,7 +193,7 @@ def gen_merge(image, save_as, pixels=300):
         print("Key error")
 
 
-def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}):
+def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}, visualize_dump=False, dry_run_mode=False):
     """
     Function that will take all the parameters and execute the
     appropriate pipeline
@@ -219,7 +220,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
 
     """----------------- Generating object poses ---------------"""
     src_path = os.path.join(project_path, "src")
-    generate_poses(src_path, blender_path, obj_set, obj_poses, renders_per_class, blender_attributes)
+    generate_poses(src_path, blender_path, obj_set, obj_poses, renders_per_class, blender_attributes, visualize_dump, dry_run_mode)
 
     #now we need to take Ong' stats and move them into final folder
     for folder in os.listdir(obj_poses):
@@ -291,8 +292,8 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
     if generate_background:
         back_parameter = "random_bg"
     else:
-        back_parameter = background_database.split("\\")[-1]
-    zip_name = os.path.join(work_dir,"final_zip",obj_set.split("\\")[-1] + "_" + back_parameter + "_" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S").replace(" ","_").replace(":","_"))
+        back_parameter = os.path.split(background_database)[-1]
+    zip_name = os.path.join(work_dir,"final_zip",os.path.split(obj_set)[-1] + "_" + back_parameter + "_" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S").replace(" ","_").replace(":","_"))
     
     make_archive(zip_name, 'zip',final_folder)
     destroy_folders(work_dir, temp_folders)
