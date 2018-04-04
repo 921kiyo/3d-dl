@@ -2,7 +2,7 @@ from keras.applications.inception_v3 import InceptionV3
 from keras.preprocessing import image
 from keras.models import Model
 from keras.models import load_model
-from keras.layers import Dense, GlobalAveragePooling2D
+from keras.layers import Dense, GlobalAveragePooling2D, Dropout
 from keras import backend as K
 from time import *
 import os
@@ -11,8 +11,8 @@ import os
 # For Function to feed images to model and augment images at the same time
 from keras.preprocessing.image import ImageDataGenerator
 
-# For Tensorboard
-from keras.callbacks import TensorBoard
+# For Tensorboard & ValAccHistory
+from keras.callbacks import TensorBoard, Callback
 
 # for add_salt_pepper_noise
 import numpy as np
@@ -26,6 +26,15 @@ from keras.models import Sequential
 # for unzipping
 import zipfile
 
+# for customizing SGD, rmsprop
+from keras.optimizers import SGD, RMSprop
+
+# for logging
+from pathlib import Path
+import datetime
+
+# for BO
+from bayes_opt import BayesianOptimization
 
 # Custom Image Augmentation Function
 def add_salt_pepper_noise(X_img):
@@ -47,6 +56,12 @@ def add_salt_pepper_noise(X_img):
     X_img[coords[0], coords[1], :] = 0
     return X_img_copy
 
+class ValAccHistory(Callback):
+    def on_train_begin(self, logs={}):
+        self.val_accs = []
+
+    def on_epoch_end(self, epoch, logs={}):
+        self.val_accs.append(logs.get('val_acc'))
 
 class KerasInception:
     model = None
@@ -54,10 +69,12 @@ class KerasInception:
     batch_size = 0
     dense_layers = 0
 
-    def __init__(self,input_dim=150,batch_size=16,dense_layers=1):
+    def __init__(self,input_dim=150,batch_size=16,dense_layers=1,dropout=None,lr=0.001):
         self.input_dim = input_dim
         self.batch_size = batch_size
         self.dense_layers = dense_layers
+        self.dropout = dropout
+        self.lr = lr
 
     def assemble_model(self,train_dir):
         class_count = len(next(os.walk(train_dir))[1])
@@ -73,6 +90,12 @@ class KerasInception:
         x = GlobalAveragePooling2D(name='pooling')(x)
 
         for i in range(self.dense_layers):
+            # dropout
+            if self.dropout and i == 0:
+                x = Dropout(self.dropout)(x)
+            elif self.dropout:
+                x = Dropout(self.dropout)(x)
+            #
             # fully-connected layer
             x = Dense(1024, activation='relu',name='dense'+str(i))(x)
 
@@ -87,7 +110,7 @@ class KerasInception:
             layer.trainable = False
 
         # compile the model (*after* setting layers to non-trainable)
-        model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
+        model.compile(optimizer=RMSprop(lr=self.lr), loss='categorical_crossentropy', metrics=['accuracy'])
 
         return model
 
@@ -169,6 +192,8 @@ class KerasInception:
                             embeddings_layer_names=None,
                             embeddings_metadata=None) # histogram_freq=5
 
+        history = ValAccHistory()
+
         # train the model on the new data for a few epochs
         self.model.fit_generator(
                 train_generator,
@@ -176,9 +201,9 @@ class KerasInception:
                 epochs=epochs,
                 validation_data=validation_generator,
                 validation_steps=800 // self.batch_size,
-                callbacks = [tensorboard])
+                callbacks = [tensorboard,history])
 
-        print(self.model.get_config())
+        # print(self.model.get_config())
 
         if fine_tune:
             self.fine_tune(train_generator,validation_generator,tensorboard)
@@ -187,6 +212,8 @@ class KerasInception:
             base_path,train_folder = os.path.split(train_dir)
             full_path = os.path.join(base_path, "model.h5")
             self.save_model(full_path)
+
+        return history
 
     def fine_tune(self,train_generator,validation_generator,tensorboard):
         # we chose to train the top 2 inception blocks, i.e. we will freeze
@@ -198,7 +225,6 @@ class KerasInception:
 
         # we need to recompile the model for these modifications to take effect
         # we use SGD with a low learning rate
-        from keras.optimizers import SGD
         self.model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy'])
 
         # we train our model again (this time fine-tuning the top 2 inception blocks
@@ -276,7 +302,8 @@ def main():
 
     model = KerasInception(input_dim=input_dim,
                             batch_size=batch_size,
-                            dense_layers=dense_layers)
+                            dense_layers=dense_layers,
+                            lr=learning_rate)
 
 
     model.train(train_dir=train_dir,
@@ -290,27 +317,135 @@ def main():
     model.evaluate(test_dir=test_dir)
 
 def main_for_pipeline():
-    path_of_zip = '/vol/project/2017/530/g1753002/keras_test_data/train/train_test_zip.zip'
-    unzipped_dir = unzip_and_return_path_to_folder(path_of_zip)
-    train_dir = unzipped_dir + '/images'
-    main_dir, filename = os.path.split(path_of_zip) # get path for classes.txt
+    logging = True
+    log_filename = 'model_log_full_w_dropout_firstlayer20.csv'
 
+    # get all zip files to iterate over: List parameter, Directory?
+
+
+    # create grid of parameters: e.g. to a csv file, then read out line by line, once done, add 1 at the end
+    learning_rate_grid = np.logspace(-6,-3,10) # originally 10 pow -5
+    dropout_grid = [0,0.2,0.5]
+    layer_grid = [1,2]
+    batch_size_grid = [16,32,64]
+
+    # input directories
+    path_of_zip = '/vol/project/2017/530/g1753002/keras_test_data/train/train_test_zip2.zip'
     validation_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
     test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
-    dense_layers = 1
-    input_dim = 150
-    batch_size = 16
+
+    # load train images from one zip file
+    unzipped_dir = unzip_and_return_path_to_folder(path_of_zip)
+    train_dir = unzipped_dir + '/images'
+
+    # get path for classes.txt
+    main_dir, filename = os.path.split(path_of_zip)
+
+    # go through grid of parameters
+    for lr in learning_rate_grid:
+
+
+        # set parameters
+        input_dim = 299
+        fine_tune = False # if true, some of the inceptionV3 layers will be trained for 5 epochs at the end of training
+        add_salt_pepper_noise = False # if True, it adds SP noise
+        augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
+        epochs = 10
+
+        learning_rate = lr
+        dense_layers = 2
+        batch_size = 64
+        dropout = 0.5
+
+        # initialize & train model
+        model = KerasInception(input_dim=input_dim,
+                                batch_size=batch_size,
+                                dense_layers=dense_layers,
+                                dropout=dropout,
+                                lr=learning_rate)
+
+
+        model.train(train_dir=train_dir,
+                    validation_dir=validation_dir,
+                    fine_tune=fine_tune,
+                    epochs=epochs,
+                    salt_pepper=add_salt_pepper_noise,
+                    augmentation_params=get_augmentation_params(augmentation_mode),
+                    classes_txt_dir=main_dir,
+                    save_model=True
+                    )
+
+        # get accuracy score
+        score = model.evaluate(test_dir=test_dir)
+
+        # store accuracy & model parameters
+        if logging:
+            print("logging now...")
+            my_file = Path(log_filename)
+
+            # write header if this is the first run
+            if not my_file.is_file():
+                print("writing head")
+                with open(log_filename, "w") as log:
+                    log.write("datetime,epochs,learning_rate,batch_size,input_dim,dense_layers,dropout,score[0],score[1]\n")
+
+            # append parameters
+            with open(log_filename, "a") as log:
+                log.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+                log.write(',')
+                log.write(str(epochs))
+                log.write(',')
+                log.write(str(learning_rate))
+                log.write(',')
+                log.write(str(batch_size))
+                log.write(',')
+                log.write(str(input_dim))
+                log.write(',')
+                log.write(str(dense_layers))
+                log.write(',')
+                log.write(str(dropout))
+                log.write(',')
+                log.write(str(score[0]))
+                log.write(',')
+                log.write(str(score[1]))
+                log.write('\n')
+
+def train_model(learning_rate,dense_layers,batch_size,dropout):
+    # turn float inputs from BO to ints
+    dense_layers = int(dense_layers + 0.5)
+    batch_size = int(batch_size + 0.5)*16
+
+    logging = True
+    log_filename = 'log_bo_2.csv'
+
+    # input directories
+    path_of_zip = '/vol/project/2017/530/g1753002/keras_test_data/train/train_test_zip2.zip'
+    validation_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
+    test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
+
+    # load train images from one zip file
+    unzipped_dir = unzip_and_return_path_to_folder(path_of_zip)
+    train_dir = unzipped_dir + '/images'
+
+    # get path for classes.txt
+    main_dir, filename = os.path.split(path_of_zip)
+
+    # set parameters
     fine_tune = False # if true, some of the inceptionV3 layers will be trained for 5 epochs at the end of training
     add_salt_pepper_noise = False # if True, it adds SP noise
     augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
-    epochs = 1
+    epochs = 3
+    input_dim = 299
 
+    # initialize & train model
     model = KerasInception(input_dim=input_dim,
                             batch_size=batch_size,
-                            dense_layers=dense_layers)
+                            dense_layers=dense_layers,
+                            dropout=dropout,
+                            lr=learning_rate)
 
 
-    model.train(train_dir=train_dir,
+    history = model.train(train_dir=train_dir,
                 validation_dir=validation_dir,
                 fine_tune=fine_tune,
                 epochs=epochs,
@@ -320,8 +455,67 @@ def main_for_pipeline():
                 save_model=True
                 )
 
-    # model.evaluate(test_dir=test_dir)
+    # print(history.val_accs)
+    # print(max(history.val_accs))
+
+    # get accuracy score
+    # score = model.evaluate(test_dir=test_dir)
+    # test_accuracy = score[1]
+
+    # store accuracy & model parameters
+    if logging:
+        print("logging now...")
+        my_file = Path(log_filename)
+
+        # write header if this is the first run
+        if not my_file.is_file():
+            print("writing head")
+            with open(log_filename, "w") as log:
+                log.write("datetime,epochs,learning_rate,batch_size,input_dim,dense_layers,dropout,best_validation_accuracy\n")
+
+        # append parameters
+        with open(log_filename, "a") as log:
+            log.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+            log.write(',')
+            log.write(str(epochs))
+            log.write(',')
+            log.write(str(learning_rate))
+            log.write(',')
+            log.write(str(batch_size))
+            log.write(',')
+            log.write(str(input_dim))
+            log.write(',')
+            log.write(str(dense_layers))
+            log.write(',')
+            log.write(str(dropout))
+            log.write(',')
+            log.write(str(max(history.val_accs)))
+            log.write(',')
+            log.write('\n')
+
+    return max(history.val_accs) # return best validation accuracy
+
+def bayes_optimization():
+    gp_params = {"alpha": 1e-5}
+    nnBO = BayesianOptimization(train_model,
+        {'learning_rate': (1e-07, 1e-01),
+        'batch_size': (0.5001, 4.4999),
+        'dropout': (0, 0.5),
+        'dense_layers': (0.5001, 3.4999)}
+        )
+    nnBO.explore({'learning_rate': [1.1787686347935867e-05],
+            'dropout': [0.0],
+            'dense_layers': [2.0],
+            'batch_size': [4.5]
+            })
+
+    nnBO.maximize(init_points=5, n_iter=15, kappa=2)
+
+    print(nnBO.res['max'])
+
 
 # main()
 
-main_for_pipeline()
+# main_for_pipeline()
+
+bayes_optimization()
