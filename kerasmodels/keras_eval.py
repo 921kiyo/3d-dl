@@ -117,6 +117,8 @@ class KerasEval:
         prediction = (ground_truth==result[0])
         correct_label = idx2label[ground_truth]
         predicted_label = idx2label[result[0]]
+        if(predicted_label != correct_label):
+            print("predicted: ", predicted_label, "correct: ", correct_label)
         return prediction, correct_label, predicted_label
 
     def extract_summary_tensors(self, test_results, label2idx):
@@ -248,6 +250,11 @@ class KerasEval:
         # create the summary setup
         summary_writer = tf.summary.FileWriter(model_source_dir + '/test_results', sess.graph)
 
+        # Create decoding tensors
+        jpeg_data = tf.placeholder(tf.string, name="DecodeJPGInput")
+        decoded_image = tf.image.decode_jpeg(jpeg_data, channels=3)
+
+        predicted_placeholder = tf.placeholder(tf.string, name="PredictedLabel")
         c = len(label2idx.keys())
 
         predictions = []
@@ -255,6 +262,15 @@ class KerasEval:
         for label in per_class_test_results:
             test_results = per_class_test_results[label]
             n = len(test_results)
+
+            for i in range(n):
+                if(test_results[i]["correct_label"] != test_results[i]["predicted_label"]):
+                    name = "misclassified_" + test_results[i]["predicted_label"]
+
+                    img_summary_buffer = tf.summary.image(name, tf.reshape(decoded_image, [1,367,642,3]), 1)
+                    jpg = gfile.FastGFile(test_results[i]["image_file_name"], "rb").read()
+                    image_summary, _ = sess.run([img_summary_buffer, decoded_image], feed_dict={jpeg_data:jpg})
+                    summary_writer.add_summary(image_summary)
             confidences, class_predictions, class_truth = self.extract_summary_tensors(test_results, label2idx)
             predictions.extend(class_predictions)
             truth.extend(class_truth)
@@ -270,7 +286,9 @@ class KerasEval:
         # Confusion Matrix Plot
         cm = confusion_matrix(truth, predictions)
 
-        cm_img = self.plot_confusion_matrix(cm, classes=label2idx.keys())
+        classes = list(label2idx.keys())
+        classes.sort()
+        cm_img = self.plot_confusion_matrix(cm, classes=classes)
         summary_op = tf.summary.image("Confusion_Matrix", cm_img)
         confusion_summary = sess.run(summary_op)
         summary_writer.add_summary(confusion_summary)
@@ -309,7 +327,7 @@ class KerasEval:
         label = os.path.join(output_folder, "labels.txt")
 
         # label_path is the same as output.txt
-        label2idx, idx2label = self.create_label_lists(label )
+        label2idx, idx2label = self.create_label_lists(label)
         test_data = self.get_test_files(test_folder, label2idx, n=100)
         model_path = os.path.join(output_folder, "model.h5")
         model = load_model(model_path)
@@ -333,6 +351,7 @@ class KerasEval:
 
                 # input
                 image = load_img(test_datum[2], target_size=inputShape)
+                # plt.savefig(os.path.join(folder_name, image))
                 image = img_to_array(image)
 
                 # our input image is now represented as a NumPy array of shape
@@ -352,6 +371,7 @@ class KerasEval:
                 # decode result tensor here since we don't have access to the prediction tensor
                 test_result['prediction'], test_result['correct_label'], test_result['predicted_label'] = \
                     self.eval_result(pred, ground_truth, idx2label)
+                test_result['image_file_name'] = test_datum[2]
                 test_result['class_confidences'] = pred
                 per_class_test_results[test_result['correct_label']].append(test_result)
 
@@ -372,14 +392,14 @@ class KerasEval:
             pickle.dump(test_results, f)
 
 
-# keras_eval = KerasEval()
-#
-# keras_eval.eval(output_folder="/vol/project/2017/530/g1753002/output", \
-#                 test_result_path="/vol/project/2017/530/g1753002/training_results.pkl",
-#                 test_result_file=None,
-#                 test_folder="/vol/project/2017/530/g1753002/matthew/8_class_data/qlone_training_images/",
-#                 notify_interval=20
-# )
+keras_eval = KerasEval()
+
+keras_eval.eval(output_folder="/vol/project/2017/530/g1753002/output", \
+                test_result_path="/vol/project/2017/530/g1753002/training_results.pkl",
+                test_result_file=None,
+                test_folder="/vol/project/2017/530/g1753002/matthew/8_class_data/qlone_training_images/",
+                notify_interval=100
+)
 
 # def main(args, output_folder="/vol/project/2017/530/g1753002/output", \
 #         test_result_path="/vol/project/2017/530/g1753002/training_results.pkl", \
