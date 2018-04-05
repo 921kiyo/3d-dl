@@ -154,12 +154,16 @@ def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_
                     str(visualize_dump),
                     str(dry_run_mode)]
 
-    print(' ================ LAUNCHING BLENDER FOR POSE RENDERING ================')
+    print('\n')
+    print(' ============================ LAUNCHING BLENDER FOR POSE RENDERING ============================')
+    print('\n')
     try:
         subprocess.check_call(blender_args)
     except subprocess.CalledProcessError as e:
         print( " error! return code is: " , e.returncode)
-    print(' ================ CLOSING BLENDER FOR POSE RENDERING ================')
+    print('\n')
+    print(' ============================ CLOSING BLENDER FOR POSE RENDERING ============================')
+    print('\n')
 
 
 def gen_merge(image, save_as, pixels=300, adjust_brightness = False):

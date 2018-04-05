@@ -83,9 +83,26 @@ class RenderInterface(object):
         :param output_file:
         :return:
         """
+
+        # begin output redirection
+        open(self.logfile, 'a').close()
+        old = os.dup(1)
+        sys.stdout.flush()
+        os.close(1)
+        os.open(self.logfile, os.O_WRONLY)
+
+        print("RENDER INTERFACE: Loading subjects {}, {}".format(obj_path, obj_path_bot), file=sys.stderr)
+        print("RENDER INTERFACE: Loading textures {}, {}".format(texture_path, texture_path_bot), file=sys.stderr)
         self.output_file = output_file
         self.scene.load_subject_from_path(
             obj_path=obj_path, texture_path=texture_path, obj_path_bot=obj_path_bot, texture_path_bot=texture_path_bot)
+        print("RENDER INTERFACE: Finish loading subjects! ", file=sys.stderr)
+        print("\n", file=sys.stderr)
+
+        # end output redirection
+        os.close(1)
+        os.dup(old)
+        os.close(old)
 
     def load_subjects(self, obj_path, texture_path, obj_path_bot, texture_path_bot, output_file):
         """
@@ -97,9 +114,25 @@ class RenderInterface(object):
         :param output_file:
         :return:
         """
+        # begin output redirection
+        open(self.logfile, 'a').close()
+        old = os.dup(1)
+        sys.stdout.flush()
+        os.close(1)
+        os.open(self.logfile, os.O_WRONLY)
+
+        print("BLENDER RENDER INTERFACE: Loading subjects from : \n {}, \n {}".format(obj_path, obj_path_bot) , file=sys.stderr)
+        print("BLENDER RENDER INTERFACE: Loading textures from : \n {}, \n {}".format(texture_path, texture_path_bot), file=sys.stderr)
         self.output_file = output_file
         self.scene.load_subject_from_path(
             obj_path=obj_path, texture_path=texture_path, obj_path_bot=obj_path_bot, texture_path_bot=texture_path_bot)
+        print("BLENDER RENDER INTERFACE: Finish loading subjects! ", file=sys.stderr)
+        print("\n", file=sys.stderr)
+
+        # end output redirection
+        os.close(1)
+        os.dup(old)
+        os.close(old)
 
     def load_from_model(self, model_path, output_file):
 
@@ -209,9 +242,9 @@ class RenderInterface(object):
     def render_all(self, dump_logs=False, visualize=False, verb=1, progress=False, dry_run=True):
 
         if dry_run:
-            print("BLENDER RENDER INTERFCE : DRY RUN MODE")
+            print("BLENDER RENDER INTERFACE : DRY RUN MODE \n")
 
-        print("BLENDER RENDER INTERFCE : Rendering {} images to {}".
+        print("BLENDER RENDER INTERFACE : Rendering {} images to {} \n ".
               format(self.num_images, self.output_file), file=sys.stderr)
 
         if progress:

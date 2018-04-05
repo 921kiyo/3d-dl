@@ -85,7 +85,7 @@ if args.blender_attributes:
     io = StringIO(args.blender_attributes)
     blender_attributes = json.load(io)
 
-print('Running blender with the following parameters: \n', blender_attributes)
+print('Running blender with the following parameters: \n {} \n'.format(blender_attributes))
 
 
 """" --------------- Helper functions for folder navigation ------------- """
@@ -120,13 +120,13 @@ for product in os.listdir(args.object_folder):
 
     # Validate project
     if not os.path.isdir(product_folder):
-        print("Couldn't find {} object folder! Skipping".format(product))
+        print("RENDER POSES: Couldn't find {} object folder! Skipping".format(product))
         continue
 
     # Create product folder in object_renders
     render_folder = os.path.join(args.output_folder, product)
     if not os.path.isdir(render_folder):
-        print('Making render folder', render_folder)
+        print('RENDER POSES: Making render folder', render_folder)
         os.mkdir(render_folder)
 
     # Get model files
@@ -135,14 +135,14 @@ for product in os.listdir(args.object_folder):
     # Configure model paths
     model_path = os.path.join(product_folder, model_file)
 
-    # print(object_path, '\n', texture_path)
-    print(model_path)
-    print(render_folder)
+    print("RENDER POSES: Detected model, using model: \n {}".format(model_path))
+    print("RENDER POSES: Render folder used : \n {} \n".format(render_folder))
 
     # Do the blender stuff
     RI.load_from_model(model_path, render_folder)
 
     if blender_attributes:
+        print("RENDER POSES: the following attributes are supplied for this run: ")
         for param in blender_attributes['attribute_distribution_params']:
             print(param)
             RI.set_attribute_distribution_params(param[0], param[1], param[2])
@@ -151,4 +151,8 @@ for product in os.listdir(args.object_folder):
             print(dist)
             RI.set_attribute_distribution(dist[0], dist[1])
 
+        print("\n")
+
+    print("RENDER POSES: begin rendering {} \n".format(product))
     RI.render_all(dump_logs=True, visualize=args.visualize_dump, dry_run=args.dry_run_mode)
+    print("RENDER POSES: finished rendering {} \n".format(product))
