@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
+import os
 
 from rendering.render_pipeline import full_run
 
