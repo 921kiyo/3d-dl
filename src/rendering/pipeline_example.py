@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
+import os
 
 from rendering.render_pipeline import full_run
 
@@ -8,8 +9,10 @@ rendering_path = os.path.dirname(os.path.realpath(__file__))
 src_path = os.path.abspath(os.path.join(rendering_path, os.pardir))
 project_path = os.path.abspath(os.path.join(src_path, os.pardir))
 workspace = '/vol/project/2017/530/g1753002/render_workspace'
+# workspace = 'D:\\PycharmProjects\\Lobster\\data\\render_workspace' for Ong
 # Set Blender path
 bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
+# bl_path = 'D:\\Program Files\\Blender Foundation\\Blender\\blender' # for Ong
 # Set of objects to work with
 obj_set = os.path.join(workspace, 'object_files','ten_set_model_format')
 # Set backround image database path
@@ -28,7 +31,7 @@ blender_attributes = {
 
             # number of lamps is a DISCRETE UNIFORM DISTRIBUTION over NON_NEGATIVE INTEGERS,
             # params l and r are lower and upper bounds of distributions, need to be positive integers
-            ["num_lamps","l", 5], ["num_lamps","r", 8],
+            ["num_lamps","mid", 6], ["num_lamps","scale", 0.4],
 
             # lamp distance is a TRUNCATED NORMAL DISTRIBUTION over NON-NEGATIVE INTEGERS,
             # param mu is mean , must be non-negative,
