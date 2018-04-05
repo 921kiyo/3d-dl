@@ -61,9 +61,6 @@ if not project_path in sys.path:
     sys.path.append(project_path)
 
 
-#sys.path.append("E:/Blender_Foundation/Blender/2.79/python/lib/site-packages/")
-#sys.path.append("E:/Anaconda/Lib/site-packages/scipy/")
-print(sys.path)
 import SceneLib.Merge_Images as mi
 import RandomLib.random_background as rb
 
@@ -148,8 +145,7 @@ def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_
 
 
     blender_script_path = os.path.join(src_dir, 'rendering', 'render_poses.py')
-    #config_file_path = os.path.join(src_dir, 'rendering', 'config.json')
-    blender_args = [blender_path, '--background', '--python', blender_script_path, '--',
+    blender_args = [blender_path, '--background', '--python-exit-code', '2','--python', blender_script_path, '--',
                     src_dir,
                     object_folder,
                     output_folder,
@@ -158,9 +154,12 @@ def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_
                     str(visualize_dump),
                     str(dry_run_mode)]
 
-    print('Rendering...')
-    subprocess.check_call(blender_args)
-    print('Rendering done!')
+    print(' ================ LAUNCHING BLENDER FOR POSE RENDERING ================')
+    try:
+        subprocess.check_call(blender_args)
+    except subprocess.CalledProcessError as e:
+        print( " error! return code is: " , e.returncode)
+    print(' ================ CLOSING BLENDER FOR POSE RENDERING ================')
 
 
 def gen_merge(image, save_as, pixels=300, adjust_brightness = False):
