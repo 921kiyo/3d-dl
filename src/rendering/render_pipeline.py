@@ -337,7 +337,7 @@ blender_attributes={}
 """------------------ Running the pipeline ------------------"""
 def example_run():
     blender_attributes = {
-        "attribute_distribution_params": [["num_lamps","l", 5], ["num_lamps","r", 8], ["lamp_energy","mu", 500.0], ["lamp_size","mu",5], ["camera_radius","sigmu",0.1]],
+        "attribute_distribution_params": [["num_lamps","mid", 6], ["num_lamps","scale", 0.4], ["lamp_energy","mu", 500.0], ["lamp_size","mu",5], ["camera_radius","sigmu",0.1]],
         "attribute_distribution" : []
     }
     
