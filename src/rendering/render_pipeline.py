@@ -303,12 +303,11 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
         print(folder)
     
     # Dump all merging parameters to a json file
-    all_params= {"object_set": obj_set.split("\\")[-1], 
+    all_params= {"object_set": os.path.split(obj_set)[-1],
                  "images_per_class": renders_per_class,
                  "background_generated": generate_background,
-                 "background_database": background_database.split("\\")[-1],
+                 "background_database": os.path.split(background_database)[-1],
                  "brightness_adjusted": adjust_brightness
-                 #"blender_attributes": blender_attributes
                  }
     dump_file = os.path.join(final_folder, 'mergeparams_dump.json')
     with open(dump_file, "w+") as f:
