@@ -206,7 +206,10 @@ class RenderInterface(object):
         """
         self.scene.set_attribute_distribution(attr, params)
 
-    def render_all(self, dump_logs=False, visualize=False, verb=1, progress=False):
+    def render_all(self, dump_logs=False, visualize=False, verb=1, progress=False, dry_run=True):
+
+        if dry_run:
+            print("BLENDER RENDER INTERFCE : DRY RUN MODE")
 
         print("BLENDER RENDER INTERFCE : Rendering {} images to {}".
               format(self.num_images, self.output_file), file=sys.stderr)
@@ -227,6 +230,9 @@ class RenderInterface(object):
             start = time.time()
             # **********************  RENDER N SAVE **********************
             render_path = os.path.join(self.output_file, 'render%d.png' % i)
+            if dry_run:
+                self.scene.scene_setup()
+                continue
             self.scene.render_to_file(render_path)
             end = time.time()
 
@@ -259,8 +265,6 @@ class RenderInterface(object):
                 json.dump(params, f, sort_keys=True, indent=4, separators=(',', ': '))
 
         if visualize:
-            for path in sys.path:
-                print(path)
 
             import matplotlib
             matplotlib.use('agg')
@@ -280,7 +284,9 @@ class RenderInterface(object):
             plt.title('Camera Location')
             dump_file = os.path.join(self.output_file, 'stats','camera_locations.svg')
             plt.savefig(dump_file)
+            plt.close(fig)
 
+            fig = plt.figure()
             plt.subplot(211)
             camera_radii = logs['camera_radius']
             plt.hist(camera_radii,bins=20)
@@ -292,6 +298,7 @@ class RenderInterface(object):
             plt.title('Spin angle Histogram')
             dump_file = os.path.join(self.output_file, 'stats', 'camera_stats.svg')
             plt.savefig(dump_file)
+            plt.close(fig)
 
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
@@ -306,6 +313,7 @@ class RenderInterface(object):
             plt.title('Lamp Location')
             dump_file = os.path.join(self.output_file, 'stats', 'lamp_locations.svg')
             plt.savefig(dump_file)
+            plt.close(fig)
 
             fig = plt.figure()
             plt.subplot(211)
@@ -320,5 +328,6 @@ class RenderInterface(object):
             
             dump_file = os.path.join(self.output_file, 'stats', 'lamp_stats.svg')
             plt.savefig(dump_file)
+            plt.close(fig)
 
         return logs
