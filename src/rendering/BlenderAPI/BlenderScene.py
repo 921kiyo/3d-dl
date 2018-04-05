@@ -86,8 +86,8 @@ class BlenderScene(object):
         self.data.cycles.device = 'GPU'
         self.data.render.tile_x = 512
         self.data.render.tile_y = 512
-        self.data.render.resolution_x = 224
-        self.data.render.resolution_y = 224
+        self.data.render.resolution_x = 300
+        self.data.render.resolution_y = 300
         self.data.render.resolution_percentage = 100
         self.data.render.use_persistent_data = True
 
