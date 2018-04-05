@@ -461,8 +461,7 @@ def train_model(learning_rate,dense_layers,batch_size,dropout):
     # print(max(history.val_accs))
 
     # get accuracy score
-    score = model.evaluate(test_dir=test_dir)
-    print(score[1])
+    # score = model.evaluate(test_dir=test_dir)
     # test_accuracy = score[1]
 
     # store accuracy & model parameters
