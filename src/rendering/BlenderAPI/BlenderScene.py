@@ -86,8 +86,8 @@ class BlenderScene(object):
         self.data.cycles.device = 'GPU'
         self.data.render.tile_x = 512
         self.data.render.tile_y = 512
-        self.data.render.resolution_x = 300
-        self.data.render.resolution_y = 300
+        self.data.render.resolution_x = 224
+        self.data.render.resolution_y = 224
         self.data.render.resolution_percentage = 100
         self.data.render.use_persistent_data = True
 
@@ -127,7 +127,7 @@ class BlenderRandomScene(BlenderScene):
         """
         super(BlenderRandomScene, self).__init__(data)
         '''light params'''
-        self.num_lamps     = rnd.UniformDDist(l=1,r=3)
+        self.num_lamps     = rnd.PScaledUniformDDist(mid=2, scale=0.5)
         self.lamp_loc      = rnd.UniformShellCoordinateDist()
         self.lamp_distance = rnd.TruncNormDist(mu=5.0,sigmu=0.3,l=0.0,r=None)
         self.lamp_energy   = rnd.TruncNormDist(mu=5000.,sigmu=0.3,l=0.0,r=None)
