@@ -372,7 +372,7 @@ def example_run():
         "generate_background": False,
         "background_database": background_database,
         "blender_attributes": blender_attributes,
-        "n_of_pixels": 200,
+        "n_of_pixels": 300,
         "adjust_brightness": True
         }
     
@@ -385,7 +385,7 @@ def example_run():
         "generate_background": True,
         "background_database": background_database,
         "blender_attributes": blender_attributes,
-        "n_of_pixels": 200,
+        "n_of_pixels": 300,
         "adjust_brightness": False
         }
     
