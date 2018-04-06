@@ -251,7 +251,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
 
     """----------------- Generating object poses ---------------"""
     src_path = os.path.join(project_path, "src")
-    generate_poses(src_path, blender_path, obj_set, obj_poses, renders_per_class, blender_attributes, visualize_dump, dry_run_mode)
+    generate_poses(src_path, blender_path, obj_set, obj_poses, renders_per_class, blender_attributes, visualize_dump, dry_run_mode, n_of_pixels)
 
     #now we need to take Ong' stats and move them into final folder
     for folder in os.listdir(obj_poses):
