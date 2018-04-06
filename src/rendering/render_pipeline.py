@@ -275,6 +275,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
     We need to distinguish between the case of drawing backrounds
     from a database and when generating ourselves
     """
+    print(' ============================ GENERATING FINAL IMAGES ============================')
     final_folder = os.path.join(work_dir, "final_folder")
     final_im = os.path.join(work_dir, "final_folder/images")
     # Generate images for each class poses
@@ -286,7 +287,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
 
         sub_final = os.path.join(final_im, folder)
         os.mkdir(sub_final)
-
+        
         # Merge images based on the choice of background
         if(generate_background):
             # for each object pose

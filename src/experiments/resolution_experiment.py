@@ -28,12 +28,13 @@ attribute_distribution_params = [
     # 1 <= num lamps <= 10, medium energy with high variation, equates to highly varied lighting conditions
 
     ["num_lamps","mid", 5], ["num_lamps","scale", 0.8],
-    ["lamp_energy", "mu", 1250.0], ["lamp_energy", "sigmu", 0.7],
+    ["lamp_energy", "mu", 1250.0], ["lamp_energy", "sigmu", 0.6],
     # camera parameter set 1
     # medium radius, larger variation, varied sized subjects
     ["camera_loc","phi_sigma", 10.0],
     ["camera_radius", "mu", 6.0], ["camera_radius", "sigmu", 0.25]
 ]
+N_samples = 20
 
 arguments_list = []
 # datapoint 1: 10,000 images, 64 samples
@@ -41,7 +42,7 @@ arguments_list.append(
     {
         "obj_set": obj_set,
         "blender_path": bl_path,
-        "renders_per_class": 50,
+        "renders_per_class": N_samples,
         "work_dir": workspace,
         "generate_background": False,
         "background_database": background_database,
@@ -59,7 +60,7 @@ arguments_list.append(
     {
         "obj_set": obj_set,
         "blender_path": bl_path,
-        "renders_per_class": 50,
+        "renders_per_class": N_samples,
         "work_dir": workspace,
         "generate_background": False,
         "background_database": background_database,
@@ -74,4 +75,4 @@ arguments_list.append(
 
 for arguments in arguments_list:
     full_run(**arguments)
-
+    print("One run complete! \n")
