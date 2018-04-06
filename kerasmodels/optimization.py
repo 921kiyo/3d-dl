@@ -20,7 +20,7 @@ from slackclient import SlackClient
 sc = SlackClient("xoxp-273685211557-273369142960-343515639718-246d19b1bb30d4a9c436d25dced63476",)
 
 # input directories
-path_of_zip = ''
+path_of_zip = '' # TODO does the imported retrain function take this path?
 validation_dir = '/vol/project/2017/530/g1753002/manhattan_project/validation_data/official_validation_set_ambient'
 test_dir = '/vol/project/2017/530/g1753002/manhattan_project/test_data/official_test_set_ambient'
 
