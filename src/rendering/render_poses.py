@@ -56,6 +56,9 @@ parser.add_argument('output_folder',
 parser.add_argument('renders_per_product', type=int, default=1,
                     help='number of renders to per product')
 
+parser.add_argument('render_resolution', type=int, default=300,
+                    help='resolution of rendered object pose')
+
 parser.add_argument('blender_attributes',
                     help='json dump of blender attributes')
 
@@ -85,26 +88,10 @@ if args.blender_attributes:
     io = StringIO(args.blender_attributes)
     blender_attributes = json.load(io)
 
-print('Running blender with the following parameters: \n', blender_attributes)
+print('Running blender with the following parameters: \n {} \n'.format(blender_attributes))
 
 
 """" --------------- Helper functions for folder navigation ------------- """
-def find_files(product_folder):
-    """Naively return name of object and texture file in a folder"""
-    object_file = ''
-    texture_file = ''
-
-    files = os.listdir(product_folder)
-
-    for file in files:
-        if file.endswith('.obj'):
-            object_file = file
-        elif file.endswith('.jpg'):
-            texture_file = file
-
-    return object_file, texture_file
-
-
 def find_model(product_folder):
     """Return the name of the .model file in a folder"""
     for file in os.listdir(product_folder):
@@ -113,20 +100,20 @@ def find_model(product_folder):
 
 
 """" --------------- Rendering ------------- """
-RI = Render.RenderInterface(num_images=args.renders_per_product)
+RI = Render.RenderInterface(num_images=args.renders_per_product, resolution=args.render_resolution)
 
 for product in os.listdir(args.object_folder):
     product_folder = os.path.join(args.object_folder, product)
 
-    # Validate project
+    # Validate object
     if not os.path.isdir(product_folder):
-        print("Couldn't find {} object folder! Skipping".format(product))
+        print("RENDER POSES: Couldn't find {} object folder! Skipping".format(product))
         continue
 
     # Create product folder in object_renders
     render_folder = os.path.join(args.output_folder, product)
     if not os.path.isdir(render_folder):
-        print('Making render folder', render_folder)
+        print('RENDER POSES: Making render folder', render_folder)
         os.mkdir(render_folder)
 
     # Get model files
@@ -135,14 +122,14 @@ for product in os.listdir(args.object_folder):
     # Configure model paths
     model_path = os.path.join(product_folder, model_file)
 
-    # print(object_path, '\n', texture_path)
-    print(model_path)
-    print(render_folder)
+    print("RENDER POSES: Detected model, using model: \n {}".format(model_path))
+    print("RENDER POSES: Render folder used : \n {} \n".format(render_folder))
 
     # Do the blender stuff
     RI.load_from_model(model_path, render_folder)
 
     if blender_attributes:
+        print("RENDER POSES: the following attributes are supplied for this run: ")
         for param in blender_attributes['attribute_distribution_params']:
             print(param)
             RI.set_attribute_distribution_params(param[0], param[1], param[2])
@@ -151,4 +138,8 @@ for product in os.listdir(args.object_folder):
             print(dist)
             RI.set_attribute_distribution(dist[0], dist[1])
 
+        print("\n")
+
+    print("RENDER POSES: begin rendering {} \n".format(product))
     RI.render_all(dump_logs=True, visualize=args.visualize_dump, dry_run=args.dry_run_mode)
+    print("RENDER POSES: finished rendering {} \n".format(product))

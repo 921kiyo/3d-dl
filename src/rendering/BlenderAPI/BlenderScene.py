@@ -76,18 +76,18 @@ class BlenderScene(object):
         self.objects_fixed = []
         self.objects_unfixed = []
 
-    def set_render(self):
+    def set_render(self, resolution = 300):
         self.data.cycles.film_transparent = True
         self.data.cycles.max_bounces = 1
         self.data.cycles.min_bounces = 1
         self.data.cycles.transparent_max_bounces = 1
         self.data.cycles.transparent_min_bounces = 1
-        self.data.cycles.samples = 128
+        self.data.cycles.samples = 64
         self.data.cycles.device = 'GPU'
         self.data.render.tile_x = 512
         self.data.render.tile_y = 512
-        self.data.render.resolution_x = 300
-        self.data.render.resolution_y = 300
+        self.data.render.resolution_x = resolution
+        self.data.render.resolution_y = resolution
         self.data.render.resolution_percentage = 100
         self.data.render.use_persistent_data = True
 
@@ -127,14 +127,14 @@ class BlenderRandomScene(BlenderScene):
         """
         super(BlenderRandomScene, self).__init__(data)
         '''light params'''
-        self.num_lamps     = rnd.UniformDDist(l=1,r=3)
+        self.num_lamps     = rnd.PScaledUniformDDist(mid=2, scale=0.5)
         self.lamp_loc      = rnd.UniformShellCoordinateDist()
-        self.lamp_distance = rnd.TruncNormDist(mu=5.0,sigmu=0.3,l=0.0,r=None)
+        self.lamp_distance = rnd.TruncNormDist(mu=5.0,sigmu=0.0,l=2.0,r=None)
         self.lamp_energy   = rnd.TruncNormDist(mu=5000.,sigmu=0.3,l=0.0,r=None)
         self.lamp_size     = rnd.TruncNormDist(mu=5., sigmu=0.3, l=0.0, r=None)
         '''camera params'''
         self.camera_loc     = rnd.CompositeShellRingDist(phi_sigma=10.0,normals='YZ')
-        self.camera_radius  = rnd.TruncNormDist(mu=6.0,sigmu=0.3,l=0.0,r=None)
+        self.camera_radius  = rnd.TruncNormDist(mu=6.0,sigmu=0.3,l=2.0,r=None)
         self.spin_angle     = rnd.UniformCDist(l=0.0,r=360.0)
         '''mesh params'''
         self.subject_size   = rnd.NormDist(mu=8.0,sigma=0.0)
