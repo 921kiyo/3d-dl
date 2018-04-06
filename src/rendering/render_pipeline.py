@@ -89,11 +89,11 @@ def validate_folders(target_folder, folder_list):
     If not, create them.
     """
     diff = sorted(list(set(folder_list) - set(os.listdir(target_folder))))
-    print("Creating the following folders: ",sorted(diff))
+    print("Creating the following folders: ", sorted(diff))
     if not diff == []:
             for folder in diff:
                 print("making ", folder)
-                os.mkdir(os.path.join(target_folder,folder))
+                os.mkdir(os.path.join(target_folder, folder))
 
 
 def destroy_folders(target_folder, folder_list):
@@ -101,9 +101,10 @@ def destroy_folders(target_folder, folder_list):
     Destroy all folders in the target folder that are on the folder list
     """
     for folder in folder_list:
-        full_path = os.path.join(target_folder,folder)
+        full_path = os.path.join(target_folder, folder)
         if(os.path.isdir(full_path)):
             rmtree(full_path)
+
 
 """------------ Helper functions ----------- """
 def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product, blender_attributes, visualize_dump=False, dry_run_mode=False):
@@ -142,7 +143,6 @@ def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_
     """
     print("Project source dir is", src_dir)
     print("Blender path is ", blender_path)
-
 
     blender_script_path = os.path.join(src_dir, 'rendering', 'render_poses.py')
     blender_args = [blender_path, '--background', '--python-exit-code', '2','--python', blender_script_path, '--',
