@@ -306,8 +306,8 @@ class PScaledUniformDDist(Distribution):
             raise ValueError('Midpoint negative!')
         self.mid = mid
         self.scale = scale
-        self.l = mid - (mid*scale)
-        self.r = mid + (mid * scale)
+        self.l = int(np.round(mid - (mid * scale)))
+        self.r = int(np.round(mid + (mid * scale)))
         super(PScaledUniformDDist, self).__init__(**kwargs)
 
     def sample_param(self):
@@ -337,8 +337,8 @@ class PScaledUniformDDist(Distribution):
 
         if param_name in ['scale', 'mid']:
             self_dict[param_name] = param_val
-            self.l = self.mid - (self.mid * self.scale)
-            self.r = self.mid + (self.mid * self.scale)
+            self.l = int(np.round(self.mid - (self.mid * self.scale) ))
+            self.r = int(np.round(self.mid + (self.mid * self.scale) ))
             return
 
         raise KeyError('Cannot find specified attribute!')

@@ -83,9 +83,26 @@ class RenderInterface(object):
         :param output_file:
         :return:
         """
+
+        # begin output redirection
+        open(self.logfile, 'a').close()
+        old = os.dup(1)
+        sys.stdout.flush()
+        os.close(1)
+        os.open(self.logfile, os.O_WRONLY)
+
+        print("RENDER INTERFACE: Loading subjects {}, {}".format(obj_path, obj_path_bot), file=sys.stderr)
+        print("RENDER INTERFACE: Loading textures {}, {}".format(texture_path, texture_path_bot), file=sys.stderr)
         self.output_file = output_file
         self.scene.load_subject_from_path(
             obj_path=obj_path, texture_path=texture_path, obj_path_bot=obj_path_bot, texture_path_bot=texture_path_bot)
+        print("RENDER INTERFACE: Finish loading subjects! ", file=sys.stderr)
+        print("\n", file=sys.stderr)
+
+        # end output redirection
+        os.close(1)
+        os.dup(old)
+        os.close(old)
 
     def load_subjects(self, obj_path, texture_path, obj_path_bot, texture_path_bot, output_file):
         """
@@ -97,9 +114,25 @@ class RenderInterface(object):
         :param output_file:
         :return:
         """
+        # begin output redirection
+        open(self.logfile, 'a').close()
+        old = os.dup(1)
+        sys.stdout.flush()
+        os.close(1)
+        os.open(self.logfile, os.O_WRONLY)
+
+        print("BLENDER RENDER INTERFACE: Loading subjects from : \n {}, \n {}".format(obj_path, obj_path_bot) , file=sys.stderr)
+        print("BLENDER RENDER INTERFACE: Loading textures from : \n {}, \n {}".format(texture_path, texture_path_bot), file=sys.stderr)
         self.output_file = output_file
         self.scene.load_subject_from_path(
             obj_path=obj_path, texture_path=texture_path, obj_path_bot=obj_path_bot, texture_path_bot=texture_path_bot)
+        print("BLENDER RENDER INTERFACE: Finish loading subjects! ", file=sys.stderr)
+        print("\n", file=sys.stderr)
+
+        # end output redirection
+        os.close(1)
+        os.dup(old)
+        os.close(old)
 
     def load_from_model(self, model_path, output_file):
 
@@ -206,9 +239,12 @@ class RenderInterface(object):
         """
         self.scene.set_attribute_distribution(attr, params)
 
-    def render_all(self, dump_logs=False, visualize=False, verb=1, progress=False):
+    def render_all(self, dump_logs=False, visualize=False, verb=1, progress=False, dry_run=True):
 
-        print("BLENDER RENDER INTERFCE : Rendering {} images to {}".
+        if dry_run:
+            print("BLENDER RENDER INTERFACE : DRY RUN MODE \n")
+
+        print("BLENDER RENDER INTERFACE : Rendering {} images to {} \n ".
               format(self.num_images, self.output_file), file=sys.stderr)
 
         if progress:
@@ -227,6 +263,9 @@ class RenderInterface(object):
             start = time.time()
             # **********************  RENDER N SAVE **********************
             render_path = os.path.join(self.output_file, 'render%d.png' % i)
+            if dry_run:
+                self.scene.scene_setup()
+                continue
             self.scene.render_to_file(render_path)
             end = time.time()
 
@@ -259,8 +298,6 @@ class RenderInterface(object):
                 json.dump(params, f, sort_keys=True, indent=4, separators=(',', ': '))
 
         if visualize:
-            for path in sys.path:
-                print(path)
 
             import matplotlib
             matplotlib.use('agg')
@@ -280,7 +317,9 @@ class RenderInterface(object):
             plt.title('Camera Location')
             dump_file = os.path.join(self.output_file, 'stats','camera_locations.svg')
             plt.savefig(dump_file)
+            plt.close(fig)
 
+            fig = plt.figure()
             plt.subplot(211)
             camera_radii = logs['camera_radius']
             plt.hist(camera_radii,bins=20)
@@ -292,6 +331,7 @@ class RenderInterface(object):
             plt.title('Spin angle Histogram')
             dump_file = os.path.join(self.output_file, 'stats', 'camera_stats.svg')
             plt.savefig(dump_file)
+            plt.close(fig)
 
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
@@ -306,6 +346,7 @@ class RenderInterface(object):
             plt.title('Lamp Location')
             dump_file = os.path.join(self.output_file, 'stats', 'lamp_locations.svg')
             plt.savefig(dump_file)
+            plt.close(fig)
 
             fig = plt.figure()
             plt.subplot(211)
@@ -320,5 +361,6 @@ class RenderInterface(object):
             
             dump_file = os.path.join(self.output_file, 'stats', 'lamp_stats.svg')
             plt.savefig(dump_file)
+            plt.close(fig)
 
         return logs

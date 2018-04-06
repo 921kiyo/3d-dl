@@ -26,7 +26,7 @@ import numpy as np
 import os
 import subprocess
 import json
-import string
+#import string
 import datetime
 
 """
@@ -61,9 +61,6 @@ if not project_path in sys.path:
     sys.path.append(project_path)
 
 
-#sys.path.append("E:/Blender_Foundation/Blender/2.79/python/lib/site-packages/")
-#sys.path.append("E:/Anaconda/Lib/site-packages/scipy/")
-# print(sys.path)
 import SceneLib.Merge_Images as mi
 import RandomLib.random_background as rb
 
@@ -110,7 +107,7 @@ def destroy_folders(target_folder, folder_list):
 
 
 """------------ Helper functions ----------- """
-def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product, blender_attributes):
+def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product, blender_attributes, visualize_dump=False, dry_run_mode=False):
     """
     Make a system call to Blender, passing the configuration for this run
     and wait for Blender to return.
@@ -148,21 +145,28 @@ def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_
     print("Blender path is ", blender_path)
 
     blender_script_path = os.path.join(src_dir, 'rendering', 'render_poses.py')
-    #config_file_path = os.path.join(src_dir, 'rendering', 'config.json')
-
-    blender_args = [blender_path, '--background', '--python', blender_script_path, '--',
+    blender_args = [blender_path, '--background', '--python-exit-code', '2','--python', blender_script_path, '--',
                     src_dir,
                     object_folder,
                     output_folder,
                     str(renders_per_product),
-                    json.dumps(blender_attributes)]
+                    json.dumps(blender_attributes),
+                    str(visualize_dump),
+                    str(dry_run_mode)]
 
-    print('Rendering...')
-    subprocess.check_call(blender_args)
-    print('Rendering done!')
+    print('\n')
+    print(' ============================ LAUNCHING BLENDER FOR POSE RENDERING ============================')
+    print('\n')
+    try:
+        subprocess.check_call(blender_args)
+    except subprocess.CalledProcessError as e:
+        print( " error! return code is: " , e.returncode)
+    print('\n')
+    print(' ============================ CLOSING BLENDER FOR POSE RENDERING ============================')
+    print('\n')
 
 
-def gen_merge(image, save_as, pixels=300):
+def gen_merge(image, save_as, pixels=300, adjust_brightness = False):
     """
     This functionw will be called whenever you need to generate your own
     background. Instead of generating large quanta and randomly searching
@@ -177,10 +181,32 @@ def gen_merge(image, save_as, pixels=300):
             image should be saved
         pixels: The number of pixels the final square image will have.
             Default = 300
+        adjust_brigtness (boolean): Whether the brigthness of the background
+            should be adjusted to match on average the brightness of the 
+            foreground image. Default = False
     """
 
-    back = rb.rand_background(np.random.randint(2,4), pixels)
-    scaled = back * 256
+    back = rb.rand_background(np.random.randint(2,4),pixels)
+    scaled = back*256
+    
+    if adjust_brightness:
+        for_array = np.array(image)
+        frgdnumber = np.count_nonzero(np.count_nonzero(for_array, axis=2))
+        frgdsum = np.sum(np.sum(np.sum(for_array, axis=0), axis=0)[0:3])
+        
+        bcgdnumber = pixels*pixels#np.count_nonzero(np.count_nonzero(back_array, axis=2))
+        bcgdsum = np.sum(np.sum(np.sum(scaled, axis=0), axis=0))
+        
+        frmean = frgdsum/frgdnumber
+        bcmean = bcgdsum/bcgdnumber 
+        factor = frmean/bcmean
+        # Imposing boundaries on the factor
+        factor = min(factor, 1.5)
+        factor = max(factor, 0.5)
+
+        scaled = scaled*factor
+        scaled[scaled>255]=255
+    
     background = Image.fromarray(scaled.astype('uint8'), mode = "RGB")
     final = mi.merge_images(image, background)
 
@@ -192,7 +218,7 @@ def gen_merge(image, save_as, pixels=300):
         print("Key error")
 
 
-def full_run(obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}):
+def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}, visualize_dump=False, dry_run_mode=False, adjust_brightness =False):
     """
     Function that will take all the parameters and execute the
     appropriate pipeline
@@ -203,6 +229,9 @@ def full_run(obj_set, blender_path, renders_per_class=10, work_dir=workspace, ge
                 if False, we will use images in a given database
         background_database : Path to databse of backgrounds to use if
             generate_background is False
+        adjust_brigtness (boolean): Whether the brigthness of the background
+            should be adjusted to match on average the brightness of the 
+            foreground image. Default = False
     """
     print('Checking data directories...')
 
@@ -219,7 +248,7 @@ def full_run(obj_set, blender_path, renders_per_class=10, work_dir=workspace, ge
 
     """----------------- Generating object poses ---------------"""
     src_path = os.path.join(project_path, "src")
-    generate_poses(src_path, blender_path, obj_set, obj_poses, renders_per_class, blender_attributes)
+    generate_poses(src_path, blender_path, obj_set, obj_poses, renders_per_class, blender_attributes, visualize_dump, dry_run_mode)
 
     #now we need to take Ong' stats and move them into final folder
     for folder in os.listdir(obj_poses):
@@ -260,7 +289,7 @@ def full_run(obj_set, blender_path, renders_per_class=10, work_dir=workspace, ge
                 just_name = os.path.splitext(image)[0]
                 name_jpg = just_name + ".jpg"
                 save_to = os.path.join(sub_final, name_jpg)
-                gen_merge(foreground, save_to, pixels=300)
+                gen_merge(foreground, save_to, 300, adjust_brightness)
                 foreground.close()
 
         elif(generate_background is False and background_database is None):
@@ -268,7 +297,7 @@ def full_run(obj_set, blender_path, renders_per_class=10, work_dir=workspace, ge
             return
         else:
             # We generate a random mesh background
-            mi.generate_for_all_objects(sub_obj,background_database ,sub_final)
+            mi.generate_for_all_objects(sub_obj,background_database ,sub_final, adjust_brightness)
 
     # Dump the parameters used for rendering and merging
 
@@ -277,11 +306,11 @@ def full_run(obj_set, blender_path, renders_per_class=10, work_dir=workspace, ge
         print(folder)
     
     # Dump all merging parameters to a json file
-    all_params= {"object_set": obj_set.split("\\")[-1], 
+    all_params= {"object_set": os.path.split(obj_set)[-1],
                  "images_per_class": renders_per_class,
                  "background_generated": generate_background,
-                 "background_database": background_database.split("\\")[-1]
-                 #"blender_attributes": blender_attributes
+                 "background_database": os.path.split(background_database)[-1],
+                 "brightness_adjusted": adjust_brightness
                  }
     dump_file = os.path.join(final_folder, 'mergeparams_dump.json')
     with open(dump_file, "w+") as f:
@@ -291,8 +320,8 @@ def full_run(obj_set, blender_path, renders_per_class=10, work_dir=workspace, ge
     if generate_background:
         back_parameter = "random_bg"
     else:
-        back_parameter = background_database.split("\\")[-1]
-    zip_name = os.path.join(work_dir,"final_zip",obj_set.split("\\")[-1] + "_" + back_parameter + "_" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S").replace(" ","_").replace(":","_"))
+        back_parameter = os.path.split(background_database)[-1]
+    zip_name = os.path.join(work_dir,"final_zip",os.path.split(obj_set)[-1] + "_" + back_parameter + "_" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S").replace(" ","_").replace(":","_"))
     
     make_archive(zip_name, 'zip',final_folder)
     destroy_folders(work_dir, temp_folders)
@@ -308,7 +337,7 @@ blender_attributes={}
 """------------------ Running the pipeline ------------------"""
 def example_run():
     blender_attributes = {
-        "attribute_distribution_params": [["num_lamps","l", 5], ["num_lamps","r", 8], ["lamp_energy","mu", 500.0], ["lamp_size","mu",5], ["camera_radius","sigmu",0.1]],
+        "attribute_distribution_params": [["num_lamps","mid", 6], ["num_lamps","scale", 0.4], ["lamp_energy","mu", 500.0], ["lamp_size","mu",5], ["camera_radius","sigmu",0.1]],
         "attribute_distribution" : []
     }
     
@@ -336,18 +365,20 @@ def example_run():
         "work_dir": workspace,
         "generate_background": False,
         "background_database": background_database,
-        "blender_attributes": blender_attributes
+        "blender_attributes": blender_attributes,
+        "adjust_brightness": True
         }
     
     arguments2 = {
         #"zip_name": zip_save2,
         "obj_set": obj_set,
         "blender_path": bl_path,
-        "renders_per_class": 2,
+        "renders_per_class": 20,
         "work_dir": workspace,
         "generate_background": True,
         "background_database": background_database,
-        "blender_attributes": blender_attributes
+        "blender_attributes": blender_attributes,
+        "adjust_brightness": False
         }
     
     argument_list.append(arguments1)
