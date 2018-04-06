@@ -219,7 +219,7 @@ def gen_merge(image, save_as, pixels=300, adjust_brightness = False):
         print("Key error")
 
 
-def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}, visualize_dump=False, dry_run_mode=False, adjust_brightness =False):
+def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}, visualize_dump=False, dry_run_mode=False,n_of_pixels = 300, adjust_brightness =False):
     """
     Function that will take all the parameters and execute the
     appropriate pipeline
@@ -230,6 +230,8 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
                 if False, we will use images in a given database
         background_database : Path to databse of backgrounds to use if
             generate_background is False
+        n_of_pixels (int): The size of the edge of the square image.
+            Is optional, default = 300
         adjust_brigtness (boolean): Whether the brigthness of the background
             should be adjusted to match on average the brightness of the 
             foreground image. Default = False
@@ -290,7 +292,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
                 just_name = os.path.splitext(image)[0]
                 name_jpg = just_name + ".jpg"
                 save_to = os.path.join(sub_final, name_jpg)
-                gen_merge(foreground, save_to, 300, adjust_brightness)
+                gen_merge(foreground, save_to, n_of_pixels, adjust_brightness)
                 foreground.close()
 
         elif(generate_background is False and background_database is None):
@@ -311,6 +313,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
                  "images_per_class": renders_per_class,
                  "background_generated": generate_background,
                  "background_database": os.path.split(background_database)[-1],
+                 "number_of_pixels": n_of_pixels,
                  "brightness_adjusted": adjust_brightness
                  }
     dump_file = os.path.join(final_folder, 'mergeparams_dump.json')
@@ -367,6 +370,7 @@ def example_run():
         "generate_background": False,
         "background_database": background_database,
         "blender_attributes": blender_attributes,
+        "n_of_pixels": 300,
         "adjust_brightness": True
         }
     
@@ -374,11 +378,12 @@ def example_run():
         #"zip_name": zip_save2,
         "obj_set": obj_set,
         "blender_path": bl_path,
-        "renders_per_class": 20,
+        "renders_per_class": 2,
         "work_dir": workspace,
         "generate_background": True,
         "background_database": background_database,
         "blender_attributes": blender_attributes,
+        "n_of_pixels": 300,
         "adjust_brightness": False
         }
     
