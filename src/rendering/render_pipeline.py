@@ -26,7 +26,6 @@ import numpy as np
 import os
 import subprocess
 import json
-#import string
 import datetime
 
 """
@@ -82,6 +81,12 @@ temp_folders = ['generate_bg',
                 'object_poses',
                 #'final_folder/images',
                 'final_folder']
+
+class RenderPipelineError(Exception):
+     def __init__(self, value):
+         self.value = value
+     def __str__(self):
+         return repr(self.value)
 
 def validate_folders(target_folder, folder_list):
     """
@@ -162,6 +167,7 @@ def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_
         subprocess.check_call(blender_args)
     except subprocess.CalledProcessError as e:
         print( " error! return code is: " , e.returncode)
+        raise RenderPipelineError(e)
     print('\n')
     print(' ============================ CLOSING BLENDER FOR POSE RENDERING ============================')
     print('\n')
@@ -213,10 +219,9 @@ def gen_merge(image, save_as, pixels=300, adjust_brightness = False):
 
     try:
         final.save(save_as, "JPEG", quality=80, optimize=True, progressive=True)
-    except IOError:
-        print("IO error")
-    except KeyError:
-        print("Key error")
+    except Exception as e:
+        print("gen_merge exception: ",e)
+        raise RenderPipelineError(e)
 
 
 def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}, visualize_dump=False, dry_run_mode=False,n_of_pixels = 300, adjust_brightness =False):
@@ -243,7 +248,10 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
         print("Can't find rendering workspace folder. Please create the folder",
         workspace, ", containing object files and background database. See " \
         "group folder for example.")
-        return
+        raise RenderPipelineError("Can't find rendering workspace folder. Please create the folder",
+        workspace, ", containing object files and background database. See " \
+        "group folder for example.")
+        
 
     validate_folders(work_dir, data_folders)
 
@@ -297,13 +305,13 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
 
         elif(generate_background is False and background_database is None):
             print("We need a background database")
-            return
+            raise RenderPipelineError("A background database is missing")
         else:
             # We generate a random mesh background
             try:
                 mi.generate_for_all_objects(sub_obj,background_database ,sub_final, adjust_brightness, n_of_pixels)
             except Exception as e:
-                raise e
+                raise RenderPipelineError(e)
     # Dump the parameters used for rendering and merging
 
 
@@ -401,7 +409,6 @@ def example_run():
         try:
             full_run(**value)
         except Exception as e:
-            print("The following exception occured during the run:",e)
             raise e
         print("One run done")
 
