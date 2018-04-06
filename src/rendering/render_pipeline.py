@@ -63,7 +63,7 @@ if not project_path in sys.path:
 
 #sys.path.append("E:/Blender_Foundation/Blender/2.79/python/lib/site-packages/")
 #sys.path.append("E:/Anaconda/Lib/site-packages/scipy/")
-print(sys.path)
+# print(sys.path)
 import SceneLib.Merge_Images as mi
 import RandomLib.random_background as rb
 
@@ -92,11 +92,11 @@ def validate_folders(target_folder, folder_list):
     If not, create them.
     """
     diff = sorted(list(set(folder_list) - set(os.listdir(target_folder))))
-    print("Creating the following folders: ",sorted(diff))
+    print("Creating the following folders: ", sorted(diff))
     if not diff == []:
             for folder in diff:
                 print("making ", folder)
-                os.mkdir(os.path.join(target_folder,folder))
+                os.mkdir(os.path.join(target_folder, folder))
 
 
 def destroy_folders(target_folder, folder_list):
@@ -104,9 +104,10 @@ def destroy_folders(target_folder, folder_list):
     Destroy all folders in the target folder that are on the folder list
     """
     for folder in folder_list:
-        full_path = os.path.join(target_folder,folder)
+        full_path = os.path.join(target_folder, folder)
         if(os.path.isdir(full_path)):
             rmtree(full_path)
+
 
 """------------ Helper functions ----------- """
 def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product, blender_attributes):
@@ -146,7 +147,6 @@ def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_
     print("Project source dir is", src_dir)
     print("Blender path is ", blender_path)
 
-
     blender_script_path = os.path.join(src_dir, 'rendering', 'render_poses.py')
     #config_file_path = os.path.join(src_dir, 'rendering', 'config.json')
 
@@ -179,8 +179,8 @@ def gen_merge(image, save_as, pixels=300):
             Default = 300
     """
 
-    back = rb.rand_background(np.random.randint(2,4),pixels)
-    scaled = back*256
+    back = rb.rand_background(np.random.randint(2,4), pixels)
+    scaled = back * 256
     background = Image.fromarray(scaled.astype('uint8'), mode = "RGB")
     final = mi.merge_images(image, background)
 
@@ -192,7 +192,7 @@ def gen_merge(image, save_as, pixels=300):
         print("Key error")
 
 
-def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}):
+def full_run(obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}):
     """
     Function that will take all the parameters and execute the
     appropriate pipeline
@@ -260,7 +260,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
                 just_name = os.path.splitext(image)[0]
                 name_jpg = just_name + ".jpg"
                 save_to = os.path.join(sub_final, name_jpg)
-                gen_merge(foreground, save_to, pixels = 300)
+                gen_merge(foreground, save_to, pixels=300)
                 foreground.close()
 
         elif(generate_background is False and background_database is None):

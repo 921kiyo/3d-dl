@@ -75,22 +75,6 @@ print('Running blender with the following parameters: \n', blender_attributes)
 
 
 """" --------------- Helper functions for folder navigation ------------- """
-def find_files(product_folder):
-    """Naively return name of object and texture file in a folder"""
-    object_file = ''
-    texture_file = ''
-
-    files = os.listdir(product_folder)
-
-    for file in files:
-        if file.endswith('.obj'):
-            object_file = file
-        elif file.endswith('.jpg'):
-            texture_file = file
-
-    return object_file, texture_file
-
-
 def find_model(product_folder):
     """Return the name of the .model file in a folder"""
     for file in os.listdir(product_folder):
@@ -104,7 +88,7 @@ RI = Render.RenderInterface(num_images=args.renders_per_product)
 for product in os.listdir(args.object_folder):
     product_folder = os.path.join(args.object_folder, product)
 
-    # Validate project
+    # Validate object
     if not os.path.isdir(product_folder):
         print("Couldn't find {} object folder! Skipping".format(product))
         continue
@@ -121,7 +105,6 @@ for product in os.listdir(args.object_folder):
     # Configure model paths
     model_path = os.path.join(product_folder, model_file)
 
-    # print(object_path, '\n', texture_path)
     print(model_path)
     print(render_folder)
 
