@@ -59,6 +59,9 @@ parser.add_argument('renders_per_product', type=int, default=1,
 parser.add_argument('render_resolution', type=int, default=300,
                     help='resolution of rendered object pose')
 
+parser.add_argument('render_samples', type=int, default=128,
+                    help='rendering samples')
+
 parser.add_argument('blender_attributes',
                     help='json dump of blender attributes')
 
@@ -100,7 +103,7 @@ def find_model(product_folder):
 
 
 """" --------------- Rendering ------------- """
-RI = Render.RenderInterface(num_images=args.renders_per_product, resolution=args.render_resolution)
+RI = Render.RenderInterface(num_images=args.renders_per_product, resolution=args.render_resolution, samples=args.render_samples)
 
 for product in os.listdir(args.object_folder):
     product_folder = os.path.join(args.object_folder, product)
