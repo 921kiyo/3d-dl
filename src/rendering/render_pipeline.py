@@ -28,6 +28,7 @@ import subprocess
 import json
 #import string
 import datetime
+from resizeimage import resizeimage
 
 """
 Here the paths have to be set up.
@@ -49,12 +50,12 @@ rendering_path = os.path.dirname(os.path.realpath(__file__))
 src_path = os.path.abspath(os.path.join(rendering_path, os.pardir))
 project_path = os.path.abspath(os.path.join(src_path, os.pardir))
 #project_path = '/vol/bitbucket/who11/CO-530/Lobster/'
-#workspace = os.path.join(project_path, "render_workspace")
-workspace = '/vol/project/2017/530/g1753002/render_workspace'
+workspace = os.path.join(project_path, "render_workspace")
+#workspace = '/vol/project/2017/530/g1753002/render_workspace'
 
 # Set Blender path
-bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
-#bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
+#bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
+bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
 
 
 if not project_path in sys.path:
@@ -299,8 +300,10 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
             return
         else:
             # We generate a random mesh background
-            mi.generate_for_all_objects(sub_obj,background_database ,sub_final, adjust_brightness)
-
+            try:
+                mi.generate_for_all_objects(sub_obj,background_database ,sub_final, adjust_brightness, n_of_pixels)
+            except Exception as e:
+                raise e
     # Dump the parameters used for rendering and merging
 
 
@@ -395,7 +398,11 @@ def example_run():
     # failed jobs are removed
     destroy_folders(workspace, temp_folders)
     for value in argument_list:
-        full_run(**value)
+        try:
+            full_run(**value)
+        except Exception as e:
+            print("The following exception occured during the run:",e)
+            raise e
         print("One run done")
 
 

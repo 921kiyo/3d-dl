@@ -13,6 +13,7 @@ import random
 from PIL import Image
 import time
 import numpy as np
+from resizeimage import resizeimage
 
 Image_height = 360
 Image_width = 360
@@ -20,8 +21,14 @@ base_address= "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoL
 SUN_images_dir = "E:/LabelMeToolbox/real_data/images/"
 #final_address = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/images/resized_background/"
 
+class ImageError(Exception):
+     def __init__(self, value):
+         self.value = value
+     def __str__(self):
+         return repr(self.value)
 
-def add_background(foreground_name, background_name, save_as, adjust_brightness = False):
+
+def add_background(foreground_name, background_name, save_as, adjust_brightness = False, n_of_pixels = 300):
     """
     Function that give an RGBA and any image file merges them into one.
     
@@ -37,17 +44,29 @@ def add_background(foreground_name, background_name, save_as, adjust_brightness 
         foreground=Image.open(foreground_name)
     except:
         print("Invalid foreground images, skipping", foreground_name)
-        return "ForegroundError"   
+        raise ImageError("Invalid foreground images, skipping", foreground_name)   
     try:
         background=Image.open(background_name)
     except:
         #This is technically problematic as we might throw away
         # valid object poses because of invalid backgrounds
         print("Invalid background image skipping", background_name)
-        return "BackgroundError" 
+        raise ImageError("Invalid background image skipping", background_name)
     
-    background.paste(foreground, (0, 0), foreground)
-    background.save("tested2.jpg", "JPEG", quality=80, optimize=True, progressive=True)
+    bc_size = background.size
+    if(n_of_pixels > bc_size[0] or n_of_pixels > bc_size[1]):
+        print("Background too small to be resized") 
+        raise ImageError("Background too small to be resized")
+                
+    elif(n_of_pixels < bc_size[0] or n_of_pixels < bc_size[1]):
+        background = resizeimage.resize_cover(background, [n_of_pixels, n_of_pixels])
+    #else means it has exactly the correct size, do nothing   
+    
+    fg_size = foreground.size
+    
+    if(n_of_pixels != fg_size[0] or n_of_pixels != fg_size[1]):
+        print("Resolution of the object pose given does not match the given number of pixels") 
+        raise ImageError("Resolution of the object pose given does not match the given number of pixels")
     
     
     if adjust_brightness:
@@ -74,7 +93,7 @@ def add_background(foreground_name, background_name, save_as, adjust_brightness 
             bcgdsum += sum(one_tuple)
         """    
         
-        bc_size = background.size
+        #bc_size = background.size
         back_array = np.array(background)
         
         bcgdnumber = bc_size[0]*bc_size[1]#np.count_nonzero(np.count_nonzero(back_array, axis=2))
@@ -84,11 +103,10 @@ def add_background(foreground_name, background_name, save_as, adjust_brightness 
         bcmean = bcgdsum/bcgdnumber 
         factor = frmean/bcmean
 
-        #print(factor)
         # Imposing boundaries on the factor
         factor = min(factor, 1.5)
         factor = max(factor, 0.5)
-        #print(factor)
+
         back_array = back_array*factor
         back_array[back_array>255]=255
         #back_array = np.minimum(back_array,255)
@@ -112,7 +130,7 @@ def merge_images(foreground, background):
     background.paste(foreground, (0, 0), foreground)
     return background
                
-def generate_for_all_objects(objects_folder, background_folder, final_folder, adjust_brightness = False):
+def generate_for_all_objects(objects_folder, background_folder, final_folder, adjust_brightness = False, n_of_pixels = 300):
     """
     This function takes every image in objects_folder, merge it
     with a random image from background_folder and saves it in final_folder.
@@ -132,11 +150,16 @@ def generate_for_all_objects(objects_folder, background_folder, final_folder, ad
     for object_image in os.listdir(objects_folder):
         one_object = random.choice(all_backgrounds)
         just_name = os.path.splitext(object_image)[0]
-        add_background(objects_folder+"/"+object_image, background_folder+"/"+one_object, final_folder+"/"+just_name+".jpg", adjust_brightness)
+        try:
+            add_background(objects_folder+"/"+object_image, background_folder+"/"+one_object, final_folder+"/"+just_name+".jpg", adjust_brightness, n_of_pixels)
+        except Exception as e:
+            print("The following error occured during background addition:", e)
+            raise e
+            
         
 if __name__ == "__main__":
     start_time = time.time()
-    #generate_for_all_objects(base_address+"object_poses/test", base_address+"resized_background/test", base_address+"test_results")
+    generate_for_all_objects(base_address+"object_poses/test", base_address+"resized_background/test", base_address+"test_results", n_of_pixels = 300)
     
-    generate_for_all_objects(base_address+"object_poses/Halloumi_white", base_address+"resized_background/SUN_back", base_address+"final_images/sun/halloumi/train", True)
+    #generate_for_all_objects(base_address+"object_poses/Halloumi_white", base_address+"resized_background/SUN_back", base_address+"final_images/sun/halloumi/train", True)
     print("--- %s seconds ---" % (time.time() - start_time))
