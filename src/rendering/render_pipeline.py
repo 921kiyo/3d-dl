@@ -107,7 +107,7 @@ def destroy_folders(target_folder, folder_list):
 
 
 """------------ Helper functions ----------- """
-def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product, blender_attributes, visualize_dump=False, dry_run_mode=False):
+def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product, blender_attributes, visualize_dump=False, dry_run_mode=False, render_resolution=300):
     """
     Make a system call to Blender, passing the configuration for this run
     and wait for Blender to return.
@@ -150,6 +150,7 @@ def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_
                     object_folder,
                     output_folder,
                     str(renders_per_product),
+                    str(render_resolution),
                     json.dumps(blender_attributes),
                     str(visualize_dump),
                     str(dry_run_mode)]
@@ -248,7 +249,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
 
     """----------------- Generating object poses ---------------"""
     src_path = os.path.join(project_path, "src")
-    generate_poses(src_path, blender_path, obj_set, obj_poses, renders_per_class, blender_attributes, visualize_dump, dry_run_mode)
+    generate_poses(src_path, blender_path, obj_set, obj_poses, renders_per_class, blender_attributes, visualize_dump, dry_run_mode, 300)
 
     #now we need to take Ong' stats and move them into final folder
     for folder in os.listdir(obj_poses):
