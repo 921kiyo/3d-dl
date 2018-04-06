@@ -31,8 +31,8 @@ base_path = os.path.abspath(os.path.join(gr_parent,os.pardir))
 if not (parent in sys.path):
     sys.path.append(parent)
     
-import SceneLib.Resize_background as rb
-import SceneLib.Merge_Images as mi
+import rendering.SceneLib.Resize_background as rb
+import rendering.SceneLib.Merge_Images as mi
 
 #base_path = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/test_data/'
 

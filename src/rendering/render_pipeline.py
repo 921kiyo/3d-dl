@@ -60,8 +60,8 @@ if not project_path in sys.path:
     sys.path.append(project_path)
 
 
-import SceneLib.Merge_Images as mi
-import RandomLib.random_background as rb
+import rendering.SceneLib.Merge_Images as mi
+import rendering.RandomLib.random_background as rb
 
 
 
