@@ -112,7 +112,7 @@ def destroy_folders(target_folder, folder_list):
 
 
 """------------ Helper functions ----------- """
-def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product, blender_attributes, visualize_dump=False, dry_run_mode=False, render_resolution=300):
+def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product, blender_attributes, visualize_dump=False, dry_run_mode=False, render_resolution=300, render_samples=128):
     """
     Make a system call to Blender, passing the configuration for this run
     and wait for Blender to return.
@@ -156,6 +156,7 @@ def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_
                     output_folder,
                     str(renders_per_product),
                     str(render_resolution),
+                    str(render_samples),
                     json.dumps(blender_attributes),
                     str(visualize_dump),
                     str(dry_run_mode)]
@@ -224,7 +225,7 @@ def gen_merge(image, save_as, pixels=300, adjust_brightness = False):
         raise RenderPipelineError(e)
 
 
-def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}, visualize_dump=False, dry_run_mode=False,n_of_pixels = 300, adjust_brightness =False):
+def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}, visualize_dump=False, dry_run_mode=False, n_of_pixels = 300, adjust_brightness =False, render_samples=128):
     """
     Function that will take all the parameters and execute the
     appropriate pipeline
@@ -259,7 +260,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
 
     """----------------- Generating object poses ---------------"""
     src_path = os.path.join(project_path, "src")
-    generate_poses(src_path, blender_path, obj_set, obj_poses, renders_per_class, blender_attributes, visualize_dump, dry_run_mode, n_of_pixels)
+    generate_poses(src_path, blender_path, obj_set, obj_poses, renders_per_class, blender_attributes, visualize_dump, dry_run_mode, n_of_pixels, render_samples)
 
     #now we need to take Ong' stats and move them into final folder
     for folder in os.listdir(obj_poses):
@@ -274,6 +275,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
     We need to distinguish between the case of drawing backrounds
     from a database and when generating ourselves
     """
+    print(' ============================ GENERATING FINAL IMAGES ============================')
     final_folder = os.path.join(work_dir, "final_folder")
     final_im = os.path.join(work_dir, "final_folder/images")
     # Generate images for each class poses
@@ -285,7 +287,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
 
         sub_final = os.path.join(final_im, folder)
         os.mkdir(sub_final)
-
+        
         # Merge images based on the choice of background
         if(generate_background):
             # for each object pose
