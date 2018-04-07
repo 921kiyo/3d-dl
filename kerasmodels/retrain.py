@@ -201,7 +201,9 @@ class KerasInception:
                 epochs=epochs,
                 validation_data=validation_generator,
                 validation_steps=800 // self.batch_size,
-                callbacks = [tensorboard,history])
+                callbacks = [tensorboard,history],
+                use_multiprocessing=True, # not sure if working properly!
+                workers=8)
 
         # print(self.model.get_config())
 
@@ -516,6 +518,6 @@ def bayes_optimization():
 
 # main()
 
-# main_for_pipeline()
+main_for_pipeline()
 
-bayes_optimization()
+# bayes_optimization()
