@@ -18,7 +18,7 @@ output_folder = '/vol/project/2017/530/g1753002/max/render_workspace/object_pose
 
 
 blender_attributes = {
-    "attribute_distribution_params": [["num_lamps","l", 5], ["num_lamps","r", 8], ["lamp_energy","mu", 500.0], ["lamp_size","mu",5], ["camera_radius","sigmu",0.1]],
+    "attribute_distribution_params": [["num_lamps","mid", 6], ["num_lamps","scale", 0.4], ["lamp_energy","mu", 500.0], ["lamp_size","mu",5], ["camera_radius","sigmu",0.1]],
     "attribute_distribution" : []
 }
 # "attribute_distribution" : [["lamp_energy", {"dist":"UniformD","l":2000.0,"r":2400.0}]]
