@@ -267,7 +267,7 @@ class KerasEval:
                 if(test_results[i]["correct_label"] != test_results[i]["predicted_label"]):
                     name = "misclassified_" + test_results[i]["predicted_label"]
 
-                    img_summary_buffer = tf.summary.image(name, tf.reshape(decoded_image, [1,367,642,3]), 1)
+                    img_summary_buffer = tf.summary.image(name, tf.expand_dims(decoded_image, 0), 1)
                     jpg = gfile.FastGFile(test_results[i]["image_file_name"], "rb").read()
                     image_summary, _ = sess.run([img_summary_buffer, decoded_image], feed_dict={jpeg_data:jpg})
                     summary_writer.add_summary(image_summary)
