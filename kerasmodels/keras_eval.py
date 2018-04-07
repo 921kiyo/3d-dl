@@ -267,7 +267,7 @@ class KerasEval:
                 if(test_results[i]["correct_label"] != test_results[i]["predicted_label"]):
                     name = "misclassified_" + test_results[i]["predicted_label"]
 
-                    img_summary_buffer = tf.summary.image(name, tf.expand_dims(decoded_image, 0), 1)
+                    img_summary_buffer = tf.summary.image(name, tf.reshape(decoded_image, [1,367,642,3]), 1)
                     jpg = gfile.FastGFile(test_results[i]["image_file_name"], "rb").read()
                     image_summary, _ = sess.run([img_summary_buffer, decoded_image], feed_dict={jpeg_data:jpg})
                     summary_writer.add_summary(image_summary)
@@ -321,7 +321,7 @@ class KerasEval:
             'Accuracy': accuracy,
         }
 
-    def eval(self, output_folder, test_folder, test_result_file, test_result_path, notify_interval):
+    def eval(self, output_folder, test_folder, test_result_file, test_result_path, notify_interval, input_dim):
 
         # Look at the folder structure, and create lists of all the images.
         label = os.path.join(output_folder, "labels.txt")
@@ -332,7 +332,7 @@ class KerasEval:
         model_path = os.path.join(output_folder, "model.h5")
         model = load_model(model_path)
 
-        inputShape = (224, 224)
+        inputShape = (input_dim, input_dim)
         preprocess = preprocess_input
 
         if test_result_file is None:
@@ -392,18 +392,11 @@ class KerasEval:
             pickle.dump(test_results, f)
 
 
-keras_eval = KerasEval()
-
-keras_eval.eval(output_folder="/vol/project/2017/530/g1753002/output", \
-                test_result_path="/vol/project/2017/530/g1753002/training_results.pkl",
-                test_result_file=None,
-                test_folder="/vol/project/2017/530/g1753002/matthew/8_class_data/qlone_training_images/",
-                notify_interval=100
-)
-
-# def main(args, output_folder="/vol/project/2017/530/g1753002/output", \
-#         test_result_path="/vol/project/2017/530/g1753002/training_results.pkl", \
-#         test_result_file=None,
-#         test_folder="/vol/project/2017/530/g1753002/matthew/8_class_data/qlone_training_images/", notify_interval=20):
-#     eval(output_folder, test_folder, test_result_file, test_result_path, notify_interval)
-# tf.app.run(main=main)
+# keras_eval = KerasEval()
+# keras_eval.eval(output_folder="/vol/project/2017/530/g1753002/output", \
+#                 test_result_path="/vol/project/2017/530/g1753002/training_results.pkl",
+#                 test_result_file=None,
+#                 test_folder="/vol/project/2017/530/g1753002/matthew/8_class_data/qlone_training_images/",
+#                 notify_interval=100,
+#                 input_dim=224
+# )
