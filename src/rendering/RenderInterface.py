@@ -45,16 +45,16 @@ class RenderInterface(object):
     the specified subject, with respect to the distributions on the random
     variables involved.
     """
-    def __init__(self, num_images=None):
+    def __init__(self, num_images=None, resolution=300, samples=128):
         """
         :param num_images: number of images to render on render_all()
         """
         self.num_images = num_images
         self.scene = None
-        self.setup_blender()
+        self.setup_blender(resolution, samples)
         self.logfile = 'blender_render.log'
 
-    def setup_blender(self):
+    def setup_blender(self, resolution=300, samples=128):
         """
         To be called on the first time blender is launched. Performs clean-up and
         setup of the scene, and instantiates the BlenderRandomScene class that
@@ -72,7 +72,7 @@ class RenderInterface(object):
         cube.delete()
         # Fetch the camera and lamp
         cam = bld.BlenderCamera(bpy.data.objects['Camera'])
-        self.scene.set_render()
+        self.scene.set_render(resolution, samples)
         self.scene.add_camera(cam)
 
     def load_subject(self, obj_path, texture_path, output_file, obj_path_bot=None, texture_path_bot=None):
