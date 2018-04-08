@@ -101,12 +101,12 @@ class SlackReporter:
 
 # reporter = SlackReporter(disable=False)
 
-# blender_attributes = {
-#     "attribute_distribution_params": [["num_lamps","mid", 6], ["num_lamps","scale", 0.4], ["lamp_energy","mu", 500.0], ["lamp_size","mu",5], ["camera_radius","sigmu",0.1]],
-#     "attribute_distribution" : []
-# }
+# # blender_attributes = {
+# #     "attribute_distribution_params": [["num_lamps","mid", 6], ["num_lamps","scale", 0.4], ["lamp_energy","mu", 500.0], ["lamp_size","mu",5], ["camera_radius","sigmu",0.1]],
+# #     "attribute_distribution" : []
+# # }
 
-# reporter.send_message(blender_attributes)
+# # reporter.send_message(blender_attributes)
 
 # @reporter.report(title='Rendering', status='good', print_message=True)
 # def do_stuff(words):
