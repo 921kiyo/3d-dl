@@ -69,12 +69,14 @@ class KerasInception:
     batch_size = 0
     dense_layers = 0
 
-    def __init__(self,input_dim=150,batch_size=16,dense_layers=1,dropout=None,lr=0.001):
+    def __init__(self,input_dim=150,batch_size=16,dense_layers=1,dropout=None,lr=0.001,
+                dense_dim=2048):
         self.input_dim = input_dim
         self.batch_size = batch_size
         self.dense_layers = dense_layers
         self.dropout = dropout
         self.lr = lr
+        self.dense_dim = dense_dim
 
     def assemble_model(self,train_dir):
         class_count = len(next(os.walk(train_dir))[1])
@@ -97,7 +99,7 @@ class KerasInception:
                 x = Dropout(self.dropout)(x)
             #
             # fully-connected layer
-            x = Dense(1024, activation='relu',name='dense'+str(i))(x)
+            x = Dense(self.dense_dim, activation='relu',name='dense'+str(i))(x)
 
         # logistic layer
         predictions = Dense(class_count, activation='softmax',name='softmax')(x)
@@ -182,7 +184,7 @@ class KerasInception:
                 class_mode='categorical')
 
         # log everything in tensorboard
-        tensorboard = TensorBoard(log_dir="logs/{}".format(time()),
+        tensorboard = TensorBoard(log_dir="/data/g1753002_ocado/logs/{}".format(time()),
                             histogram_freq=0,
                             batch_size=32,
                             write_graph=True,
@@ -197,10 +199,10 @@ class KerasInception:
         # train the model on the new data for a few epochs
         self.model.fit_generator(
                 train_generator,
-                steps_per_epoch=2000 // self.batch_size,
+                steps_per_epoch=2048*4 // self.batch_size,
                 epochs=epochs,
                 validation_data=validation_generator,
-                validation_steps=800 // self.batch_size,
+                validation_steps=1600 // self.batch_size,
                 callbacks = [tensorboard,history],
                 use_multiprocessing=True, # not sure if working properly!
                 workers=8)
@@ -233,7 +235,7 @@ class KerasInception:
         # alongside the top Dense layers
         self.model.fit_generator(
                 train_generator,
-                steps_per_epoch=2000 // self.batch_size,
+                steps_per_epoch=2048 // self.batch_size,
                 epochs=5,
                 validation_data=validation_generator,
                 validation_steps=800 // self.batch_size,
@@ -417,6 +419,6 @@ def main_for_pipeline():
 
 # main()
 
-main_for_pipeline()
+# main_for_pipeline()
 
 # bayes_optimization()
