@@ -36,6 +36,8 @@ import datetime
 # for BO
 from bayes_opt import BayesianOptimization
 
+extra_validation_dir = '/data/g1753002_ocado/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/validation'
+
 # Custom Image Augmentation Function
 def add_salt_pepper_noise(X_img):
     # Need to produce a copy as to not modify the original image
@@ -62,6 +64,73 @@ class ValAccHistory(Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         self.val_accs.append(logs.get('val_acc'))
+
+class ExtraValidationCallback(Callback):
+    def on_train_begin(self, logs={}):
+        self.val1_accs = []
+        self.val1_loss = []
+        self.val2_accs = []
+        self.val2_loss = []
+        self.train_accs = []
+        self.train_loss = []
+
+    def on_epoch_end(self, epoch, logs={}):
+        self.val1_accs.append(logs.get('val_acc'))
+        self.val1_loss.append(logs.get('val_loss'))
+
+        # loss, acc = self.evaluate(extra_validation_dir)
+        # augmentation configuration for testing: only rescaling
+        test_datagen = ImageDataGenerator(rescale=1./255)
+
+        # generator for test data
+        # similar to above but based on different augmentation function (above)
+        test_generator = test_datagen.flow_from_directory(
+                extra_validation_dir,
+                target_size=(224, 224),
+                batch_size=64,
+                class_mode='categorical')
+
+        loss, acc = self.model.evaluate_generator(test_generator)
+
+        self.val2_accs.append(acc)
+        self.val2_loss.append(loss)
+
+        self.train_accs.append(logs.get('acc'))
+        self.train_loss.append(logs.get('loss'))
+
+        logging = True
+        log_filename = 'log_train_double_validation.csv'
+
+        if logging:
+            print("logging now...")
+            my_file = Path(log_filename)
+
+            # write header if this is the first run
+            if not my_file.is_file():
+                print("writing head")
+                with open(log_filename, "w") as log:
+                    log.write("datetime,epoch,val1_acc,val1_loss,val2_acc,val2_loss,train_acc,train_loss\n")
+
+            # append parameters
+            with open(log_filename, "a") as log:
+                log.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+                log.write(',')
+                log.write(str(epoch))
+                log.write(',')
+                log.write(str(logs.get('val_acc'))),
+                log.write(',')
+                log.write(str(logs.get('val_loss'))),
+                log.write(',')
+                log.write(str(acc)),
+                log.write(',')
+                log.write(str(loss)),
+                log.write(',')
+                log.write(str(logs.get('acc'))),
+                log.write(',')
+                log.write(str(logs.get('loss')))
+                log.write('\n')
+
+        print('\Second Validation Set, loss: {}, acc: {}\n'.format(loss, acc))
 
 class KerasInception:
     model = None
@@ -196,6 +265,8 @@ class KerasInception:
 
         history = ValAccHistory()
 
+        extralogger = ExtraValidationCallback()
+
         # train the model on the new data for a few epochs
         self.model.fit_generator(
                 train_generator,
@@ -203,9 +274,9 @@ class KerasInception:
                 epochs=epochs,
                 validation_data=validation_generator,
                 validation_steps=1600 // self.batch_size,
-                callbacks = [tensorboard,history],
-                use_multiprocessing=True, # not sure if working properly!
-                workers=8)
+                callbacks = [tensorboard,history,extralogger])
+                # use_multiprocessing=True, # not sure if working properly!
+                # workers=8)
 
         # print(self.model.get_config())
 
