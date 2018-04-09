@@ -22,7 +22,8 @@ from slackclient import SlackClient
 sc = SlackClient("xoxp-273685211557-273369142960-343515639718-246d19b1bb30d4a9c436d25dced63476",)
 
 # input directories
-path_of_zip = '/data/g1753002_ocado/final_zip/ten_set_model_official_SUN_back_2018-04-07_13_19_16.zip'
+path_of_zip = '/data/g1753002_ocado/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/split_train.zip'
+# path_of_zip = '/data/g1753002_ocado/final_zip/ten_set_model_official_SUN_back_2018-04-07_13_19_16.zip'
 validation_dir = '/data/g1753002_ocado/images_proc_test_and_validation'
 test_dir = '/vol/project/2017/530/g1753002/manhattan_project/test_data/official_test_set_ambient'
 
