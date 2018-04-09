@@ -176,10 +176,7 @@ def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_
     try:
         subprocess.check_call(blender_args)
     except subprocess.CalledProcessError as e:
-        print( " error! return code is: " , e.returncode)
-        # slack.send_message("RenderPipelineError, return code is: " + str(e.returncode), title='Blender Error', status='danger')
-        slack.send_message(e, title="RenderPipelineError, return code is: " + str(e.returncode), status='danger')
-        raise RenderPipelineError(e)
+        raise RenderPipelineError("Error during pose generation! The returned subprocess error code is : {}".format(e.returncode))
     print('\n')
     print(' ============================ CLOSING BLENDER FOR POSE RENDERING ============================')
     print('\n')
@@ -232,9 +229,8 @@ def gen_merge(image, save_as, pixels=300, adjust_brightness = False):
     try:
         final.save(save_as, "JPEG", quality=80, optimize=True, progressive=True)
     except Exception as e:
-        print("gen_merge exception: ", e)
-        slack.send_message('Error in gen_merge. Output file: ' + save_as, 'Rendering Error', 'warning')
-        raise RenderPipelineError(e)
+        #slack.send_message('Error in gen_merge. Output file: ' + save_as, 'Rendering Error', 'warning')
+        raise RenderPipelineError("Error during image merging!")
 
 
 def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}, visualize_dump=False, dry_run_mode=False, n_of_pixels = 300, adjust_brightness =False, render_samples=128):
@@ -323,7 +319,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
             try:
                 mi.generate_for_all_objects(sub_obj,background_database ,sub_final, adjust_brightness, n_of_pixels)
             except Exception as e:
-                raise RenderPipelineError(e)
+                raise RenderPipelineError("Error occured during random background generation!")
     # Dump the parameters used for rendering and merging
     for folder in os.listdir(obj_poses):
         print(folder)
@@ -354,6 +350,16 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
     slack.send_message('Full run completed. Final zip file: ' + final_result, 'Rendering Run Completed', 'good')
     return final_result
 
+def full_run_with_notifications(*args, **kwargs):
+    try:
+        full_run(*args, **kwargs)
+    except RenderPipelineError as e:
+        slack.send_message(e.value , title="RenderPipelineError occured: see terminal for details", status='danger')
+        raise e
+    except Exception as e:
+        slack.send_message("An unknown exception occured! Please check terminal for details!",
+                           title="Unknown Error occured: see console for details", status='danger')
+        raise e
 """
 The blender parameters. Keywords should be self explanatory.
 For more details ask Ong.
