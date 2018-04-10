@@ -37,6 +37,7 @@ import datetime
 from bayes_opt import BayesianOptimization
 
 extra_validation_dir = '/data/g1753002_ocado/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/validation'
+launch_datetime = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") # for csv names
 
 # Custom Image Augmentation Function
 def add_salt_pepper_noise(X_img):
@@ -91,6 +92,21 @@ class ExtraValidationCallback(Callback):
                 class_mode='categorical')
 
         loss, acc = self.model.evaluate_generator(test_generator)
+
+        # WRITING ALL IMAGES USED IN TEST GEN
+        log_filename = 'val2_filenames_'+launch_datetime+'.csv'
+
+        my_file = Path(log_filename)
+
+        # write header if this is the first run
+        if not my_file.is_file():
+            print("writing head")
+            with open(log_filename, "w") as log:
+                log.write("Filenames:\n")
+            with open(log_filename, "a") as log:
+                for i in test_generator.filenames:
+                    log.write(i)
+
 
         self.val2_accs.append(acc)
         self.val2_loss.append(loss)
@@ -255,7 +271,7 @@ class KerasInception:
         # log everything in tensorboard
         tensorboard = TensorBoard(log_dir="/data/g1753002_ocado/logs/{}".format(time()),
                             histogram_freq=0,
-                            batch_size=32,
+                            batch_size=self.batch_size,
                             write_graph=True,
                             write_grads=False,
                             write_images=True,
@@ -270,13 +286,41 @@ class KerasInception:
         # train the model on the new data for a few epochs
         self.model.fit_generator(
                 train_generator,
-                steps_per_epoch=2048*4 // self.batch_size,
+                steps_per_epoch=98000 // self.batch_size,
                 epochs=epochs,
                 validation_data=validation_generator,
                 validation_steps=1600 // self.batch_size,
                 callbacks = [tensorboard,history,extralogger])
                 # use_multiprocessing=True, # not sure if working properly!
                 # workers=8)
+
+        # WRITING ALL IMAGES USED IN TEST GEN
+        log_filename = 'val1_filenames_'+launch_datetime+'.csv'
+
+        my_file = Path(log_filename)
+
+        # write header if this is the first run
+        if not my_file.is_file():
+            print("writing head")
+            with open(log_filename, "w") as log:
+                log.write("Filenames:\n")
+            with open(log_filename, "a") as log:
+                for i in validation_generator.filenames:
+                    log.write(i)
+
+        # WRITING ALL IMAGES USED IN TEST GEN
+        log_filename = 'train_filenames_'+launch_datetime+'.csv'
+
+        my_file = Path(log_filename)
+
+        # write header if this is the first run
+        if not my_file.is_file():
+            print("writing head")
+            with open(log_filename, "w") as log:
+                log.write("Filenames:\n")
+            with open(log_filename, "a") as log:
+                for i in train_generator.filenames:
+                    log.write(i)
 
         # print(self.model.get_config())
 
