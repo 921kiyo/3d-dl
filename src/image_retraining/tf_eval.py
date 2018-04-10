@@ -475,7 +475,7 @@ def main(_):
             pickled_test_result = open(FLAGS.test_result_file,'rb')
             per_class_test_results = pickle.load(pickled_test_result)
 
-        summarize_results(sess ,label2idx, per_class_test_results, print=True)
+        summarize_results(sess ,label2idx, per_class_test_results, print_results=True)
     #
     # features = np.array(features)
     # print('feature shape: ', features.shape)
