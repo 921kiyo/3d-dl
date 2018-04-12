@@ -330,11 +330,11 @@ def plot_bar(x,heights, heights2=None, title='Bar Chart', xlabel='X', ylabel='Y'
     return image
 
 
-def misclassified_image_summaries(sess, test_filenames, test_ground_truth, predictions, summary_writer):
+def misclassified_image_summaries(sess, test_filenames, test_ground_truth, predictions, summary_writer, idx2label):
 
     # create decoding tensors
     jpeg_data = tf.placeholder(tf.string, name='DecodeJPGInput')
-    decoded_image = add_jpeg_decoding(jpeg_data, channels=3)
+    decoded_image =tf.image.decode_jpeg(jpeg_data, channels=3)
     decoded_image_4d = tf.expand_dims(decoded_image, 0)
     resize_shape = tf.stack([300, 300])
     resize_shape_as_int = tf.cast(resize_shape, dtype=tf.int32)
@@ -343,7 +343,7 @@ def misclassified_image_summaries(sess, test_filenames, test_ground_truth, predi
 
     for i, test_filename in enumerate(test_filenames):
         if predictions[i] != test_ground_truth[i]:
-            img_summary_buffer = tf.summary.image('misclassified t:{}  p:{}'.format(test_ground_truth[i], predictions[i]), resized_image, 1)
+            img_summary_buffer = tf.summary.image('misc_t_{}_p_{}'.format(test_ground_truth[i], predictions[i]), resized_image, 1)
             jpg = gfile.FastGFile(test_filename, 'rb').read()
             image_summary, _ = sess.run([img_summary_buffer, decoded_image], feed_dict={jpeg_data: jpg})
             summary_writer.add_summary(image_summary)
@@ -351,7 +351,7 @@ def misclassified_image_summaries(sess, test_filenames, test_ground_truth, predi
     return
 
 
-def summarize_results(sess, label2idx, per_class_test_results, print_results=False):
+def summarize_results(sess, idx2label, label2idx, per_class_test_results, print_results=False):
     # Check if directory already exists. If so, create a new one
     if tf.gfile.Exists(FLAGS.model_source_dir + '/test_results'):
         tf.gfile.DeleteRecursively(FLAGS.model_source_dir + '/test_results')
@@ -367,11 +367,11 @@ def summarize_results(sess, label2idx, per_class_test_results, print_results=Fal
     image_filenames = []
     for label in per_class_test_results:
         test_results = per_class_test_results[label]
-        image_filenames.append(test_results['image_filename'])
+        image_filenames.extend([r['image_filename'] for r in test_results])
         n = len(test_results)
         confidences, class_predictions, class_truth = extract_summary_tensors(test_results, label2idx)
-        predictions.extend(class_predictions)
-        truth.extend(class_truth)
+        predictions.extend([idx2label[p] for p in class_predictions])
+        truth.extend([idx2label[t] for t in class_truth])
 
         confidences_tensor = tf.placeholder(tf.float32, shape=(n,))
         confidences_summary_buffer = tf.summary.histogram('Confidences_' + label, confidences_tensor)
@@ -382,11 +382,13 @@ def summarize_results(sess, label2idx, per_class_test_results, print_results=Fal
             summary_writer.add_summary(confidences_summary,i)
 
     # Misclassified summaries
-    misclassified_image_summaries(sess, image_filenames, truth, predictions, summary_writer)
+    misclassified_image_summaries(sess, image_filenames, truth, predictions, summary_writer, idx2label)
     # Confusion Matrix Plot
-    cm = confusion_matrix(truth, predictions)
+    sorted_labels = list(label2idx.keys())
+    sorted_labels.sort()
+    cm = confusion_matrix(truth, predictions, labels=sorted_labels)
 
-    cm_img = plot_confusion_matrix(cm, classes=label2idx.keys())
+    cm_img = plot_confusion_matrix(cm, classes=sorted_labels)
     summary_op = tf.summary.image("Confusion_Matrix", cm_img)
     confusion_summary = sess.run(summary_op)
     summary_writer.add_summary(confusion_summary)
@@ -475,7 +477,7 @@ def main(_):
             pickled_test_result = open(FLAGS.test_result_file,'rb')
             per_class_test_results = pickle.load(pickled_test_result)
 
-        summarize_results(sess ,label2idx, per_class_test_results, print_results=True)
+        summarize_results(sess, idx2label ,label2idx, per_class_test_results, print_results=True)
     #
     # features = np.array(features)
     # print('feature shape: ', features.shape)
