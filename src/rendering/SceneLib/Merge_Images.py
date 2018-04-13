@@ -28,6 +28,26 @@ class ImageError(Exception):
          return repr(self.value)
 
 
+def add_random_offset_foreground(foreground_image):
+    size = foreground_image.size
+    fg_arr = np.array(foreground_image)
+    R, C = np.nonzero(fg_arr[:,:,3])
+    y0 = np.min(R)
+    y1 = np.max(R)
+    x0 = np.min(C)
+    x1 = np.max(C)
+    subject_square = fg_arr[y0:y1,x0:x1,:]
+    w = x1 - x0
+    h = y1 - y0
+    dw_max = size[1] - w
+    dh_max = size[0] - h
+    dw = np.random.randint(0, dw_max)
+    dh = np.random.randint(0, dh_max)
+
+    fg_arr_new = np.zeros(shape=(size[0], size[1], 4), dtype=fg_arr.dtype)
+    fg_arr_new[0+dh:h+dh, 0+dw:w+dw, :] = subject_square
+    return Image.fromarray(fg_arr_new)
+
 def add_background(foreground_name, background_name, save_as, adjust_brightness = False, n_of_pixels = 300):
     """
     Function that give an RGBA and any image file merges them into one.
