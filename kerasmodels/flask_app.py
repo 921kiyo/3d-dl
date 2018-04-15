@@ -134,12 +134,11 @@ def predict_api():
     area = (0, crop_amount, width, height)
     cropped_img = img.crop(area)
     print(cropped_img.size)
-    # cropped_img.save(filepath)
+    cropped_img.save('/data/reference_img.jpg')
 
     # image = load_img(filepath, target_size=inputShape)
-    # image = load_img(filepath, target_size=inputShape)
-    # image = img_to_array(image)
-    image = cropped_img
+    image = load_img('/data/reference_img.jpg', target_size=inputShape)
+    image = img_to_array(image)
 
     # our input image is now represented as a NumPy array of shape
     # (inputShape[0], inputShape[1], 3) however we need to expand the
