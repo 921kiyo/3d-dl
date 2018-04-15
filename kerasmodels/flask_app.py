@@ -131,7 +131,7 @@ def predict_api():
     width, height = img.size
     print(width, height)
     crop_amount = height - width
-    area = (0, crop_amount, width, height)
+    area = (crop_amount, 0, width, height)
     cropped_img = img.crop(area)
     print(cropped_img.size)
     cropped_img.save('/data/reference_img.jpg')
