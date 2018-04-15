@@ -128,17 +128,17 @@ def predict_api():
     #image = load_img('/homes/mzw17/Lobster/keras/keras-official/static/image.jpg', target_size=inputShape)
 
     #Process image in PIL (crop to square)
-    img = Image.open(filepath)
-    width, height = img.size
-    print(width, height)
-    crop_amount = width - height
-    area = (crop_amount, 0, width, height)
-    cropped_img = img.crop(area)
-    print(cropped_img.size)
-    cropped_img.save('/data/reference_img.jpg')
+    # img = Image.open(filepath)
+    # width, height = img.size
+    # print(width, height)
+    # crop_amount = width - height
+    # area = (crop_amount, 0, width, height)
+    # cropped_img = img.crop(area)
+    # print(cropped_img.size)
+    # cropped_img.save('/data/reference_img.jpg')
 
-    # image = load_img(filepath, target_size=inputShape)
-    image = load_img('/data/reference_img.jpg', target_size=inputShape)
+    image = load_img(filepath, target_size=inputShape)
+    # image = load_img('/data/reference_img.jpg', target_size=inputShape)
     image = img_to_array(image)
 
     # our input image is now represented as a NumPy array of shape
