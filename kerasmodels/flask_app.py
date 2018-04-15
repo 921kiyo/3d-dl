@@ -113,6 +113,7 @@ def predict_api():
     # the image is resized to `inputShape`, the required input dimensions
     # for the ImageNet pre-trained network
     print("[INFO] loading and pre-processing image...")
+    t1 = time.time()
     if request.method == 'POST':
       f = request.files['my_image']
       my_hash = hashlib.sha1()
@@ -123,19 +124,25 @@ def predict_api():
       #f.save('/homes/mzw17/Lobster/keras/keras-official/static/image.jpg')
       f.save(filepath)
 
+    t2 = time.time()
     # file = request.files['my_image']
     # file.save(os.path.join(app.config['UPLOAD_FOLDER'], 'image.jpg'))
     #image = load_img('/homes/mzw17/Lobster/keras/keras-official/static/image.jpg', target_size=inputShape)
 
     #Process image in PIL (crop to square)
-    # img = Image.open(filepath)
-    # width, height = img.size
-    # print(width, height)
-    # crop_amount = width - height
-    # area = (crop_amount, 0, width, height)
-    # cropped_img = img.crop(area)
-    # print(cropped_img.size)
-    # cropped_img.save('/data/reference_img.jpg')
+    img = Image.open(filepath)
+    width, height = img.size
+    print(width, height)
+    crop_amount = width - height
+    area = (crop_amount, 0, width, height)
+    cropped_img = img.crop(area)
+    print(cropped_img.size)
+    cropped_img.save('/data/reference_img.jpg')
+
+    t3 = time.time()
+
+    print("Upload time: " + str(t2-t1))
+    print("Crop time: " + str(t3-t2))
 
     image = load_img(filepath, target_size=inputShape)
     # image = load_img('/data/reference_img.jpg', target_size=inputShape)
