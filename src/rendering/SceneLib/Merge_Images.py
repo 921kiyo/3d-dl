@@ -28,7 +28,9 @@ class ImageError(Exception):
          return repr(self.value)
 
 
-def add_random_offset_foreground(foreground_image):
+def add_random_offset_foreground(foreground_image, pad_ratio=0.0):
+
+    # extract subject square
     size = foreground_image.size
     fg_arr = np.array(foreground_image)
     R, C = np.nonzero(fg_arr[:,:,3])
@@ -36,16 +38,21 @@ def add_random_offset_foreground(foreground_image):
     y1 = np.max(R)
     x0 = np.min(C)
     x1 = np.max(C)
-    subject_square = fg_arr[y0:y1,x0:x1,:]
+    subject_square = fg_arr[y0:y1+1,x0:x1+1,:]
+
+    # determine range of motion
+    padding = (int(np.round(pad_ratio*size[0])), int(np.round(pad_ratio*size[1])))
+    padded_size = (size[0] + 2*padding[0], size[1]  + 2*padding[1])
     w = x1 - x0
     h = y1 - y0
-    dw_max = size[1] - w
-    dh_max = size[0] - h
+    dw_max = padded_size[1] - w
+    dh_max = padded_size[0] - h
     dw = np.random.randint(0, dw_max)
     dh = np.random.randint(0, dh_max)
 
-    fg_arr_new = np.zeros(shape=(size[0], size[1], 4), dtype=fg_arr.dtype)
-    fg_arr_new[0+dh:h+dh, 0+dw:w+dw, :] = subject_square
+    fg_arr_pad = np.zeros(shape=(padded_size[0], padded_size[1], 4), dtype=fg_arr.dtype)
+    fg_arr_pad[0+dh:h+dh+1, 0+dw:w+dw+1, :] = subject_square
+    fg_arr_new = fg_arr_pad[padding[0]:(padding[0]+size[0]), padding[1]:(padding[1]+size[1]),:]
     return Image.fromarray(fg_arr_new)
 
 def add_background(foreground_name, background_name, save_as, adjust_brightness = False, n_of_pixels = 300):
@@ -62,6 +69,7 @@ def add_background(foreground_name, background_name, save_as, adjust_brightness 
     """
     try:
         foreground=Image.open(foreground_name)
+        foreground = add_random_offset_foreground(foreground, pad_ratio=0.15)
     except:
         print("Invalid foreground images, skipping", foreground_name)
         raise ImageError("Invalid foreground images, skipping", foreground_name)   
