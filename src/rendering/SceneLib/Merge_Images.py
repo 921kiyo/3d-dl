@@ -69,7 +69,7 @@ def add_background(foreground_name, background_name, save_as, adjust_brightness 
     """
     try:
         foreground=Image.open(foreground_name)
-        foreground = add_random_offset_foreground(foreground, pad_ratio=0.15)
+        foreground = add_random_offset_foreground(foreground, pad_ratio=0.1)
     except:
         print("Invalid foreground images, skipping", foreground_name)
         raise ImageError("Invalid foreground images, skipping", foreground_name)   
