@@ -8,11 +8,11 @@ from rendering.render_pipeline import full_run
 rendering_path = os.path.dirname(os.path.realpath(__file__))
 src_path = os.path.abspath(os.path.join(rendering_path, os.pardir))
 project_path = os.path.abspath(os.path.join(src_path, os.pardir))
-workspace = '/vol/project/2017/530/g1753002/render_workspace'
-# workspace = 'D:\\PycharmProjects\\Lobster\\data\\render_workspace' for Ong
+# workspace = '/vol/project/2017/530/g1753002/render_workspace'
+workspace = 'D:\\PycharmProjects\\Lobster\\data\\render_workspace' #for Ong
 # Set Blender path
-bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
-# bl_path = 'D:\\Program Files\\Blender Foundation\\Blender\\blender' # for Ong
+# bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
+bl_path = 'D:\\Program Files\\Blender Foundation\\Blender\\blender' # for Ong
 # Set of objects to work with
 obj_set = os.path.join(workspace, 'object_files','ten_set_model_format')
 # Set backround image database path
@@ -42,7 +42,7 @@ blender_attributes = {
             ["lamp_distance", "mu", 5.0], ["lamp_distance", "sigmu", 0.0], ["lamp_distance", "l", 0.0], ["lamp_distance", "r", None],
 
             # lamp energy is a TRUNCATED NORMAL DISTRIBUTION, param descriptions same as above
-            ["lamp_energy", "mu", 5000.0], ["lamp_energy", "sigmu", 0.3], ["lamp_energy", "l", 0.0], ["lamp_energy", "r", None],
+            ["lamp_energy", "mu", 2000.0], ["lamp_energy", "sigmu", 0.3], ["lamp_energy", "l", 0.0], ["lamp_energy", "r", None],
 
             # lamp size is a TRUNCATED NORMAL DISTRIBUTION, param descriptions same as above
             ["lamp_size", "mu", 5.0], ["lamp_size", "sigmu", 0.3], ["lamp_size", "l", 0.0], ["lamp_size", "r", None],
@@ -63,9 +63,9 @@ blender_attributes = {
 arguments = {
     "obj_set": obj_set,
     "blender_path": bl_path,
-    "renders_per_class": 10,
+    "renders_per_class": 20,
     "work_dir": workspace,
-    "generate_background": False,
+    "generate_background": True,
     "background_database": background_database,
     "blender_attributes": blender_attributes,
     }

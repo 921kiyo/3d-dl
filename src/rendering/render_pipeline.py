@@ -224,14 +224,35 @@ def gen_merge(image, save_as, pixels=300, adjust_brightness = False):
         scaled[scaled>255]=255
     
     background = Image.fromarray(scaled.astype('uint8'), mode = "RGB")
-    final = mi.merge_images(image, background)
+    final, bbox = mi.merge_images(image, background)
 
     try:
         final.save(save_as, "JPEG", quality=80, optimize=True, progressive=True)
+        return bbox
     except Exception as e:
         #slack.send_message('Error in gen_merge. Output file: ' + save_as, 'Rendering Error', 'warning')
         raise RenderPipelineError("Error during image merging!")
 
+def random_bg_for_all_objects(objects_folder, final_folder, adjust_brightness = False, n_of_pixels = 300):
+
+    bboxes = {}
+    # for each object pose
+    for image in os.listdir(objects_folder):
+        path = os.path.join(objects_folder, image)
+        try:
+            foreground = Image.open(path)
+        except:
+            print("skipping", image)
+            continue
+
+        just_name = os.path.splitext(image)[0]
+        name_jpg = just_name + ".jpg"
+        save_to = os.path.join(final_folder, name_jpg)
+        bbox = gen_merge(foreground, save_to, n_of_pixels, adjust_brightness)
+        bboxes[name_jpg] = bbox
+        foreground.close()
+
+    return bboxes
 
 def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}, visualize_dump=False, dry_run_mode=False, n_of_pixels = 300, adjust_brightness =False, render_samples=128):
     """
@@ -284,6 +305,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
     print(' ============================ GENERATING FINAL IMAGES ============================')
     final_folder = os.path.join(work_dir, "final_folder")
     final_im = os.path.join(work_dir, "final_folder/images")
+    all_bbox = {}
     # Generate images for each class poses
     for folder in os.listdir(obj_poses):
         sub_obj = os.path.join(obj_poses, folder)
@@ -296,20 +318,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
         
         # Merge images based on the choice of background
         if generate_background:
-            # for each object pose
-            for image in os.listdir(sub_obj):
-                path = os.path.join(sub_obj, image)
-                try:
-                    foreground = Image.open(path)
-                except:
-                    print("skipping", image)
-                    continue
-
-                just_name = os.path.splitext(image)[0]
-                name_jpg = just_name + ".jpg"
-                save_to = os.path.join(sub_final, name_jpg)
-                gen_merge(foreground, save_to, n_of_pixels, adjust_brightness)
-                foreground.close()
+            bboxes = random_bg_for_all_objects(sub_obj, sub_final, adjust_brightness, n_of_pixels)
 
         elif generate_background is False and background_database is None:
             print("We need a background database")
@@ -317,9 +326,13 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
         else:
             # We generate a random mesh background
             try:
-                mi.generate_for_all_objects(sub_obj,background_database ,sub_final, adjust_brightness, n_of_pixels)
+                bboxes = mi.generate_for_all_objects(sub_obj,background_database ,sub_final, adjust_brightness, n_of_pixels)
             except Exception as e:
                 raise RenderPipelineError("Error occured during random background generation!")
+
+        # collate all the bboxes
+        all_bbox[folder] = bboxes
+
     # Dump the parameters used for rendering and merging
     for folder in os.listdir(obj_poses):
         print(folder)
@@ -330,7 +343,8 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
                  "background_generated": generate_background,
                  "background_database": os.path.split(background_database)[-1],
                  "number_of_pixels": n_of_pixels,
-                 "brightness_adjusted": adjust_brightness
+                 "brightness_adjusted": adjust_brightness,
+                 "all_bboxes": all_bbox.__str__()
                  }
     dump_file = os.path.join(final_folder, 'mergeparams_dump.json')
     with open(dump_file, "w+") as f:
