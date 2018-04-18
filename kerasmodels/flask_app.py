@@ -21,6 +21,8 @@ import hashlib
 import time
 import operator
 
+from PIL import Image
+
 # initialize the input image shape (224x224 pixels) along with
 # the pre-processing function (this might need to be changed
 # based on which model we use to classify our image)
@@ -28,7 +30,8 @@ inputShape = (224, 224)
 preprocess = preprocess_input
 
 #model = load_model('production_model_1.h5')
-model = load_model('/vol/project/2017/530/g1753002/Trained_Models/8_class_model.h5')
+#model = load_model('/vol/project/2017/530/g1753002/Trained_Models/8_class_model.h5')
+model = load_model('/data/11th_apr.h5')
 
 UPLOAD_FOLDER = '/vol/project/2017/530/g1753002/Flask_App/'
 
@@ -110,19 +113,39 @@ def predict_api():
     # the image is resized to `inputShape`, the required input dimensions
     # for the ImageNet pre-trained network
     print("[INFO] loading and pre-processing image...")
+    t1 = time.time()
     if request.method == 'POST':
       f = request.files['my_image']
       my_hash = hashlib.sha1()
       my_hash.update(str(time.time()).encode('utf-8'))
       short_hash = my_hash.hexdigest()[:10]
-      filepath = '/vol/project/2017/530/g1753002/Flask_App/' + short_hash + '.jpg'
+      #filepath = '/vol/project/2017/530/g1753002/Flask_App/' + short_hash + '.jpg'
+      filepath = '/data/Flask_App/' + short_hash + '.jpg'
       #f.save('/homes/mzw17/Lobster/keras/keras-official/static/image.jpg')
       f.save(filepath)
 
+    t2 = time.time()
     # file = request.files['my_image']
     # file.save(os.path.join(app.config['UPLOAD_FOLDER'], 'image.jpg'))
     #image = load_img('/homes/mzw17/Lobster/keras/keras-official/static/image.jpg', target_size=inputShape)
+
+    #Process image in PIL (crop to square)
+    img = Image.open(filepath)
+    width, height = img.size
+    print(width, height)
+    crop_amount = width - height
+    area = (crop_amount, 0, width, height)
+    cropped_img = img.crop(area)
+    print(cropped_img.size)
+    cropped_img.save('/data/reference_img.jpg')
+
+    t3 = time.time()
+
+    print("Upload time: " + str(t2-t1))
+    print("Crop time: " + str(t3-t2))
+
     image = load_img(filepath, target_size=inputShape)
+    # image = load_img('/data/reference_img.jpg', target_size=inputShape)
     image = img_to_array(image)
 
     # our input image is now represented as a NumPy array of shape
@@ -139,25 +162,37 @@ def predict_api():
     print("[INFO] classifying image")
     preds = model.predict(image)
     print(preds)
+    # anchor_value = '{:.3f}'.format(preds[0][0]*100)
+    # cheese_value = '{:.3f}'.format(preds[0][1]*100)
+    # clinique_value = '{:.3f}'.format(preds[0][2]*100)
+    # coconutwater_value = '{:.3f}'.format(preds[0][3]*100)
+    # neutrogena_value = '{:.3f}'.format(preds[0][4]*100)
+    # nivea_value = '{:.3f}'.format(preds[0][5]*100)
+    # utterlybutterly_value = '{:.3f}'.format(preds[0][6]*100)
+    # yogurt_value = '{:.3f}'.format(preds[0][7]*100)
     anchor_value = '{:.3f}'.format(preds[0][0]*100)
-    cheese_value = '{:.3f}'.format(preds[0][1]*100)
-    clinique_value = '{:.3f}'.format(preds[0][2]*100)
-    coconutwater_value = '{:.3f}'.format(preds[0][3]*100)
-    neutrogena_value = '{:.3f}'.format(preds[0][4]*100)
-    nivea_value = '{:.3f}'.format(preds[0][5]*100)
-    utterlybutterly_value = '{:.3f}'.format(preds[0][6]*100)
-    yogurt_value = '{:.3f}'.format(preds[0][7]*100)
+    coconutwater_value = '{:.3f}'.format(preds[0][1]*100)
+    cottagecheese_value = '{:.3f}'.format(preds[0][2]*100)
+    halloumi_value = '{:.3f}'.format(preds[0][3]*100)
+    liberte_value = '{:.3f}'.format(preds[0][4]*100)
+    mangoyogurt_value = '{:.3f}'.format(preds[0][5]*100)
+    soup_value = '{:.3f}'.format(preds[0][6]*100)
+    soymilk_value = '{:.3f}'.format(preds[0][7]*100)
+    squashums_value = '{:.3f}'.format(preds[0][8]*100)
+    strawberryyogurt_value = '{:.3f}'.format(preds[0][9]*100)
 
     print("Anchor: " + anchor_value + "%")
-    print("Cheese: " + cheese_value + "%")
-    print("Clinique: " + clinique_value + "%")
     print("Coconut Water: " + coconutwater_value + "%")
-    print("Neutrogena: " + neutrogena_value + "%")
-    print("Nivea: " + nivea_value + "%")
-    print("Utterly Butterly: " + utterlybutterly_value + "%")
-    print("Yogurt: " + yogurt_value + "%")
+    print("Cottage Cheese: " + cottagecheese_value + "%")
+    print("Halloumi: " + halloumi_value + "%")
+    print("Liberte: " + liberte_value + "%")
+    print("Mango Yogurt: " + mangoyogurt_value + "%")
+    print("Soup: " + soup_value + "%")
+    print("Soymilk: " + soymilk_value + "%")
+    print("Squashsums: " + squashums_value + "%")
+    print("Strawberry Yogurt: " + strawberryyogurt_value + "%")
 
-    classified = {"Anchor": float(anchor_value), "Cheese": float(cheese_value), "Clinique": float(clinique_value), "Coconut Water": float(coconutwater_value), "Neutrogena": float(neutrogena_value), "Nivea": float(nivea_value), "UtterlyButterly": float(utterlybutterly_value), "Yogurt": float(yogurt_value)}
+    classified = {"Anchor": float(anchor_value), "Coconut Water": float(coconutwater_value), "Cottage Cheese": float(cottagecheese_value), "Halloumi": float(halloumi_value), "Liberte": float(liberte_value), "Mango Yogurt": float(mangoyogurt_value), "Soup": float(soup_value), "Soymilk": float(soymilk_value), "Squashums": float(squashums_value), "Strawberry Yg.": float(strawberryyogurt_value)}
 
     max_key = max(classified.items(), key=operator.itemgetter(1))[0]
 

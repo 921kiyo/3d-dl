@@ -5,14 +5,18 @@ import unittest
 import shutil
 
 # Ensure source directory is in python path
-src_dir = str(pathlib.Path(__file__).resolve().parents[1])
-project_dir = str(pathlib.Path(__file__).resolve().parents[1])
+src_dir = str(pathlib.Path(__file__).resolve().parents[2])
+project_dir = str(pathlib.Path(__file__).resolve().parents[2])
 sys.path.append(src_dir)
 sys.path.append(project_dir)
 
-print(src_dir)
+if not project_dir in sys.path:
+    sys.path.append(project_dir)
 
-from rendering.render_pipeline import *
+if not src_dir in sys.path:
+    sys.path.append(src_dir)
+
+from src.rendering.render_pipeline import *
 
 class TestResizeImages(unittest.TestCase):
     """
@@ -67,9 +71,14 @@ class TestResizeImages(unittest.TestCase):
             "attribute_distribution_params": [["num_lamps", "l", 5], ["num_lamps","r", 8], ["lamp_energy","mu", 500.0], ["lamp_size", "mu", 5], ["camera_radius", "sigmu", 0.1]],
              "attribute_distribution" : []
         }
+        visualize_dump=False, 
+        dry_run_mode=False, 
+        n_of_pixels = 300, 
+        adjust_brightness =False, 
+        render_samples=128
 
         # Make the call
-        generate_poses(src_dir, blender_path, obj_set, obj_poses, renders_per_class, blender_attributes)
+        generate_poses(src_dir, blender_path, obj_set, obj_poses, renders_per_class, blender_attributes, visualize_dump, dry_run_mode, n_of_pixels, render_samples)
        
         # Check for correct output
         # Check both models rendered
@@ -115,7 +124,9 @@ class TestResizeImages(unittest.TestCase):
             "work_dir": workspace,
             "generate_background": False,
             "background_database": os.path.join(workspace, "bg_database","white"),
-            "blender_attributes": blender_attributes
+            "blender_attributes": blender_attributes,
+            "n_of_pixels": 300,
+            "adjust_brightness": False
             }
 
         full_run(**arguments)
