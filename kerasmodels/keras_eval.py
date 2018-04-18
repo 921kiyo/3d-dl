@@ -117,9 +117,9 @@ class KerasEval:
         prediction = (ground_truth==result[0])
         correct_label = idx2label[ground_truth]
         predicted_label = idx2label[result[0]]
-        if(predicted_label != correct_label):
-            print("predicted: ", predicted_label, "correct: ", correct_label)
-        return prediction, correct_label, predicted_label
+        max_score = np.amax(result_tensor,axis=1)
+        print("predicted: ", predicted_label, "correct: ", correct_label)
+        return prediction, correct_label, predicted_label, max_score
 
     def extract_summary_tensors(self, test_results, label2idx):
 
@@ -251,8 +251,13 @@ class KerasEval:
         summary_writer = tf.summary.FileWriter(model_source_dir + '/test_results', sess.graph)
 
         # Create decoding tensors
-        jpeg_data = tf.placeholder(tf.string, name="DecodeJPGInput")
-        decoded_image = tf.image.decode_jpeg(jpeg_data, channels=3)
+        jpeg_data = tf.placeholder(tf.string, name='DecodeJPGInput')
+        decoded_image =tf.image.decode_jpeg(jpeg_data, channels=3)
+        decoded_image_4d = tf.expand_dims(decoded_image, 0)
+        resize_shape = tf.stack([150, 150])
+        resize_shape_as_int = tf.cast(resize_shape, dtype=tf.int32)
+        resized_image = tf.image.resize_bilinear(decoded_image_4d,
+                                                 resize_shape_as_int)
 
         predicted_placeholder = tf.placeholder(tf.string, name="PredictedLabel")
         c = len(label2idx.keys())
@@ -267,7 +272,7 @@ class KerasEval:
                 if(test_results[i]["correct_label"] != test_results[i]["predicted_label"]):
                     name = "misclassified_" + test_results[i]["predicted_label"]
 
-                    img_summary_buffer = tf.summary.image(name, tf.reshape(decoded_image, [1,367,642,3]), 1)
+                    img_summary_buffer = tf.summary.image(name, resized_image, 1)
                     jpg = gfile.FastGFile(test_results[i]["image_file_name"], "rb").read()
                     image_summary, _ = sess.run([img_summary_buffer, decoded_image], feed_dict={jpeg_data:jpg})
                     summary_writer.add_summary(image_summary)
@@ -328,7 +333,7 @@ class KerasEval:
 
         # label_path is the same as output.txt
         label2idx, idx2label = self.create_label_lists(label)
-        test_data = self.get_test_files(test_folder, label2idx, n=100)
+        test_data = self.get_test_files(test_folder, label2idx, n=160)
         model_path = os.path.join(output_folder, "model.h5")
         model = load_model(model_path)
 
@@ -369,7 +374,7 @@ class KerasEval:
                 ground_truth = test_datum[1]
 
                 # decode result tensor here since we don't have access to the prediction tensor
-                test_result['prediction'], test_result['correct_label'], test_result['predicted_label'] = \
+                test_result['prediction'], test_result['correct_label'], test_result['predicted_label'] , test_result['max_score']= \
                     self.eval_result(pred, ground_truth, idx2label)
                 test_result['image_file_name'] = test_datum[2]
                 test_result['class_confidences'] = pred
@@ -392,11 +397,11 @@ class KerasEval:
             pickle.dump(test_results, f)
 
 
-# keras_eval = KerasEval()
-# keras_eval.eval(output_folder="/vol/project/2017/530/g1753002/output", \
-#                 test_result_path="/vol/project/2017/530/g1753002/training_results.pkl",
-#                 test_result_file=None,
-#                 test_folder="/vol/project/2017/530/g1753002/matthew/8_class_data/qlone_training_images/",
-#                 notify_interval=100,
-#                 input_dim=224
-# )
+keras_eval = KerasEval()
+keras_eval.eval(output_folder="/data/g1753002_ocado/matthew_trained_networks/unfrozen_cov/", \
+                test_result_path="/data/g1753002_ocado/matthew_trained_networks/unfrozen_cov/training_results.pkl",
+                test_result_file=None,
+                test_folder="/data/g1753002_ocado/images_proc_test_and_validation",
+                notify_interval=100,
+                input_dim=224
+)
