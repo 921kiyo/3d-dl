@@ -333,7 +333,7 @@ class KerasEval:
 
         # label_path is the same as output.txt
         label2idx, idx2label = self.create_label_lists(label)
-        test_data = self.get_test_files(test_folder, label2idx, n=160)
+        test_data = self.get_test_files(test_folder, label2idx, n=200)
         model_path = os.path.join(output_folder, "model.h5")
         model = load_model(model_path)
 
@@ -401,7 +401,7 @@ keras_eval = KerasEval()
 keras_eval.eval(output_folder="/data/g1753002_ocado/matthew_trained_networks/unfrozen_cov/", \
                 test_result_path="/data/g1753002_ocado/matthew_trained_networks/unfrozen_cov/training_results.pkl",
                 test_result_file=None,
-                test_folder="/data/g1753002_ocado/images_proc_test_and_validation",
+                test_folder="/vol/bitbucket/g1753002/warehouse_10_class",
                 notify_interval=100,
                 input_dim=224
 )
