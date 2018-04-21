@@ -27,17 +27,18 @@ attribute_distribution_params = [
     # lighting parameter set 2
     # 1 <= num lamps <= 10, medium energy with high variation, equates to highly varied lighting conditions
 
-    ["num_lamps","mid", 5], ["num_lamps","scale", 0.8],
+    ["num_lamps","mid", 5], ["num_lamps","scale", 0.4],
     ["lamp_energy", "mu", 1250.0], ["lamp_energy", "sigmu", 0.6],
     # camera parameter set 1
     # medium radius, larger variation, varied sized subjects
     ["camera_loc","phi_sigma", 10.0],
-    ["camera_radius", "mu", 6.0], ["camera_radius", "sigmu", 0.25]
+    ["camera_radius", "mu", 6.0], ["camera_radius", "sigmu", 0.5], ["camera_radius", "r", 10]
 ]
-N_samples = 20
+N_samples = 100
 
 arguments_list = []
 # datapoint 1: 10,000 images, 64 samples
+"""
 arguments_list.append(
     {
         "obj_set": obj_set,
@@ -54,7 +55,7 @@ arguments_list.append(
         "render_samples": 64
     }
 )
-
+"""
 # datapoint 2: 10,000 images, 128 samples
 arguments_list.append(
     {
