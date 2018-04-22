@@ -81,7 +81,6 @@ class ExtraValidationCallback(Callback):
         self.train_loss.append(logs.get('loss'))
 
         logging = True
-        log_filename = 'log_train_double_validation.csv'
 
         if logging:
             print("logging now...")
@@ -90,11 +89,11 @@ class ExtraValidationCallback(Callback):
             # write header if this is the first run
             if not my_file.is_file():
                 print("writing head")
-                with open(log_filename, "w") as log:
+                with open(my_file, "w") as log:
                     log.write("datetime,epoch,val1_acc,val1_loss,val2_acc,val2_loss,train_acc,train_loss\n")
 
             # append parameters
-            with open(log_filename, "a") as log:
+            with open(my_file, "a") as log:
                 log.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
                 log.write(',')
                 log.write(str(epoch))
