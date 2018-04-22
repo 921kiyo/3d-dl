@@ -1,4 +1,5 @@
 from keras.applications.inception_v3 import InceptionV3
+from keras.applications.resnot50 import ResNet50
 from keras.preprocessing import image
 from keras.models import Model
 from keras.layers import Dense, GlobalAveragePooling2D
@@ -22,7 +23,7 @@ project_dir = '/data/g1753002_ocado/manhattan_project'
 train_data_dir = os.path.join(project_dir, 'training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/train/')
 validation_data_dir = os.path.join(project_dir, 'training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/validation')
 test_data_dir = os.path.join(project_dir, 'test_data/extended_test_set_ambient/')
-train_output = os.path.join(project_dir, 'trained_models/first_attempt_with_all_layers_unfrozen')
+train_output = os.path.join(project_dir, 'trained_models/resnet50_unfrozen')
 log_filename = os.path.join(train_output, 'training_logs.csv')
 model_filename = os.path.join(train_output, 'model.h5')
 
@@ -115,7 +116,8 @@ class ExtraValidationCallback(Callback):
 
 """start construction of CNN"""
 # create the base pre-trained model
-base_model = InceptionV3(weights='imagenet', include_top=False)
+#base_model = InceptionV3(weights='imagenet', include_top=False)
+base_model = ResNet50(weights='imagenet', include_top=False)
 # add a global spatial average pooling layer
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
