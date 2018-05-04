@@ -1,5 +1,6 @@
-from keras.applications.inception_v3 import InceptionV3
-from keras.applications.resnot50 import ResNet50
+#from keras.applications.inception_v3 import InceptionV3
+#from keras.applications.resnet50 import ResNet50
+from keras.applications.vgg16 import VGG16
 from keras.preprocessing import image
 from keras.models import Model
 from keras.layers import Dense, GlobalAveragePooling2D
@@ -23,7 +24,7 @@ project_dir = '/data/g1753002_ocado/manhattan_project'
 train_data_dir = os.path.join(project_dir, 'training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/train/')
 validation_data_dir = os.path.join(project_dir, 'training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/validation')
 test_data_dir = os.path.join(project_dir, 'test_data/extended_test_set_ambient/')
-train_output = os.path.join(project_dir, 'trained_models/resnet50_unfrozen')
+train_output = os.path.join(project_dir, 'trained_models/vgg16_unfrozen')
 log_filename = os.path.join(train_output, 'training_logs.csv')
 model_filename = os.path.join(train_output, 'model.h5')
 
@@ -90,11 +91,11 @@ class ExtraValidationCallback(Callback):
             # write header if this is the first run
             if not my_file.is_file():
                 print("writing head")
-                with open(my_file, "w") as log:
+                with open(self.log_filename, "w") as log:
                     log.write("datetime,epoch,val1_acc,val1_loss,val2_acc,val2_loss,train_acc,train_loss\n")
 
             # append parameters
-            with open(my_file, "a") as log:
+            with open(self.log_filename, "a") as log:
                 log.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
                 log.write(',')
                 log.write(str(epoch))
@@ -117,7 +118,8 @@ class ExtraValidationCallback(Callback):
 """start construction of CNN"""
 # create the base pre-trained model
 #base_model = InceptionV3(weights='imagenet', include_top=False)
-base_model = ResNet50(weights='imagenet', include_top=False)
+#base_model = ResNet50(weights='imagenet', include_top=False)
+base_model = VGG16(weights='imagenet', include_top=False)
 # add a global spatial average pooling layer
 x = base_model.output
 x = GlobalAveragePooling2D()(x)

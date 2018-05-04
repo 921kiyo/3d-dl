@@ -398,10 +398,10 @@ class KerasEval:
 
 
 keras_eval = KerasEval()
-keras_eval.eval(output_folder="/data/g1753002_ocado/manhattan_project/trained_models/first_attempt_with_all_layers_unfrozen/", \
-                test_result_path="/data/g1753002_ocado/manhattan_project/trained_models/first_attempt_with_all_layers_unfrozen/training_results.pkl",
+keras_eval.eval(output_folder="/data/g1753002_ocado/manhattan_project/trained_models/resnet50_unfrozen/", \
+                test_result_path="/data/g1753002_ocado/manhattan_project/trained_models/resnet50_unfrozen/training_results.pkl",
                 test_result_file=None,
-                test_folder='/data/g1753002_ocado/manhattan_project/test_data/official_test_set_factory',
+                test_folder='/data/g1753002_ocado/manhattan_project/test_data/extended_test_set_ambient',
                 notify_interval=100,
                 input_dim=224
 )
