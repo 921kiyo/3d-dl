@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import expon
 
-test_result_file = 'D:\\PycharmProjects\\Lobster\\data\\logs\\keras_debug_logs\\matthew_network\\unfrozen_cov\\training_results.pkl'
+test_result_file = 'D:\\PycharmProjects\\Lobster\\data\\logs\\keras_debug_logs\\all_unfrozen\\training_results_ambient.pkl'
 pickled_test_result = open(test_result_file,'rb')
 per_class_test_results = pickle.load(pickled_test_result)['raw_test_results']
 
