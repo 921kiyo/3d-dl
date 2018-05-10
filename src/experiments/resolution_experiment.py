@@ -10,11 +10,11 @@ from rendering.render_pipeline import full_run_with_notifications
 rendering_path = os.path.dirname(os.path.realpath(__file__))
 src_path = os.path.abspath(os.path.join(rendering_path, os.pardir))
 project_path = os.path.abspath(os.path.join(src_path, os.pardir))
-#workspace = '/vol/bitbucket/who11/CO-530/render_workspace' # bitbucket storage
-workspace = 'D:\\PycharmProjects\\Lobster\\data\\render_workspace' # for Ong
+workspace = '/data/g1753002_ocado/render_workspace/' # bitbucket storage
+#workspace = 'D:\\PycharmProjects\\Lobster\\data\\render_workspace' # for Ong
 # Set Blender path
-#bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
-bl_path = 'D:\\Program Files\\Blender Foundation\\Blender\\blender' # for Ong
+bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
+#bl_path = 'D:\\Program Files\\Blender Foundation\\Blender\\blender' # for Ong
 # Set of objects to work with
 obj_set = os.path.join(workspace, 'object_files','ten_set_model_format')
 # Set backround image database path
@@ -34,7 +34,7 @@ attribute_distribution_params = [
     ["camera_loc","phi_sigma", 10.0],
     ["camera_radius", "mu", 6.0], ["camera_radius", "sigmu", 0.5], ["camera_radius", "r", 10]
 ]
-N_samples = 100
+N_samples = 10000
 
 arguments_list = []
 # datapoint 1: 10,000 images, 64 samples
@@ -70,7 +70,8 @@ arguments_list.append(
             "attribute_distribution": []
         },
         "dry_run_mode": False,
-        "render_samples": 128
+        "render_samples": 128,
+        "n_of_pixels" : 224
     }
 )
 
