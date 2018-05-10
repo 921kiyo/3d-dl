@@ -16,7 +16,7 @@ workspace = '/data/g1753002_ocado/render_workspace/' # bitbucket storage
 bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
 #bl_path = 'D:\\Program Files\\Blender Foundation\\Blender\\blender' # for Ong
 # Set of objects to work with
-obj_set = os.path.join(workspace, 'object_files','ten_set_model_format')
+obj_set = os.path.join(workspace, 'object_files','ten_set_model_official')
 # Set backround image database path
 background_database = os.path.join(workspace, 'bg_database','SUN_back')
 
