@@ -68,7 +68,7 @@ import rendering.SceneLib.Merge_Images as mi
 import rendering.RandomLib.random_background as rb
 
 """------------ Create Slack reporter ----------- """
-import SlackReporter
+from rendering import SlackReporter
 
 # to disable sending messages pass disable=True to constructor
 slack = SlackReporter.SlackReporter()
