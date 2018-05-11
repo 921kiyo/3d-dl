@@ -12,9 +12,11 @@ import keras.preprocessing.image
 from keras.utils import multi_gpu_model
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import Callback
+from keras import backend as K
 
 import tensorflow as tf
 import numpy as np
+import gc
 
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
 from keras_retinanet import layers
@@ -142,7 +144,7 @@ def detection_as_classification(model, test_generator):
     return TP, FP
 
 class ClassificationCallback(Callback):
-    def __init__(self, args, log_filename, test_data_dir, prediction_model, batch_size=50):
+    def __init__(self, args, log_filename, test_data_dir, prediction_model, delete_model=False, batch_size=50):
 
         super(ClassificationCallback, self).__init__()
         self.log_filename = log_filename
@@ -151,6 +153,8 @@ class ClassificationCallback(Callback):
         self.test_data_dir = test_data_dir
         self.snapshot_data = {'path':args.snapshot_path,'backbone': args.backbone, 'dataset_type': args.dataset_type}
         self.num_epochs = args.epochs
+
+        self.delete_model = delete_model
         
         self.test_datagen = ImageDataGenerator(rescale=1.)
         
@@ -162,11 +166,15 @@ class ClassificationCallback(Callback):
             shuffle=False)
 
     def on_epoch_end(self, epoch, logs={}):
+        # load this epoch's saved snapshot
+        
         model_path = '{backbone}_{dataset_type}_{epoch:02d}.h5'.format(
             backbone=self.snapshot_data['backbone'], dataset_type=self.snapshot_data['dataset_type'], epoch=(epoch+1))
         model_path = os.path.join(self.snapshot_data['path'], model_path)
         print('loading model {}, this may take a while ... '.format(model_path))
         self.model = models.load_model(model_path, convert=True, backbone_name=self.snapshot_data['backbone'], nms=False)
+        
+        # run a detection as classification on the model and our test dataset
         TP, FP = detection_as_classification(self.model, self.test_generator)
         precision = float(TP)/(len(self.test_generator)*self.batch_size)
         if TP+FP == 0:
@@ -197,13 +205,18 @@ class ClassificationCallback(Callback):
         print('Precision: {}% , Recall: {}%'.format(precision*100, recall*100))
 
         # remove snapshots, but save the last one
-        if not epoch >= self.num_epochs-1:
+        if (not epoch >= self.num_epochs-1) and self.delete_model:
             os.remove(model_path)
+        # make sure we don't run out of memory!
+        del self.model
+        gc.collect()
 
         
-def add_classification_callbacks(args, callbacks):
-    logs = os.path.join(args.tensorboard_dir, 'second_validation_logs.csv')
-    callbacks.append(ClassificationCallback(args, logs, args.second_val_data, None))
+def add_classification_callbacks(args, callbacks, prediction_model):
+    logs = os.path.join(args.tensorboard_dir, 'rendered_validation_logs.csv')
+    callbacks.append(ClassificationCallback(args, logs, args.rendered_val_data, prediction_model))
+    logs = os.path.join(args.tensorboard_dir, 'real_validation_logs.csv')
+    callbacks.append(ClassificationCallback(args, logs, args.real_val_data, prediction_model, delete_model = True))
     return callbacks
 
                                                                                             
@@ -211,19 +224,7 @@ def train_main(args=None):
     # parse arguments
     if args is None:
         args = sys.argv[1:]
-    args = train.parse_args(args)
-
-    args.batch_size = 50
-    args.steps = 5000/args.batch_size
-    args.epochs = 30
-    args.image_max_side = 224
-    args.image_min_side = 224
-    args.random_transform = False
-    args.dataset_type = 'csv'
-    args.annotations = './shapes.csv'
-    args.classes = './classes.csv'
-    args.val_annotations = './shapes.csv'
-    args.second_val_data = '/vol/project/2017/530/g1753002/ThirdPartyRepos/keras-rcnn/keras_rcnn/data/shape/images_classify/'
+        args = train.parse_args(args)
 
     # create object that stores backbone information
     backbone = models.backbone(args.backbone)
@@ -261,7 +262,7 @@ def train_main(args=None):
         )
 
     # print model summary
-    print(model.summary())
+    # print(model.summary())
 
     # this lets the generator compute backbone layer shapes using the actual backbone model
     if 'vgg' in args.backbone or 'densenet' in args.backbone:
@@ -279,7 +280,7 @@ def train_main(args=None):
         args,
     )
 
-    callbacks = add_classification_callbacks(args, callbacks)
+    callbacks = add_classification_callbacks(args, callbacks, None)
 
     # start training
     training_model.fit_generator(
@@ -288,15 +289,52 @@ def train_main(args=None):
         epochs=args.epochs,
         verbose=1,
         callbacks=callbacks,
+        initial_epoch=args.initial_epoch
     )
+
+    del training_model
+    del model
+    del prediction_model
+    K.clear_session()
 
 def test(saved_model_path, test_data_dir):
     model = models.load_model(saved_model_path, backbone_name='resnet50')
     detection_as_classification(model, test_data_dir)
     
 if __name__ == '__main__':
+    args = sys.argv[1:]
+    args = train.parse_args(args)
 
-    train_main()
+    args.batch_size = 50
+    args.steps = 5000/args.batch_size
+    args.epochs = 1
+    args.image_max_side = 224
+    args.image_min_side = 224
+    args.random_transform = False
+    args.dataset_type = 'csv'
+    args.annotations = './shapes.csv'
+    args.classes = './classes.csv'
+    args.val_annotations = './shapes.csv'
+    args.rendered_val_data = '/vol/project/2017/530/g1753002/ThirdPartyRepos/keras-rcnn/keras_rcnn/data/shape/images_classify/'
+    args.real_val_data = '/vol/project/2017/530/g1753002/ThirdPartyRepos/keras-rcnn/keras_rcnn/data/shape/images_classify/'
+    args.initial_epoch = 0
+
+    epochs = 30
+
+    for e in range(epochs):
+        args.initial_epoch = e
+        args.epochs = e+1
+        if e > 0:
+            model_path = '{backbone}_{dataset_type}_{epoch:02d}.h5'.format(
+            backbone='resnet50', dataset_type=args.dataset_type, epoch=(e))
+            model_path = os.path.join('./snapshots', model_path)
+            args.snapshot = model_path
+        train_main(args=args)
+        # remove
+        if e > 0:
+            os.remove(model_path)
+        
+    
     #shapes = '/vol/project/2017/530/g1753002/ThirdPartyRepos/keras-rcnn/keras_rcnn/data/shape/images_classify/'
     #ocado = '/data/g1753002_ocado/manhattan_project/test_data/extended_test_set_ambient/'
     #test('./snapshots_inference/resnet50_csv_10.h5', shapes)
