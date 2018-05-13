@@ -192,7 +192,7 @@ def evaluate_cnn(learning_rate,dense_layers,batch_size,dropout,dense_dim):
     batch_size = int(batch_size + 0.5)*16
 
     logging = True
-    log_filename = 'log_bo_cnn_'+launch_datetime+'_2048_dense.csv'
+    log_filename = 'log_bo_cnn_'+launch_datetime+'.csv'
 
 
     # load train images from one zip file
@@ -332,13 +332,13 @@ def bayes_optimization_cnn(iterations):
     gp_params = {"alpha": 1e-5}
     bo = BayesianOptimization(evaluate_cnn,
         {'learning_rate': (1e-07, 1e-03),
-        'batch_size': (4.49, 4.49),
-        'dropout': (0.2, 0.2),
+        'batch_size': (1, 1),
+        'dropout': (0, 0),
         'dense_dim': (1.51, 1.51), # 0.51, 4.49 = 512 - 2048
         'dense_layers': (0.5001, 0.5001)}
         )
     bo.explore({'learning_rate': [1.1787686347935867e-05],
-            'dropout': [0.2],
+            'dropout': [0],
             'dense_layers': [1.0],
             'dense_dim': [1.51],
             'batch_size': [4.49]
