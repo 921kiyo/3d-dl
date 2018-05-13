@@ -1,3 +1,29 @@
+# About the Project
+
+Copy from the report
+
+## Table of Contents
+
+Links to all  README
+
+
+## Installation / Dependencies
+
+All dependencies can be found in environment.yaml.
+
+## How to run
+
+Render
+
+Train
+
+iPhone
+
+Flask
+
+Example main.py
+
+
 # Machine Learning for Object Recognition at Ocado
 
 ### ensure correct read/write permissions on Group Directory
