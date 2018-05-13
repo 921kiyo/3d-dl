@@ -27,6 +27,7 @@ import os
 import subprocess
 import json
 import datetime
+import time
 
 """
 Here the paths have to be set up.
@@ -358,11 +359,11 @@ def example_run():
     
     # Default paths
     # Set path for final zip file containing training data
-    zip_save1 = os.path.join(workspace, "final_zip","sun_bg_data")
-    zip_save2 = os.path.join(workspace, "final_zip","random_bg_data")
+    #zip_save1 = os.path.join(workspace, "final_zip","sun_bg_data")
+    #zip_save2 = os.path.join(workspace, "final_zip","random_bg_data")
     
     # Set backround image database path
-    background_database = os.path.join(workspace, "bg_database","SUN_back")
+    sun_database = os.path.join(workspace, "bg_database","SUN_back")
     
     # Set object file path
     # obj_set = os.path.join(workspace, "object_files/two_set")
@@ -375,10 +376,10 @@ def example_run():
         #"zip_name": zip_save1,
         "obj_set": obj_set,
         "blender_path": bl_path,
-        "renders_per_class": 2,
+        "renders_per_class": 10,
         "work_dir": workspace,
         "generate_background": False,
-        "background_database": background_database,
+        "background_database": sun_database,
         "blender_attributes": blender_attributes,
         "n_of_pixels": 300,
         "adjust_brightness": True
@@ -391,14 +392,14 @@ def example_run():
         "renders_per_class": 2,
         "work_dir": workspace,
         "generate_background": True,
-        "background_database": background_database,
+        "background_database": sun_database,
         "blender_attributes": blender_attributes,
         "n_of_pixels": 300,
         "adjust_brightness": False
         }
     
     argument_list.append(arguments1)
-    argument_list.append(arguments2)
+    #argument_list.append(arguments2)
     #argument_list.append(arguments3)
     
     
@@ -406,13 +407,17 @@ def example_run():
     # failed jobs are removed
     destroy_folders(workspace, temp_folders)
     for value in argument_list:
+        start_time = time.time()
         try:
             full_run(**value)
         except Exception as e:
             raise e
         print("One run done")
-
+        print("--- %s seconds ---" % (time.time() - start_time))
 
 if __name__=="__main__":
+    
     print("running the experiment")
+    
     example_run()
+    

@@ -159,7 +159,7 @@ def generate_for_all_objects(objects_folder, background_folder, final_folder, ad
         
 if __name__ == "__main__":
     start_time = time.time()
-    generate_for_all_objects(base_address+"object_poses/test", base_address+"resized_background/test", base_address+"test_results", n_of_pixels = 300)
+    generate_for_all_objects(base_address+"object_poses/test", base_address+"resized_background/test_test", base_address+"test_results", n_of_pixels = 300)
     
     #generate_for_all_objects(base_address+"object_poses/Halloumi_white", base_address+"resized_background/SUN_back", base_address+"final_images/sun/halloumi/train", True)
     print("--- %s seconds ---" % (time.time() - start_time))
