@@ -6,7 +6,7 @@ import numpy as np
 import tensorflow as tf
 
 def check_confidence_tensor(tensor):
-    tol = 1e-09
+    tol = 1e-05
     if (not (np.sum(tensor,axis=1)[0]-1.) < tol) or (np.argmin(tensor, axis=1)[0] < 0):
         return False
     return True

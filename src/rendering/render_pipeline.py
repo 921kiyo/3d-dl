@@ -51,19 +51,28 @@ project_path = os.path.abspath(os.path.join(src_path, os.pardir))
 #project_path = '/vol/bitbucket/who11/CO-530/Lobster/'
 #workspace = os.path.join(project_path, "render_workspace")
 workspace = '/vol/project/2017/530/g1753002/render_workspace'
+# workspace = '/Users/maxbaylis/Desktop/render_workspace'
 
 # Set Blender path
 bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
 #bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
-
+# bl_path = "blender" # for Max
 
 if not project_path in sys.path:
     sys.path.append(project_path)
 
+if not src_path in sys.path:
+    sys.path.append(src_path)
 
-import SceneLib.Merge_Images as mi
-import RandomLib.random_background as rb
 
+import rendering.SceneLib.Merge_Images as mi
+import rendering.RandomLib.random_background as rb
+
+"""------------ Create Slack reporter ----------- """
+from rendering import SlackReporter
+
+# to disable sending messages pass disable=True to constructor
+slack = SlackReporter.SlackReporter()
 
 
 """------------ Validate folders ----------- """
@@ -113,7 +122,7 @@ def destroy_folders(target_folder, folder_list):
 
 
 """------------ Helper functions ----------- """
-def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product, blender_attributes, visualize_dump=False, dry_run_mode=False, render_resolution=300):
+def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_per_product, blender_attributes, visualize_dump=False, dry_run_mode=False, render_resolution=300, render_samples=128):
     """
     Make a system call to Blender, passing the configuration for this run
     and wait for Blender to return.
@@ -157,6 +166,7 @@ def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_
                     output_folder,
                     str(renders_per_product),
                     str(render_resolution),
+                    str(render_samples),
                     json.dumps(blender_attributes),
                     str(visualize_dump),
                     str(dry_run_mode)]
@@ -167,8 +177,7 @@ def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_
     try:
         subprocess.check_call(blender_args)
     except subprocess.CalledProcessError as e:
-        print( " error! return code is: " , e.returncode)
-        raise RenderPipelineError(e)
+        raise RenderPipelineError("Error during pose generation! The returned subprocess error code is : {}".format(e.returncode))
     print('\n')
     print(' ============================ CLOSING BLENDER FOR POSE RENDERING ============================')
     print('\n')
@@ -216,16 +225,37 @@ def gen_merge(image, save_as, pixels=300, adjust_brightness = False):
         scaled[scaled>255]=255
     
     background = Image.fromarray(scaled.astype('uint8'), mode = "RGB")
-    final = mi.merge_images(image, background)
+    final, bbox = mi.merge_images(image, background)
 
     try:
         final.save(save_as, "JPEG", quality=80, optimize=True, progressive=True)
+        return bbox
     except Exception as e:
-        print("gen_merge exception: ",e)
-        raise RenderPipelineError(e)
+        #slack.send_message('Error in gen_merge. Output file: ' + save_as, 'Rendering Error', 'warning')
+        raise RenderPipelineError("Error during image merging!")
 
+def random_bg_for_all_objects(objects_folder, final_folder, adjust_brightness = False, n_of_pixels = 300):
 
-def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}, visualize_dump=False, dry_run_mode=False,n_of_pixels = 300, adjust_brightness =False):
+    bboxes = {}
+    # for each object pose
+    for image in os.listdir(objects_folder):
+        path = os.path.join(objects_folder, image)
+        try:
+            foreground = Image.open(path)
+        except:
+            print("skipping", image)
+            continue
+
+        just_name = os.path.splitext(image)[0]
+        name_jpg = just_name + ".jpg"
+        save_to = os.path.join(final_folder, name_jpg)
+        bbox = gen_merge(foreground, save_to, n_of_pixels, adjust_brightness)
+        bboxes[name_jpg] = bbox
+        foreground.close()
+
+    return bboxes
+
+def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}, visualize_dump=False, dry_run_mode=False, n_of_pixels = 300, adjust_brightness =False, render_samples=128):
     """
     Function that will take all the parameters and execute the
     appropriate pipeline
@@ -243,15 +273,13 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
             foreground image. Default = False
     """
     print('Checking data directories...')
+    slack.send_message('Obj_set: ' + obj_set + '\n renders_per_class: ' + str(renders_per_class), 'Rendering Run Started', 'good')
 
     # Ensure render_workspace folder exists
     if not os.path.isdir(work_dir):
-        print("Can't find rendering workspace folder. Please create the folder",
-        workspace, ", containing object files and background database. See " \
-        "group folder for example.")
-        raise RenderPipelineError("Can't find rendering workspace folder. Please create the folder",
-        workspace, ", containing object files and background database. See " \
-        "group folder for example.")
+        message = "Can't find rendering workspace folder. Please create the folder" + workspace +  ", containing object files and background database. See group folder for example."
+        print(message)
+        raise RenderPipelineError(message)
         
 
     validate_folders(work_dir, data_folders)
@@ -260,7 +288,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
 
     """----------------- Generating object poses ---------------"""
     src_path = os.path.join(project_path, "src")
-    generate_poses(src_path, blender_path, obj_set, obj_poses, renders_per_class, blender_attributes, visualize_dump, dry_run_mode, n_of_pixels)
+    generate_poses(src_path, blender_path, obj_set, obj_poses, renders_per_class, blender_attributes, visualize_dump, dry_run_mode, n_of_pixels, render_samples)
 
     #now we need to take Ong' stats and move them into final folder
     for folder in os.listdir(obj_poses):
@@ -275,8 +303,10 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
     We need to distinguish between the case of drawing backrounds
     from a database and when generating ourselves
     """
+    print(' ============================ GENERATING FINAL IMAGES ============================')
     final_folder = os.path.join(work_dir, "final_folder")
     final_im = os.path.join(work_dir, "final_folder/images")
+    all_bbox = {}
     # Generate images for each class poses
     for folder in os.listdir(obj_poses):
         sub_obj = os.path.join(obj_poses, folder)
@@ -286,36 +316,25 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
 
         sub_final = os.path.join(final_im, folder)
         os.mkdir(sub_final)
-
+        
         # Merge images based on the choice of background
-        if(generate_background):
-            # for each object pose
-            for image in os.listdir(sub_obj):
-                path = os.path.join(sub_obj, image)
-                try:
-                    foreground = Image.open(path)
-                except:
-                    print("skipping", image)
-                    continue
+        if generate_background:
+            bboxes = random_bg_for_all_objects(sub_obj, sub_final, adjust_brightness, n_of_pixels)
 
-                just_name = os.path.splitext(image)[0]
-                name_jpg = just_name + ".jpg"
-                save_to = os.path.join(sub_final, name_jpg)
-                gen_merge(foreground, save_to, n_of_pixels, adjust_brightness)
-                foreground.close()
-
-        elif(generate_background is False and background_database is None):
+        elif generate_background is False and background_database is None:
             print("We need a background database")
             raise RenderPipelineError("A background database is missing")
         else:
             # We generate a random mesh background
             try:
-                mi.generate_for_all_objects(sub_obj,background_database ,sub_final, adjust_brightness, n_of_pixels)
+                bboxes = mi.generate_for_all_objects(sub_obj,background_database ,sub_final, adjust_brightness, n_of_pixels)
             except Exception as e:
-                raise RenderPipelineError(e)
+                raise RenderPipelineError("Error occured during random background generation!")
+
+        # collate all the bboxes
+        all_bbox[folder] = bboxes
+
     # Dump the parameters used for rendering and merging
-
-
     for folder in os.listdir(obj_poses):
         print(folder)
     
@@ -325,7 +344,8 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
                  "background_generated": generate_background,
                  "background_database": os.path.split(background_database)[-1],
                  "number_of_pixels": n_of_pixels,
-                 "brightness_adjusted": adjust_brightness
+                 "brightness_adjusted": adjust_brightness,
+                 "all_bboxes": all_bbox.__str__()
                  }
     dump_file = os.path.join(final_folder, 'mergeparams_dump.json')
     with open(dump_file, "w+") as f:
@@ -338,10 +358,23 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
         back_parameter = os.path.split(background_database)[-1]
     zip_name = os.path.join(work_dir,"final_zip",os.path.split(obj_set)[-1] + "_" + back_parameter + "_" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S").replace(" ","_").replace(":","_"))
     
-    make_archive(zip_name, 'zip',final_folder)
+    make_archive(zip_name, 'zip', final_folder)
     destroy_folders(work_dir, temp_folders)
-    return(zip_name+ ".zip")
 
+    final_result = zip_name + ".zip"
+    slack.send_message('Full run completed. Final zip file: ' + final_result, 'Rendering Run Completed', 'good')
+    return final_result
+
+def full_run_with_notifications(*args, **kwargs):
+    try:
+        full_run(*args, **kwargs)
+    except RenderPipelineError as e:
+        slack.send_message(e.value , title="RenderPipelineError occured: see terminal for details", status='danger')
+        raise e
+    except Exception as e:
+        slack.send_message("An unknown exception occured! Please check terminal for details!",
+                           title="Unknown Error occured: see console for details", status='danger')
+        raise e
 """
 The blender parameters. Keywords should be self explanatory.
 For more details ask Ong.
@@ -359,11 +392,20 @@ def example_run():
     
     # Default paths
     # Set path for final zip file containing training data
+<<<<<<< HEAD
     #zip_save1 = os.path.join(workspace, "final_zip","sun_bg_data")
     #zip_save2 = os.path.join(workspace, "final_zip","random_bg_data")
     
     # Set backround image database path
     sun_database = os.path.join(workspace, "bg_database","SUN_back")
+=======
+    # zip_save1 = os.path.join(workspace, "final_zip","sun_bg_data")
+    # zip_save2 = os.path.join(workspace, "final_zip","random_bg_data")
+    
+    # Set backround image database path
+    background_database = os.path.join(workspace, "bg_database","SUN_back")
+    # background_database = os.path.join(workspace, "bg_database","white")
+>>>>>>> b823b6d2ab00f9a42193f9d2259b82767e8776ab
     
     # Set object file path
     # obj_set = os.path.join(workspace, "object_files/two_set")
@@ -418,6 +460,10 @@ def example_run():
 if __name__=="__main__":
     
     print("running the experiment")
+<<<<<<< HEAD
     
     example_run()
     
+=======
+    example_run()
+>>>>>>> b823b6d2ab00f9a42193f9d2259b82767e8776ab

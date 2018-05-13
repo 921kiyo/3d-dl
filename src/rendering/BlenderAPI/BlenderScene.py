@@ -76,13 +76,13 @@ class BlenderScene(object):
         self.objects_fixed = []
         self.objects_unfixed = []
 
-    def set_render(self, resolution = 300):
+    def set_render(self, resolution = 300, samples = 128):
         self.data.cycles.film_transparent = True
         self.data.cycles.max_bounces = 1
         self.data.cycles.min_bounces = 1
         self.data.cycles.transparent_max_bounces = 1
         self.data.cycles.transparent_min_bounces = 1
-        self.data.cycles.samples = 64
+        self.data.cycles.samples = samples
         self.data.cycles.device = 'GPU'
         self.data.render.tile_x = 512
         self.data.render.tile_y = 512

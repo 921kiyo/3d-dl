@@ -28,6 +28,45 @@ class ImageError(Exception):
          return repr(self.value)
 
 
+def add_random_offset_foreground(foreground_image, pad_ratio=0.0):
+
+    # extract subject square
+    size = foreground_image.size
+    fg_arr = np.array(foreground_image)
+    R, C = np.nonzero(fg_arr[:,:,3])
+    y0 = np.min(R)
+    y1 = np.max(R)
+    x0 = np.min(C)
+    x1 = np.max(C)
+    subject_square = fg_arr[y0:y1+1,x0:x1+1,:]
+
+    # determine range of motion
+    padding = (int(np.round(pad_ratio*size[0])), int(np.round(pad_ratio*size[1])))
+    padded_size = (size[0] + 2*padding[0], size[1]  + 2*padding[1])
+    w = x1 - x0
+    h = y1 - y0
+    dw_max = padded_size[1] - w
+    dh_max = padded_size[0] - h
+    dw = np.random.randint(0, dw_max)
+    dh = np.random.randint(0, dh_max)
+
+    fg_arr_pad = np.zeros(shape=(padded_size[0], padded_size[1], 4), dtype=fg_arr.dtype)
+    # compute the foreground bb's in the padded image
+    x0_pad = dw
+    x1_pad = w + dw + 1
+    y0_pad = dh
+    y1_pad = h + dh + 1
+    fg_arr_pad[y0_pad:y1_pad, x0_pad:x1_pad, :] = subject_square
+    fg_arr_new = fg_arr_pad[padding[0]:(padding[0]+size[0]), padding[1]:(padding[1]+size[1]),:]
+
+    # compute the new foreground bb's
+    x0_new = min(max(0, x0_pad-padding[0]), size[0]-1)
+    x1_new = min(max(0, x1_pad-padding[0]), size[0]-1)
+    y0_new = min(max(0, y0_pad-padding[1]), size[1]-1)
+    y1_new = min(max(0, y1_pad-padding[1]), size[1]-1)
+
+    return Image.fromarray(fg_arr_new), ((x0_new,x1_new),(y0_new,y1_new))
+
 def add_background(foreground_name, background_name, save_as, adjust_brightness = False, n_of_pixels = 300):
     """
     Function that give an RGBA and any image file merges them into one.
@@ -42,6 +81,7 @@ def add_background(foreground_name, background_name, save_as, adjust_brightness 
     """
     try:
         foreground=Image.open(foreground_name)
+        foreground, bbox = add_random_offset_foreground(foreground, pad_ratio=0.1)
     except:
         print("Invalid foreground images, skipping", foreground_name)
         raise ImageError("Invalid foreground images, skipping", foreground_name)   
@@ -119,6 +159,7 @@ def add_background(foreground_name, background_name, save_as, adjust_brightness 
 
     background.paste(foreground, (0, 0), foreground)
     background.save(save_as, "JPEG", quality=80, optimize=True, progressive=True)
+    return bbox
 
 
 def merge_images(foreground, background):
@@ -126,9 +167,9 @@ def merge_images(foreground, background):
     Merges two images. The difference is that this accepts Images as input
     not path to the image
     """
-    
+    foreground, bbox = add_random_offset_foreground(foreground, pad_ratio=0.1)
     background.paste(foreground, (0, 0), foreground)
-    return background
+    return background, bbox
                
 def generate_for_all_objects(objects_folder, background_folder, final_folder, adjust_brightness = False, n_of_pixels = 300):
     """
@@ -147,14 +188,18 @@ def generate_for_all_objects(objects_folder, background_folder, final_folder, ad
     """
 
     all_backgrounds = os.listdir(background_folder)
+    all_bbox = {}
     for object_image in os.listdir(objects_folder):
         one_object = random.choice(all_backgrounds)
         just_name = os.path.splitext(object_image)[0]
         try:
-            add_background(objects_folder+"/"+object_image, background_folder+"/"+one_object, final_folder+"/"+just_name+".jpg", adjust_brightness, n_of_pixels)
+            bbox = add_background(objects_folder+"/"+object_image, background_folder+"/"+one_object, final_folder+"/"+just_name+".jpg", adjust_brightness, n_of_pixels)
+            all_bbox[just_name+".jpg"] = bbox
         except Exception as e:
             print("The following error occured during background addition:", e)
             raise e
+
+    return all_bbox
             
         
 if __name__ == "__main__":
