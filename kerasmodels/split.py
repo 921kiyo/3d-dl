@@ -4,8 +4,8 @@ import glob # for listing all files in a dir
 import random # to pick a random file
 import shutil # to move files
 
-path = "/homes/sk5317/ocado/Lobster/keras/keras-official/data"
-validation_percentage = 0.2
+path = "/data/g1753002_ocado/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16"
+validation_percentage = 0.02
 
 # counts files in all subfolders
 def file_count(path):
