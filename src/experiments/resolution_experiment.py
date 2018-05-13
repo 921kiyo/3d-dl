@@ -4,17 +4,17 @@ import os
 from copy import copy
 import itertools
 
-from rendering.render_pipeline import full_run
+from rendering.render_pipeline import full_run_with_notifications
 
 # Ensure source files are in python path
 rendering_path = os.path.dirname(os.path.realpath(__file__))
 src_path = os.path.abspath(os.path.join(rendering_path, os.pardir))
 project_path = os.path.abspath(os.path.join(src_path, os.pardir))
-workspace = '/vol/bitbucket/who11/CO-530/render_workspace' # bitbucket storage
-# workspace = 'D:\\PycharmProjects\\Lobster\\data\\render_workspace' # for Ong
+#workspace = '/vol/bitbucket/who11/CO-530/render_workspace' # bitbucket storage
+workspace = 'D:\\PycharmProjects\\Lobster\\data\\render_workspace' # for Ong
 # Set Blender path
-bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
-# bl_path = 'D:\\Program Files\\Blender Foundation\\Blender\\blender' # for Ong
+#bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
+bl_path = 'D:\\Program Files\\Blender Foundation\\Blender\\blender' # for Ong
 # Set of objects to work with
 obj_set = os.path.join(workspace, 'object_files','ten_set_model_format')
 # Set backround image database path
@@ -74,5 +74,5 @@ arguments_list.append(
 )
 
 for arguments in arguments_list:
-    full_run(**arguments)
+    full_run_with_notifications(**arguments)
     print("One run complete! \n")

@@ -36,6 +36,9 @@ import datetime
 # for BO
 from bayes_opt import BayesianOptimization
 
+extra_validation_dir = '/data/g1753002_ocado/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/validation'
+launch_datetime = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") # for csv names
+
 # Custom Image Augmentation Function
 def add_salt_pepper_noise(X_img):
     # Need to produce a copy as to not modify the original image
@@ -63,18 +66,102 @@ class ValAccHistory(Callback):
     def on_epoch_end(self, epoch, logs={}):
         self.val_accs.append(logs.get('val_acc'))
 
+class ExtraValidationCallback(Callback):
+    def on_train_begin(self, logs={}):
+        self.val1_accs = []
+        self.val1_loss = []
+        self.val2_accs = []
+        self.val2_loss = []
+        self.train_accs = []
+        self.train_loss = []
+
+    def on_epoch_end(self, epoch, logs={}):
+        self.val1_accs.append(logs.get('val_acc'))
+        self.val1_loss.append(logs.get('val_loss'))
+
+        # loss, acc = self.evaluate(extra_validation_dir)
+        # augmentation configuration for testing: only rescaling
+        test_datagen = ImageDataGenerator(rescale=1./255)
+
+        # generator for test data
+        # similar to above but based on different augmentation function (above)
+        test_generator = test_datagen.flow_from_directory(
+                extra_validation_dir,
+                target_size=(224, 224),
+                batch_size=64,
+                class_mode='categorical')
+
+        loss, acc = self.model.evaluate_generator(test_generator)
+
+        # WRITING ALL IMAGES USED IN TEST GEN
+        log_filename = 'val2_filenames_'+launch_datetime+'.csv'
+
+        my_file = Path(log_filename)
+
+        # write header if this is the first run
+        if not my_file.is_file():
+            print("writing head")
+            with open(log_filename, "w") as log:
+                log.write("Filenames:\n")
+            with open(log_filename, "a") as log:
+                for i in test_generator.filenames:
+                    log.write(i)
+
+
+        self.val2_accs.append(acc)
+        self.val2_loss.append(loss)
+
+        self.train_accs.append(logs.get('acc'))
+        self.train_loss.append(logs.get('loss'))
+
+        logging = True
+        log_filename = 'log_train_double_validation.csv'
+
+        if logging:
+            print("logging now...")
+            my_file = Path(log_filename)
+
+            # write header if this is the first run
+            if not my_file.is_file():
+                print("writing head")
+                with open(log_filename, "w") as log:
+                    log.write("datetime,epoch,val1_acc,val1_loss,val2_acc,val2_loss,train_acc,train_loss\n")
+
+            # append parameters
+            with open(log_filename, "a") as log:
+                log.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+                log.write(',')
+                log.write(str(epoch))
+                log.write(',')
+                log.write(str(logs.get('val_acc'))),
+                log.write(',')
+                log.write(str(logs.get('val_loss'))),
+                log.write(',')
+                log.write(str(acc)),
+                log.write(',')
+                log.write(str(loss)),
+                log.write(',')
+                log.write(str(logs.get('acc'))),
+                log.write(',')
+                log.write(str(logs.get('loss')))
+                log.write('\n')
+
+        print('\Second Validation Set, loss: {}, acc: {}\n'.format(loss, acc))
+
 class KerasInception:
     model = None
     input_dim = 0
     batch_size = 0
     dense_layers = 0
 
-    def __init__(self,input_dim=150,batch_size=16,dense_layers=1,dropout=None,lr=0.001):
+    def __init__(self,input_dim=150,batch_size=16,dense_layers=1,dropout=None,lr=0.001,
+                dense_dim=2048):
         self.input_dim = input_dim
         self.batch_size = batch_size
         self.dense_layers = dense_layers
         self.dropout = dropout
         self.lr = lr
+        self.dense_dim = dense_dim
 
     def assemble_model(self,train_dir):
         class_count = len(next(os.walk(train_dir))[1])
@@ -97,7 +184,7 @@ class KerasInception:
                 x = Dropout(self.dropout)(x)
             #
             # fully-connected layer
-            x = Dense(1024, activation='relu',name='dense'+str(i))(x)
+            x = Dense(self.dense_dim, activation='relu',name='dense'+str(i))(x)
 
         # logistic layer
         predictions = Dense(class_count, activation='softmax',name='softmax')(x)
@@ -182,9 +269,9 @@ class KerasInception:
                 class_mode='categorical')
 
         # log everything in tensorboard
-        tensorboard = TensorBoard(log_dir="logs/{}".format(time()),
+        tensorboard = TensorBoard(log_dir="/data/g1753002_ocado/logs/{}".format(time()),
                             histogram_freq=0,
-                            batch_size=32,
+                            batch_size=self.batch_size,
                             write_graph=True,
                             write_grads=False,
                             write_images=True,
@@ -194,16 +281,46 @@ class KerasInception:
 
         history = ValAccHistory()
 
+        extralogger = ExtraValidationCallback()
+
         # train the model on the new data for a few epochs
         self.model.fit_generator(
                 train_generator,
-                steps_per_epoch=2000 // self.batch_size,
+                steps_per_epoch=98000 // self.batch_size,
                 epochs=epochs,
                 validation_data=validation_generator,
-                validation_steps=800 // self.batch_size,
-                callbacks = [tensorboard,history],
-                use_multiprocessing=True, # not sure if working properly!
-                workers=8)
+                validation_steps=1600 // self.batch_size,
+                callbacks = [tensorboard,history,extralogger])
+                # use_multiprocessing=True, # not sure if working properly!
+                # workers=8)
+
+        # WRITING ALL IMAGES USED IN TEST GEN
+        log_filename = 'val1_filenames_'+launch_datetime+'.csv'
+
+        my_file = Path(log_filename)
+
+        # write header if this is the first run
+        if not my_file.is_file():
+            print("writing head")
+            with open(log_filename, "w") as log:
+                log.write("Filenames:\n")
+            with open(log_filename, "a") as log:
+                for i in validation_generator.filenames:
+                    log.write(i)
+
+        # WRITING ALL IMAGES USED IN TEST GEN
+        log_filename = 'train_filenames_'+launch_datetime+'.csv'
+
+        my_file = Path(log_filename)
+
+        # write header if this is the first run
+        if not my_file.is_file():
+            print("writing head")
+            with open(log_filename, "w") as log:
+                log.write("Filenames:\n")
+            with open(log_filename, "a") as log:
+                for i in train_generator.filenames:
+                    log.write(i)
 
         # print(self.model.get_config())
 
@@ -233,7 +350,7 @@ class KerasInception:
         # alongside the top Dense layers
         self.model.fit_generator(
                 train_generator,
-                steps_per_epoch=2000 // self.batch_size,
+                steps_per_epoch=2048 // self.batch_size,
                 epochs=5,
                 validation_data=validation_generator,
                 validation_steps=800 // self.batch_size,
@@ -412,112 +529,11 @@ def main_for_pipeline():
                 log.write(str(score[1]))
                 log.write('\n')
 
-def train_model(learning_rate,dense_layers,batch_size,dropout):
-    # turn float inputs from BO to ints
-    dense_layers = int(dense_layers + 0.5)
-    batch_size = int(batch_size + 0.5)*16
 
-    logging = True
-    log_filename = 'log_bo_2.csv'
-
-    # input directories
-    path_of_zip = '/vol/project/2017/530/g1753002/keras_test_data/train/train_test_zip2.zip'
-    validation_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
-    test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
-
-    # load train images from one zip file
-    unzipped_dir = unzip_and_return_path_to_folder(path_of_zip)
-    train_dir = unzipped_dir + '/images'
-
-    # get path for classes.txt
-    main_dir, filename = os.path.split(path_of_zip)
-
-    # set parameters
-    fine_tune = False # if true, some of the inceptionV3 layers will be trained for 5 epochs at the end of training
-    add_salt_pepper_noise = False # if True, it adds SP noise
-    augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
-    epochs = 3
-    input_dim = 299
-
-    # initialize & train model
-    model = KerasInception(input_dim=input_dim,
-                            batch_size=batch_size,
-                            dense_layers=dense_layers,
-                            dropout=dropout,
-                            lr=learning_rate)
-
-
-    history = model.train(train_dir=train_dir,
-                validation_dir=validation_dir,
-                fine_tune=fine_tune,
-                epochs=epochs,
-                salt_pepper=add_salt_pepper_noise,
-                augmentation_params=get_augmentation_params(augmentation_mode),
-                classes_txt_dir=main_dir,
-                save_model=True
-                )
-
-    # print(history.val_accs)
-    # print(max(history.val_accs))
-
-    # get accuracy score
-    # score = model.evaluate(test_dir=test_dir)
-    # test_accuracy = score[1]
-
-    # store accuracy & model parameters
-    if logging:
-        print("logging now...")
-        my_file = Path(log_filename)
-
-        # write header if this is the first run
-        if not my_file.is_file():
-            print("writing head")
-            with open(log_filename, "w") as log:
-                log.write("datetime,epochs,learning_rate,batch_size,input_dim,dense_layers,dropout,best_validation_accuracy\n")
-
-        # append parameters
-        with open(log_filename, "a") as log:
-            log.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
-            log.write(',')
-            log.write(str(epochs))
-            log.write(',')
-            log.write(str(learning_rate))
-            log.write(',')
-            log.write(str(batch_size))
-            log.write(',')
-            log.write(str(input_dim))
-            log.write(',')
-            log.write(str(dense_layers))
-            log.write(',')
-            log.write(str(dropout))
-            log.write(',')
-            log.write(str(max(history.val_accs)))
-            log.write(',')
-            log.write('\n')
-
-    return max(history.val_accs) # return best validation accuracy
-
-def bayes_optimization():
-    gp_params = {"alpha": 1e-5}
-    nnBO = BayesianOptimization(train_model,
-        {'learning_rate': (1e-07, 1e-01),
-        'batch_size': (0.5001, 4.4999),
-        'dropout': (0, 0.5),
-        'dense_layers': (0.5001, 3.4999)}
-        )
-    nnBO.explore({'learning_rate': [1.1787686347935867e-05],
-            'dropout': [0.0],
-            'dense_layers': [2.0],
-            'batch_size': [4.5]
-            })
-
-    nnBO.maximize(init_points=5, n_iter=15, kappa=2)
-
-    print(nnBO.res['max'])
 
 
 # main()
 
-main_for_pipeline()
+# main_for_pipeline()
 
 # bayes_optimization()
