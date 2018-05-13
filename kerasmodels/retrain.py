@@ -93,19 +93,19 @@ class ExtraValidationCallback(Callback):
 
         loss, acc = self.model.evaluate_generator(test_generator)
 
-        # WRITING ALL IMAGES USED IN TEST GEN
-        log_filename = 'val2_filenames_'+launch_datetime+'.csv'
-
-        my_file = Path(log_filename)
-
-        # write header if this is the first run
-        if not my_file.is_file():
-            print("writing head")
-            with open(log_filename, "w") as log:
-                log.write("Filenames:\n")
-            with open(log_filename, "a") as log:
-                for i in test_generator.filenames:
-                    log.write(i)
+        # # WRITING ALL IMAGES USED IN TEST GEN
+        # log_filename = 'val2_filenames_'+launch_datetime+'.csv'
+        #
+        # my_file = Path(log_filename)
+        #
+        # # write header if this is the first run
+        # if not my_file.is_file():
+        #     print("writing head")
+        #     with open(log_filename, "w") as log:
+        #         log.write("Filenames:\n")
+        #     with open(log_filename, "a") as log:
+        #         for i in test_generator.filenames:
+        #             log.write(i)
 
 
         self.val2_accs.append(acc)
@@ -155,7 +155,7 @@ class KerasInception:
     dense_layers = 0
 
     def __init__(self,input_dim=150,batch_size=16,dense_layers=1,dropout=None,lr=0.001,
-                dense_dim=2048):
+                dense_dim=1024):
         self.input_dim = input_dim
         self.batch_size = batch_size
         self.dense_layers = dense_layers
@@ -180,8 +180,13 @@ class KerasInception:
             # dropout
             if self.dropout and i == 0:
                 x = Dropout(self.dropout)(x)
+                print("added dropout")
             elif self.dropout:
                 x = Dropout(self.dropout)(x)
+                print("added dropout")
+
+            print("added 1 DENSE LAYER")
+
             #
             # fully-connected layer
             x = Dense(self.dense_dim, activation='relu',name='dense'+str(i))(x)
@@ -197,7 +202,8 @@ class KerasInception:
             layer.trainable = False
 
         # compile the model (*after* setting layers to non-trainable)
-        model.compile(optimizer=RMSprop(lr=self.lr), loss='categorical_crossentropy', metrics=['accuracy'])
+        # model.compile(optimizer=RMSprop(lr=self.lr), loss='categorical_crossentropy', metrics=['accuracy'])
+        model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy'])
 
         return model
 
@@ -236,37 +242,60 @@ class KerasInception:
         print("Directory used for validation: ",validation_dir)
 
         # augmentation configuration for training
-        if salt_pepper:
-            train_datagen = ImageDataGenerator(
-                    rescale=1./255,
-                    preprocessing_function=add_salt_pepper_noise,
-                    # horizontal_flip=False, # no flippin groceries
-                    **augmentation_params)
-        else:
-            train_datagen = ImageDataGenerator(
-                    rescale=1./255,
-                    **augmentation_params)
+        # if salt_pepper:
+        #     train_datagen = ImageDataGenerator(
+        #             rescale=1./255,
+        #             preprocessing_function=add_salt_pepper_noise,
+        #             # horizontal_flip=False, # no flippin groceries
+        #             **augmentation_params)
+        # else:
+        #     train_datagen = ImageDataGenerator(
+        #             rescale=1./255,
+        #             **augmentation_params)
+        #
+        # # generator that will read pictures found in train_dir, and
+        # # indefinitely generate batches of augmented image data and
+        # # rescales images to target_size, splits them into batches
+        # # (instead of loading all images directly into GPU memory)
+        # train_generator = train_datagen.flow_from_directory(
+        #         train_dir,  # this is the target directory
+        #         target_size=(self.input_dim, self.input_dim),  # all images will be resized to input_dimxinput_dim
+        #         batch_size=self.batch_size,
+        #         class_mode='categorical',
+        #         shuffle=True)
+        #
+        # # augmentation configuration for validation: only rescaling
+        # validation_datagen = ImageDataGenerator(rescale=1./255)
+        #
+        # # generator for validation data
+        # # similar to above but based on different augmentation function (above)
+        # validation_generator = validation_datagen.flow_from_directory(
+        #         validation_dir,
+        #         target_size=(self.input_dim, self.input_dim),
+        #         batch_size=self.batch_size,
+        #         class_mode='categorical')
+        train_datagen = ImageDataGenerator(
+                rescale=1./255,
+                shear_range=0.2,
+                zoom_range=0.2,
+                horizontal_flip=True)
 
-        # generator that will read pictures found in train_dir, and
-        # indefinitely generate batches of augmented image data and
-        # rescales images to target_size, splits them into batches
-        # (instead of loading all images directly into GPU memory)
+        test_datagen = ImageDataGenerator(rescale=1./255)
+
         train_generator = train_datagen.flow_from_directory(
                 train_dir,  # this is the target directory
-                target_size=(self.input_dim, self.input_dim),  # all images will be resized to input_dimxinput_dim
-                batch_size=self.batch_size,
-                class_mode='categorical')
+                target_size=(224, 224),  # all images will be resized to 150x150
+                batch_size=16,
+                class_mode='categorical',
+                shuffle=True)
 
-        # augmentation configuration for validation: only rescaling
-        validation_datagen = ImageDataGenerator(rescale=1./255)
-
-        # generator for validation data
-        # similar to above but based on different augmentation function (above)
-        validation_generator = validation_datagen.flow_from_directory(
+        validation_generator = test_datagen.flow_from_directory(
                 validation_dir,
-                target_size=(self.input_dim, self.input_dim),
-                batch_size=self.batch_size,
-                class_mode='categorical')
+                target_size=(224, 224),
+                batch_size=16,
+                class_mode='categorical',
+                shuffle=True)
+
 
         # log everything in tensorboard
         tensorboard = TensorBoard(log_dir="/data/g1753002_ocado/logs/{}".format(time()),
@@ -283,44 +312,52 @@ class KerasInception:
 
         extralogger = ExtraValidationCallback()
 
-        # train the model on the new data for a few epochs
         self.model.fit_generator(
                 train_generator,
-                steps_per_epoch=98000 // self.batch_size,
+                steps_per_epoch=12000 // self.batch_size,
                 epochs=epochs,
                 validation_data=validation_generator,
-                validation_steps=1600 // self.batch_size,
-                callbacks = [tensorboard,history,extralogger])
-                # use_multiprocessing=True, # not sure if working properly!
-                # workers=8)
+                validation_steps=800 // self.batch_size)
 
-        # WRITING ALL IMAGES USED IN TEST GEN
-        log_filename = 'val1_filenames_'+launch_datetime+'.csv'
 
-        my_file = Path(log_filename)
+        # # train the model on the new data for a few epochs
+        # self.model.fit_generator(
+        #         train_generator,
+        #         # steps_per_epoch=98000 // self.batch_size,
+        #         epochs=epochs,
+        #         validation_data=validation_generator,
+        #         # validation_steps=1600 // self.batch_size,
+        #         callbacks = [tensorboard,history,extralogger])
+        #         # use_multiprocessing=True, # not sure if working properly!
+        #         # workers=8)
 
-        # write header if this is the first run
-        if not my_file.is_file():
-            print("writing head")
-            with open(log_filename, "w") as log:
-                log.write("Filenames:\n")
-            with open(log_filename, "a") as log:
-                for i in validation_generator.filenames:
-                    log.write(i)
-
-        # WRITING ALL IMAGES USED IN TEST GEN
-        log_filename = 'train_filenames_'+launch_datetime+'.csv'
-
-        my_file = Path(log_filename)
-
-        # write header if this is the first run
-        if not my_file.is_file():
-            print("writing head")
-            with open(log_filename, "w") as log:
-                log.write("Filenames:\n")
-            with open(log_filename, "a") as log:
-                for i in train_generator.filenames:
-                    log.write(i)
+        # # WRITING ALL IMAGES USED IN TEST GEN
+        # log_filename = 'val1_filenames_'+launch_datetime+'.csv'
+        #
+        # my_file = Path(log_filename)
+        #
+        # # write header if this is the first run
+        # if not my_file.is_file():
+        #     print("writing head")
+        #     with open(log_filename, "w") as log:
+        #         log.write("Filenames:\n")
+        #     with open(log_filename, "a") as log:
+        #         for i in validation_generator.filenames:
+        #             log.write(i)
+        #
+        # # WRITING ALL IMAGES USED IN TEST GEN
+        # log_filename = 'train_filenames_'+launch_datetime+'.csv'
+        #
+        # my_file = Path(log_filename)
+        #
+        # # write header if this is the first run
+        # if not my_file.is_file():
+        #     print("writing head")
+        #     with open(log_filename, "w") as log:
+        #         log.write("Filenames:\n")
+        #     with open(log_filename, "a") as log:
+        #         for i in train_generator.filenames:
+        #             log.write(i)
 
         # print(self.model.get_config())
 
@@ -408,21 +445,20 @@ def unzip_and_return_path_to_folder(path_to_zip_file):
     return path_to_zip_file.split('.')[0] # name of new folder
 
 def main():
-    train_dir = '/vol/project/2017/530/g1753002/keras_test_data/train'
-    validation_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
-    test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
+    train_dir = '/data/g1753002_ocado/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/train/'
+    validation_dir = '/data/g1753002_ocado/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/validation/'
+    test_dir = '/data/g1753002_ocado/images_proc_test_and_validation'
     dense_layers = 1
-    input_dim = 150
+    input_dim = 224
     batch_size = 16
     fine_tune = False # if true, some of the inceptionV3 layers will be trained for 5 epochs at the end of training
     add_salt_pepper_noise = False # if True, it adds SP noise
     augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
-    epochs = 1
+    epochs = 20
 
     model = KerasInception(input_dim=input_dim,
                             batch_size=batch_size,
-                            dense_layers=dense_layers,
-                            lr=learning_rate)
+                            dense_layers=dense_layers)
 
 
     model.train(train_dir=train_dir,
@@ -532,7 +568,7 @@ def main_for_pipeline():
 
 
 
-# main()
+main()
 
 # main_for_pipeline()
 
