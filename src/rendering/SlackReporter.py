@@ -36,7 +36,7 @@ class SlackReporter:
         self.webhook_url = webhook_url   
         if not webhook_url:
             self.webhook_url = environ.get('SLACK_WEBHOOK_URL')
-            self.disable = disable
+            self.disable = True #disable
 
     def send_message(self, message, title='New report', status='', print_message=False):
         """

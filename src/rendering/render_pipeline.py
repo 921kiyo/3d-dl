@@ -49,13 +49,13 @@ rendering_path = os.path.dirname(os.path.realpath(__file__))
 src_path = os.path.abspath(os.path.join(rendering_path, os.pardir))
 project_path = os.path.abspath(os.path.join(src_path, os.pardir))
 #project_path = '/vol/bitbucket/who11/CO-530/Lobster/'
-#workspace = os.path.join(project_path, "render_workspace")
-workspace = '/vol/project/2017/530/g1753002/render_workspace'
+workspace = os.path.join(project_path, "render_workspace")
+#workspace = '/vol/project/2017/530/g1753002/render_workspace'
 # workspace = '/Users/maxbaylis/Desktop/render_workspace'
 
 # Set Blender path
-bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
-#bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
+#bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
+bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
 # bl_path = "blender" # for Max
 
 if not project_path in sys.path:
@@ -392,20 +392,13 @@ def example_run():
     
     # Default paths
     # Set path for final zip file containing training data
-<<<<<<< HEAD
+
     #zip_save1 = os.path.join(workspace, "final_zip","sun_bg_data")
     #zip_save2 = os.path.join(workspace, "final_zip","random_bg_data")
     
     # Set backround image database path
     sun_database = os.path.join(workspace, "bg_database","SUN_back")
-=======
-    # zip_save1 = os.path.join(workspace, "final_zip","sun_bg_data")
-    # zip_save2 = os.path.join(workspace, "final_zip","random_bg_data")
-    
-    # Set backround image database path
-    background_database = os.path.join(workspace, "bg_database","SUN_back")
-    # background_database = os.path.join(workspace, "bg_database","white")
->>>>>>> b823b6d2ab00f9a42193f9d2259b82767e8776ab
+
     
     # Set object file path
     # obj_set = os.path.join(workspace, "object_files/two_set")
@@ -418,7 +411,7 @@ def example_run():
         #"zip_name": zip_save1,
         "obj_set": obj_set,
         "blender_path": bl_path,
-        "renders_per_class": 10,
+        "renders_per_class": 2,
         "work_dir": workspace,
         "generate_background": False,
         "background_database": sun_database,
@@ -460,10 +453,6 @@ def example_run():
 if __name__=="__main__":
     
     print("running the experiment")
-<<<<<<< HEAD
-    
     example_run()
     
-=======
-    example_run()
->>>>>>> b823b6d2ab00f9a42193f9d2259b82767e8776ab
+

@@ -7,6 +7,7 @@ import shutil
 # Ensure source directory is in python path
 src_dir = str(pathlib.Path(__file__).resolve().parents[2])
 project_dir = str(pathlib.Path(__file__).resolve().parents[2])
+#print(project_dir)
 sys.path.append(src_dir)
 sys.path.append(project_dir)
 
@@ -16,7 +17,7 @@ if not project_dir in sys.path:
 if not src_dir in sys.path:
     sys.path.append(src_dir)
 
-from src.rendering.render_pipeline import *
+from ..render_pipeline import *
 
 class TestResizeImages(unittest.TestCase):
     """
