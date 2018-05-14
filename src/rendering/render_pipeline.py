@@ -54,8 +54,8 @@ workspace = os.path.join(project_path, "render_workspace")
 # workspace = '/Users/maxbaylis/Desktop/render_workspace'
 
 # Set Blender path
-#bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
-bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
+bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
+#bl_path = "E:\Blender_Foundation\Blender\\blender" # for Pavel
 # bl_path = "blender" # for Max
 
 if not project_path in sys.path:
