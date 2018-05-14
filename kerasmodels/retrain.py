@@ -235,7 +235,7 @@ class KerasInception:
     # choose whether to save the model
     def train(self,train_dir,validation_dir,epochs=0,fine_tune=False, unfrozen_layers=0,
             salt_pepper=False,augmentation_params={},classes_txt_dir=None,save_model=False,
-            validation_dir_2=None):
+            validation_dir_2=None,steps_per_epoch=12000):
         if classes_txt_dir:
             self.save_class_list(train_dir,classes_txt_dir)
 
@@ -306,7 +306,7 @@ class KerasInception:
 
         self.model.fit_generator(
                 train_generator,
-                steps_per_epoch=12000 // self.batch_size,
+                steps_per_epoch=steps_per_epoch // self.batch_size,
                 epochs=epochs,
                 validation_data=validation_generator,
                 validation_steps=1600 // self.batch_size,
@@ -402,9 +402,12 @@ def unzip_and_return_path_to_folder(path_to_zip_file):
     return path_to_zip_file.split('.')[0] # name of new folder
 
 def main():
-    train_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/train'
-    validation_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/validation'
-    test_dir = '/data/g1753002_ocado/manhattan_project/test_data/extended_test_set_ambient'
+    # train_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/train'
+    train_dir = '/data/g1753002_ocado/manhattan_project/training_data/ten_set_model_official_SUN_back_2018-05-11_08_03_02/images/train'
+    # validation_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/validation'
+    validation_dir = '/data/g1753002_ocado/manhattan_project/training_data/ten_set_model_official_SUN_back_2018-05-11_08_03_02/images/validation'
+    # test_dir = '/data/g1753002_ocado/manhattan_project/test_data/extended_test_set_ambient'
+    test_dir = '/data/g1753002_ocado/manhattan_project/test_data/official_test_set_factory'
 
     # can add second dir if need two validation sets
     extra_validation_dir = None
@@ -415,9 +418,10 @@ def main():
     fine_tune = False # if true, some of the inceptionV3 layers will be trained for 1 epoch at the end of training
     add_salt_pepper_noise = False # if True, it adds SP noise
     augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
-    epochs = 25
+    epochs = 20
     # has to be a number between 0 and 311
     unfrozen_layers = 311
+    learning_rate = 0.0031622777
 
     model = KerasInception(input_dim=input_dim,
                             batch_size=batch_size,
@@ -434,6 +438,8 @@ def main():
                 validation_dir_2=extra_validation_dir)
 
     model.evaluate(test_dir=test_dir)
+
+    model.save_model('')
 
 
 def grid_search():
@@ -627,4 +633,4 @@ def main_for_pipeline_using_zip():
 
 # main_for_pipeline()
 
-grid_search()
+# grid_search()
