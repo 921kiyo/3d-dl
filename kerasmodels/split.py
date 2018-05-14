@@ -42,7 +42,10 @@ def split_train_to_validation(path,percentage_split):
     # get all class subfolders
     child_directories = next(os.walk(train_path))[1]
 
+    val_filenames = []
+
     for child in child_directories:
+
         print("splitting images in folder",child,"...")
         # concat child directories for each class
         child_train_path = os.path.join(train_path, child)
@@ -67,11 +70,11 @@ def split_train_to_validation(path,percentage_split):
             train_list.remove(image_path)
 
             # get the name of the image
-            parts = image_path.split("/")
-            image_name = parts[-1]
+            image_name = os.path.basename(image_path)
 
             # concat path to name to get new dir
             new_path = os.path.join(child_validation_path, image_name)
+            val_filenames.append(new_path)
 
             # verbose
             # print("moving:", image_path)
@@ -81,6 +84,9 @@ def split_train_to_validation(path,percentage_split):
             shutil.move(image_path, new_path)
 
     print("Done splitting!")
+    return val_filenames
 
 # call the function
-split_train_to_validation(path,validation_percentage)
+if __name__ == "main":
+    split_train_to_validation(path,validation_percentage)
+

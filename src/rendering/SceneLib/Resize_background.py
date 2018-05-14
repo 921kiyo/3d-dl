@@ -18,7 +18,7 @@ from resizeimage import resizeimage
 #the below should point to the file containing the alphabet letter folders
 SUN_images_dir = "E:/LabelMeToolbox/real_data/images"
 # The below folder will contain the resized images
-#resized_address = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/data/resized_background/indoor/"
+resized_address = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/data/resized_background/new_test/"
 indoor_address = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/data/resized_background/indoor/"
 outdoor_address = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/data/resized_background/outdoor/"
   
@@ -26,7 +26,8 @@ outdoor_address = "D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/Oc
 def resize_and_crop(image_address, output_address, f_widht, f_height):
     """
     Function for resizing and cropping of single image.
-    The image has to be bigger than the desired size
+    The image has to be bigger than the desired size.
+    If smaller in any dimension, the image will be discarded
     
     Args:
         image_address (string): Image to be resized
@@ -63,9 +64,13 @@ def find_all_files(min_pixels, origin_folder, target_folder):
     
     Args:
         min_pixels (int): The final image will be square of this number of pixels 
+        origin_folder (string): Path to a folder, which will be searched for
+                any images in it or any of its subdirectories
+        target_folder (string): path to folder to which the resized images
+                should be saved to. This folder will have flat structure.
         
     Returns: 
-        void: does not return anything
+        root (string): Returns the root address of the original folder
     """
     #count = 0
     for root, dirs, files in os.walk(origin_folder):
@@ -93,9 +98,7 @@ def find_all_files(min_pixels, origin_folder, target_folder):
                             cover = resizeimage.resize_cover(tested_image, [min_pixels, min_pixels])
                             cover.convert('RGB').save(target_folder+image_name, 'JPEG')
        
-        #count +=1
-        #if(count>5):
-            #return 
     return root
 
-#roots= find_all_files(300,SUN_images_dir, "")#resized_address)
+if __name__ == "__main__":
+    roots= find_all_files(300,SUN_images_dir, resized_address)
