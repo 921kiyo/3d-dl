@@ -203,34 +203,3 @@ def predict_api():
     return jsonify(result)
     #return "Cheese: " + cheese_value + "% and " + "Yogurt: " + yogurt_value + "%"
     # '<!DOCTYPE html> <html> <body> Anchor: ' + anchor_value + '% <br> Cheese: ' + cheese_value + '% <br> Clinique: ' + clinique_value + '% <br> Coconut Water: ' + coconutwater_value + '% <br> Neutrogena: ' + neutrogena_value + '% <br> Nivea: ' + nivea_value + '% <br> UtterlyButterly: ' + utterlybutterly_value + '% <br>Yogurt: ' + yogurt_value + '% <br> <img src="'+ short_hash + '" width="500" height="500"> </body> </html>'
-
-
-
-@app.route('/123')
-def predict2():
-    # file = request.files['my_image']
-    # file.save(os.path.join(app.config['UPLOAD_FOLDER'], 'image.jpg'))
-    #image = load_img('/home/mforcexvi1/Lobster/keras/keras-official/image.jpg', target_size=inputShape)
-    image = load_img('/homes/mzw17/Lobster/keras/keras-official/image.jpg', target_size=inputShape)
-    image = img_to_array(image)
-
-    # our input image is now represented as a NumPy array of shape
-    # (inputShape[0], inputShape[1], 3) however we need to expand the
-    # dimension by making the shape (1, inputShape[0], inputShape[1], 3)
-    # so we can pass it through thenetwork
-    image = np.expand_dims(image, axis=0)
-
-    # pre-process the image using the appropriate function based on the
-    # model that has been loaded (i.e., mean subtraction, scaling, etc.)
-    image = preprocess(image)
-
-    # classify the image
-    print("[INFO] classifying image")
-    preds = model.predict(image)
-    print(preds)
-    cheese_value = '{:.3f}'.format(preds[0][0]*100)
-    yogurt_value = '{:.3f}'.format(preds[0][1]*100)
-
-    print("Cheese: " + cheese_value + "%")
-    print("Yogurt: " + yogurt_value + "%")
-    return "Cheese: " + cheese_value + "% and " + "Yogurt: " + yogurt_value + "%"
