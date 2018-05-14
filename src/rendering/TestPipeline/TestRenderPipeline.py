@@ -19,7 +19,7 @@ if not src_dir in sys.path:
 
 from ..render_pipeline import *
 
-class TestResizeImages(unittest.TestCase):
+class TestPipeline(unittest.TestCase):
     """
     Note:
     'example_run' provides a possible usage of the rendering pipeline and includes 
