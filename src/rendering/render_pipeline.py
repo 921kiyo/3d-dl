@@ -72,7 +72,7 @@ import rendering.RandomLib.random_background as rb
 from rendering import SlackReporter
 
 # to disable sending messages pass disable=True to constructor
-slack = SlackReporter.SlackReporter()
+slack = SlackReporter.SlackReporter(disable=True)
 
 
 """------------ Validate folders ----------- """
