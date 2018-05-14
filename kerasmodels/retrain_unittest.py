@@ -12,9 +12,9 @@ class TestKerasRetrain(unittest.TestCase):
         # TODO: Can be generalized: take an argument "number of top layers", include
         # them in a for loop and store weights in list
 
-        train_dir = 'unit_test_images_bw/'
-        validation_dir = 'unit_test_images_bw/'
-        test_dir = 'unit_test_images_bw/'
+        train_dir = 'unit_test_images/'
+        validation_dir = 'unit_test_images/'
+        test_dir = 'unit_test_images/'
 
         # create model
         model = rt.KerasInception(dense_layers=1,
@@ -57,9 +57,9 @@ class TestKerasRetrain(unittest.TestCase):
     # tests if the model stays stable for the layers we want it to be stable
     def test_base_model_stable(self):
         # dummy directories with black/white images
-        train_dir = 'unit_test_images_bw/'
-        validation_dir = 'unit_test_images_bw/'
-        test_dir = 'unit_test_images_bw/'
+        train_dir = 'unit_test_images/'
+        validation_dir = 'unit_test_images/'
+        test_dir = 'unit_test_images/'
 
         # TODO delete
         count = 0
@@ -92,11 +92,10 @@ class TestKerasRetrain(unittest.TestCase):
         # train
         model.train(train_dir=train_dir,
                     validation_dir=validation_dir,
-                    fine_tune=True,
                     epochs=1,
                     salt_pepper=True,
                     classes_txt_dir=os.getcwd(),
-                    unfrozen_layers=311,
+                    unfrozen_layers=0,
                     steps_per_epoch=1000
                     # save_model=True
                     )
@@ -107,8 +106,8 @@ class TestKerasRetrain(unittest.TestCase):
 
         # check that nothing changed for any of the layers
         for b, a in zip(before_transferred_weights,after_transferred_weights):
-            self.assertFalse( np.array_equal(b,a) )
-            # self.assertTrue( np.array_equal(b,a) )
+            # self.assertFalse( np.array_equal(b,a) )
+            self.assertTrue( np.array_equal(b,a) )
             # self.assertTrue( (b == a).all() )
 
 
@@ -116,9 +115,9 @@ class TestKerasRetrain(unittest.TestCase):
     # better than random on a test set after 15 minutes of training
     def test_full_training(self):
         # dummy directories with black/white images
-        train_dir = 'unit_test_images_bw/'
-        validation_dir = 'unit_test_images_bw/'
-        test_dir = 'unit_test_images_bw/'
+        train_dir = 'unit_test_images/'
+        validation_dir = 'unit_test_images/'
+        test_dir = 'unit_test_images/'
 
         # train
         model = rt.KerasInception(dense_layers=1,
@@ -128,7 +127,7 @@ class TestKerasRetrain(unittest.TestCase):
         model.train(train_dir=train_dir,
                     validation_dir=validation_dir,
                     fine_tune=True,
-                    epochs=1,
+                    epochs=2,
                     salt_pepper=True,
                     classes_txt_dir=os.getcwd(),
                     unfrozen_layers=311,
@@ -146,9 +145,9 @@ class TestKerasRetrain(unittest.TestCase):
         self.assertTrue( score[1] > 0.6 )
 
     def test_layers_connected(self):
-        train_dir = 'unit_test_images_bw/'
-        validation_dir = 'unit_test_images_bw/'
-        test_dir = 'unit_test_images_bw/'
+        train_dir = 'unit_test_images/'
+        validation_dir = 'unit_test_images/'
+        test_dir = 'unit_test_images/'
 
         model = rt.KerasInception(dense_layers=1,
                                 dropout=0,
