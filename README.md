@@ -1,8 +1,9 @@
 # Machine Learnig for Product Recognition at Ocado
 
-# Table of Contents
+## Table of Contents
 
 TODO Links to each section 
+
 * [About the project](#about)
 * [Installation & Dependencies](#release-types)
 * [How to run](#building-nodejs)
@@ -18,11 +19,11 @@ The goal of the project is to deliver a machine learning system that can classif
 
 Our approach is to generate 3D training images using the pipeline we developed, which consists of the following main components.
 
-- 
-- 
-- 
-- 
-
+- Rendering API 
+- Training pipeline
+- Evaluation
+- Flask server
+- iPhone App
 
 This project is conducted for  [Software Engineering Practice and Group project (CO 530)](http://www.imperial.ac.uk/computing/current-students/courses/530/), MSc in Computing Science at [Imperial College London](http://www.imperial.ac.uk/computing/).
 
@@ -92,13 +93,18 @@ Install all the dependencies within the virtual environment.
 
 ### How to run each program
 
-### Rendering 
+### Rendering API
 
 Refer to PAVEl README
 
 ### Training pipeline
 
 Refer to SWEN README
+
+
+### Evaluation
+
+Refer to KIYO README
 
 ### iPhone App
 
@@ -108,15 +114,11 @@ Refer to MATTHEW README
 
 Refer to MATTHEW README
 
-### Evaluation
-
-Refer to KIYO README
-
 ## Technology used
 
 - The code is tested with Python 3.5
-- Blender API 
 - Agisoft
+- List Any other third-party software
 
 
 ## Project Team Members <a name="project-team-members"></a>
