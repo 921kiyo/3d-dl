@@ -49,28 +49,6 @@ def evaluate_pipeline(learning_rate,dense_layers,batch_size,dropout,dense_dim,
     logging = True
     log_filename = 'log_bo_pipeline'+launch_datetime+'.csv'
 
-    # params = {}
-    # # neural net
-    # params['learning_rate'] = learning_rate
-    # params['dense_layers'] = dense_layers
-    # params['batch_size'] = batch_size
-    # params['dropout'] = dropout
-    #
-    # # blender
-    # params['num_lamps_mid'] = num_lamps_mid
-    # params['num_lamps_scale'] = num_lamps_scale
-    # params['lamp_energy_mu'] = lamp_energy_mu
-    # params['lamp_energy_sigmu'] = lamp_energy_sigmu
-    # params['camera_loc_phi_sigma'] = camera_loc_phi_sigma
-    # params['camera_loc_normals'] = camera_loc_normals
-    # params['camera_radius_mu'] = camera_radius_mu
-    # params['camera_radius_sigmu'] = camera_radius_sigmu
-    #
-    # # background
-    # # `indoor`, `outdoor`, `SUN_back`, `white`
-    # params['background_type'] = background_type
-    # params['adjust_brightness'] = adjust_brightness
-
     blender_attributes = {
         "attribute_distribution_params":
             [
