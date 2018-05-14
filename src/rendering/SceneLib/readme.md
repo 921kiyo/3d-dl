@@ -3,7 +3,7 @@
 Contains logic for background manipulation and merging of images.
 Heavily using PIL library.
 
-##Merge_Images.py
+## Merge_Images.py
 Provides various functionality for merging images two images, while allowing to:
 
     - Moving one relatively to another
