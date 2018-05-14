@@ -1,3 +1,8 @@
+"""
+An object-oriented high-level wrapper for training InceptionV3 CNNs.
+"""
+
+
 from keras.applications.inception_v3 import InceptionV3
 from keras.preprocessing import image
 from keras.models import Model
@@ -33,11 +38,8 @@ from keras.optimizers import SGD, RMSprop
 from pathlib import Path
 import datetime
 
-# for BO
-from bayes_opt import BayesianOptimization
-
-extra_validation_dir = '/data/g1753002_ocado/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/validation'
-launch_datetime = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") # for csv names
+# for csv logging
+launch_datetime = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
 
 # Custom Image Augmentation Function
 def add_salt_pepper_noise(X_img):
@@ -67,6 +69,9 @@ class ValAccHistory(Callback):
         self.val_accs.append(logs.get('val_acc'))
 
 class ExtraValidationCallback(Callback):
+    def __init__(extra_validation):
+        self.extra_validation_dir = extra_validation
+
     def on_train_begin(self, logs={}):
         self.val1_accs = []
         self.val1_loss = []
@@ -74,6 +79,7 @@ class ExtraValidationCallback(Callback):
         self.val2_loss = []
         self.train_accs = []
         self.train_loss = []
+        # extra_validation_dir = self.extra_validation
 
     def on_epoch_end(self, epoch, logs={}):
         self.val1_accs.append(logs.get('val_acc'))
@@ -86,27 +92,12 @@ class ExtraValidationCallback(Callback):
         # generator for test data
         # similar to above but based on different augmentation function (above)
         test_generator = test_datagen.flow_from_directory(
-                extra_validation_dir,
+                self.extra_validation_dir,
                 target_size=(224, 224),
                 batch_size=64,
                 class_mode='categorical')
 
         loss, acc = self.model.evaluate_generator(test_generator)
-
-        # # WRITING ALL IMAGES USED IN TEST GEN
-        # log_filename = 'val2_filenames_'+launch_datetime+'.csv'
-        #
-        # my_file = Path(log_filename)
-        #
-        # # write header if this is the first run
-        # if not my_file.is_file():
-        #     print("writing head")
-        #     with open(log_filename, "w") as log:
-        #         log.write("Filenames:\n")
-        #     with open(log_filename, "a") as log:
-        #         for i in test_generator.filenames:
-        #             log.write(i)
-
 
         self.val2_accs.append(acc)
         self.val2_loss.append(loss)
@@ -154,7 +145,7 @@ class KerasInception:
     batch_size = 0
     dense_layers = 0
 
-    def __init__(self,input_dim=150,batch_size=16,dense_layers=1,dropout=None,lr=0.001,
+    def __init__(self,input_dim=150,batch_size=16,dense_layers=1,dropout=None,lr=0.0001,
                 dense_dim=1024):
         self.input_dim = input_dim
         self.batch_size = batch_size
@@ -162,6 +153,7 @@ class KerasInception:
         self.dropout = dropout
         self.lr = lr
         self.dense_dim = dense_dim
+        self.model = None
 
     def assemble_model(self,train_dir):
         class_count = len(next(os.walk(train_dir))[1])
@@ -179,23 +171,21 @@ class KerasInception:
         for i in range(self.dense_layers):
             # dropout
             if self.dropout and i == 0:
-                x = Dropout(self.dropout)(x)
-                print("added dropout")
+                x = Dropout(0)(x)
+                print("added 0 pc dropout for layer 1")
             elif self.dropout:
                 x = Dropout(self.dropout)(x)
-                print("added dropout")
+                print("added ",self.dropout," pc dropout for layer ",i+1)
 
-            print("added 1 DENSE LAYER")
-
-            #
             # fully-connected layer
             x = Dense(self.dense_dim, activation='relu',name='dense'+str(i))(x)
 
         # logistic layer
         predictions = Dense(class_count, activation='softmax',name='softmax')(x)
 
-        # this is the model we will train
+        # define the model we will train
         model = Model(inputs=base_model.input, outputs=predictions)
+        self.model = model
 
         # we want to train top layers only
         for layer in base_model.layers:
@@ -203,7 +193,7 @@ class KerasInception:
 
         # compile the model (*after* setting layers to non-trainable)
         # model.compile(optimizer=RMSprop(lr=self.lr), loss='categorical_crossentropy', metrics=['accuracy'])
-        model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy'])
+        model.compile(optimizer=SGD(lr=self.lr, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy'])
 
         return model
 
@@ -229,72 +219,69 @@ class KerasInception:
                         classes_file.write("\n")
             classes_file.close()
 
-    def train(self,train_dir,validation_dir,epochs=5,fine_tune=False,
-            salt_pepper=False,augmentation_params={},classes_txt_dir=None,save_model=False):
+    # unfreeze a specified number of InceptionV3 layers
+    def unfreeze(self,layers):
+        inception_layers = 311
+        slice = inception_layers-layers
+
+        for layer in self.model.layers[:slice]:
+           layer.trainable = False
+        for layer in self.model.layers[slice:]:
+           layer.trainable = True
+
+        self.model.compile(optimizer=SGD(lr=self.lr, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy'])
+
+    # train a model from scratch given a set of training parameters
+    # choose whether to save the model
+    def train(self,train_dir,validation_dir,epochs=0,fine_tune=False, unfrozen_layers=0,
+            salt_pepper=False,augmentation_params={},classes_txt_dir=None,save_model=False,
+            validation_dir_2=None):
         if classes_txt_dir:
             self.save_class_list(train_dir,classes_txt_dir)
 
         # model can only be built here after training directory is clear
         # (for number of classes)
-        self.model = self.assemble_model(train_dir)
+        # if it wasnt built before, built it now
+        if not self.model:
+            self.model = self.assemble_model(train_dir)
+
+        # unfreeze specified number of Inception convolutional layer
+        self.unfreeze(unfrozen_layers)
 
         print("Directory used for training: ",train_dir)
         print("Directory used for validation: ",validation_dir)
 
         # augmentation configuration for training
-        # if salt_pepper:
-        #     train_datagen = ImageDataGenerator(
-        #             rescale=1./255,
-        #             preprocessing_function=add_salt_pepper_noise,
-        #             # horizontal_flip=False, # no flippin groceries
-        #             **augmentation_params)
-        # else:
-        #     train_datagen = ImageDataGenerator(
-        #             rescale=1./255,
-        #             **augmentation_params)
-        #
-        # # generator that will read pictures found in train_dir, and
-        # # indefinitely generate batches of augmented image data and
-        # # rescales images to target_size, splits them into batches
-        # # (instead of loading all images directly into GPU memory)
-        # train_generator = train_datagen.flow_from_directory(
-        #         train_dir,  # this is the target directory
-        #         target_size=(self.input_dim, self.input_dim),  # all images will be resized to input_dimxinput_dim
-        #         batch_size=self.batch_size,
-        #         class_mode='categorical',
-        #         shuffle=True)
-        #
-        # # augmentation configuration for validation: only rescaling
-        # validation_datagen = ImageDataGenerator(rescale=1./255)
-        #
-        # # generator for validation data
-        # # similar to above but based on different augmentation function (above)
-        # validation_generator = validation_datagen.flow_from_directory(
-        #         validation_dir,
-        #         target_size=(self.input_dim, self.input_dim),
-        #         batch_size=self.batch_size,
-        #         class_mode='categorical')
-        train_datagen = ImageDataGenerator(
-                rescale=1./255,
-                shear_range=0.2,
-                zoom_range=0.2,
-                horizontal_flip=True)
+        if salt_pepper:
+            train_datagen = ImageDataGenerator(
+                    rescale=1./255,
+                    preprocessing_function=add_salt_pepper_noise,
+                    **augmentation_params)
+        else:
+            train_datagen = ImageDataGenerator(
+                    rescale=1./255,
+                    **augmentation_params)
 
-        test_datagen = ImageDataGenerator(rescale=1./255)
-
+        # generator that will read pictures found in train_dir, and
+        # indefinitely generate batches of augmented image data and
+        # rescales images to target_size, splits them into batches
         train_generator = train_datagen.flow_from_directory(
                 train_dir,  # this is the target directory
-                target_size=(224, 224),  # all images will be resized to 150x150
-                batch_size=16,
+                target_size=(self.input_dim, self.input_dim),  # all images will be resized to input_dimxinput_dim
+                batch_size=self.batch_size,
                 class_mode='categorical',
                 shuffle=True)
 
-        validation_generator = test_datagen.flow_from_directory(
+        # augmentation configuration for validation: only rescaling
+        validation_datagen = ImageDataGenerator(rescale=1./255)
+
+        # generator for validation data
+        # similar to above but based on different augmentation function (above)
+        validation_generator = validation_datagen.flow_from_directory(
                 validation_dir,
-                target_size=(224, 224),
-                batch_size=16,
-                class_mode='categorical',
-                shuffle=True)
+                target_size=(self.input_dim, self.input_dim),
+                batch_size=self.batch_size,
+                class_mode='categorical')
 
 
         # log everything in tensorboard
@@ -310,56 +297,23 @@ class KerasInception:
 
         history = ValAccHistory()
 
-        extralogger = ExtraValidationCallback()
+        # if a second validation_dir is provided, add an extra Keras callback
+        if validation_dir_2:
+            extralogger = ExtraValidationCallback(validation_dir_2)
+            cbs = [tensorboard,history,extralogger]
+        else:
+            cbs = [tensorboard,history]
 
         self.model.fit_generator(
                 train_generator,
                 steps_per_epoch=12000 // self.batch_size,
                 epochs=epochs,
                 validation_data=validation_generator,
-                validation_steps=800 // self.batch_size)
+                validation_steps=1600 // self.batch_size,
+                callbacks=cbs)
+                # use_multiprocessing=True,
+                # workers=8)
 
-
-        # # train the model on the new data for a few epochs
-        # self.model.fit_generator(
-        #         train_generator,
-        #         # steps_per_epoch=98000 // self.batch_size,
-        #         epochs=epochs,
-        #         validation_data=validation_generator,
-        #         # validation_steps=1600 // self.batch_size,
-        #         callbacks = [tensorboard,history,extralogger])
-        #         # use_multiprocessing=True, # not sure if working properly!
-        #         # workers=8)
-
-        # # WRITING ALL IMAGES USED IN TEST GEN
-        # log_filename = 'val1_filenames_'+launch_datetime+'.csv'
-        #
-        # my_file = Path(log_filename)
-        #
-        # # write header if this is the first run
-        # if not my_file.is_file():
-        #     print("writing head")
-        #     with open(log_filename, "w") as log:
-        #         log.write("Filenames:\n")
-        #     with open(log_filename, "a") as log:
-        #         for i in validation_generator.filenames:
-        #             log.write(i)
-        #
-        # # WRITING ALL IMAGES USED IN TEST GEN
-        # log_filename = 'train_filenames_'+launch_datetime+'.csv'
-        #
-        # my_file = Path(log_filename)
-        #
-        # # write header if this is the first run
-        # if not my_file.is_file():
-        #     print("writing head")
-        #     with open(log_filename, "w") as log:
-        #         log.write("Filenames:\n")
-        #     with open(log_filename, "a") as log:
-        #         for i in train_generator.filenames:
-        #             log.write(i)
-
-        # print(self.model.get_config())
 
         if fine_tune:
             self.fine_tune(train_generator,validation_generator,tensorboard)
@@ -371,7 +325,10 @@ class KerasInception:
 
         return history
 
-    def fine_tune(self,train_generator,validation_generator,tensorboard):
+    # top 2 inception blocks layers will be trained for specified number of
+    # epochs
+    def fine_tune(self,train_generator,validation_generator,tensorboard,
+            epochs=1):
         # we chose to train the top 2 inception blocks, i.e. we will freeze
         # the first 249 layers and unfreeze the rest:
         for layer in self.model.layers[:249]:
@@ -381,14 +338,14 @@ class KerasInception:
 
         # we need to recompile the model for these modifications to take effect
         # we use SGD with a low learning rate
-        self.model.compile(optimizer=SGD(lr=0.0001, momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy'])
+        self.model.compile(optimizer=SGD(lr=0.0001, momentum=0.9),
+            loss='categorical_crossentropy', metrics=['accuracy'])
 
-        # we train our model again (this time fine-tuning the top 2 inception blocks
-        # alongside the top Dense layers
+        # fine-tuning the top 2 inception blocks alongside the Dense layers
         self.model.fit_generator(
                 train_generator,
                 steps_per_epoch=2048 // self.batch_size,
-                epochs=5,
+                epochs=epochs,
                 validation_data=validation_generator,
                 validation_steps=800 // self.batch_size,
                 callbacks = [tensorboard])
@@ -445,16 +402,22 @@ def unzip_and_return_path_to_folder(path_to_zip_file):
     return path_to_zip_file.split('.')[0] # name of new folder
 
 def main():
-    train_dir = '/data/g1753002_ocado/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/train/'
-    validation_dir = '/data/g1753002_ocado/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/validation/'
-    test_dir = '/data/g1753002_ocado/images_proc_test_and_validation'
+    train_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/train'
+    validation_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/validation'
+    test_dir = '/data/g1753002_ocado/manhattan_project/test_data/extended_test_set_ambient'
+
+    # can add second dir if need two validation sets
+    extra_validation_dir = None
+
     dense_layers = 1
     input_dim = 224
-    batch_size = 16
-    fine_tune = False # if true, some of the inceptionV3 layers will be trained for 5 epochs at the end of training
+    batch_size = 64
+    fine_tune = False # if true, some of the inceptionV3 layers will be trained for 1 epoch at the end of training
     add_salt_pepper_noise = False # if True, it adds SP noise
     augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
-    epochs = 20
+    epochs = 25
+    # has to be a number between 0 and 311
+    unfrozen_layers = 311
 
     model = KerasInception(input_dim=input_dim,
                             batch_size=batch_size,
@@ -465,15 +428,103 @@ def main():
                 validation_dir=validation_dir,
                 fine_tune=fine_tune,
                 epochs=epochs,
+                unfrozen_layers=unfrozen_layers,
                 salt_pepper=add_salt_pepper_noise,
                 augmentation_params=get_augmentation_params(augmentation_mode),
-                classes_txt_dir="/homes/sk5317/")
+                validation_dir_2=extra_validation_dir)
 
     model.evaluate(test_dir=test_dir)
 
-def main_for_pipeline():
+
+def grid_search():
     logging = True
-    log_filename = 'model_log_full_w_dropout_firstlayer20.csv'
+    log_filename = 'log_unfrozen_layers_grid_1epoch.csv'
+
+    train_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/train'
+    validation_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/validation'
+    test_dir = '/data/g1753002_ocado/manhattan_project/test_data/extended_test_set_ambient'
+
+    learning_rate_grid = np.logspace(-3,-2,3) # originally 10 pow -5
+    unfrozen_layers_grid = np.linspace(0,311,10)
+    dropout_grid = [0,0.2,0.5]
+    layer_grid = [1,2]
+    batch_size_grid = [16,32,64]
+
+    # go through grid of parameters
+    for lr in learning_rate_grid:
+
+        # set parameters
+        input_dim = 224
+        fine_tune = False
+        add_salt_pepper_noise = False # if True, it adds SP noise
+        augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
+        epochs = 18
+        unfrozen_layers = 311
+
+        learning_rate = lr # 0.0001
+        dense_layers = 1
+        batch_size = 64
+        dropout = 0
+
+        # initialize & train model
+        model = KerasInception(input_dim=input_dim,
+                                batch_size=batch_size,
+                                dense_layers=dense_layers,
+                                dropout=dropout,
+                                lr=learning_rate)
+
+
+        model.train(train_dir=train_dir,
+                    validation_dir=validation_dir,
+                    fine_tune=fine_tune,
+                    epochs=epochs,
+                    salt_pepper=add_salt_pepper_noise,
+                    augmentation_params=get_augmentation_params(augmentation_mode),
+                    save_model=True,
+                    unfrozen_layers=unfrozen_layers
+                    )
+
+        # get accuracy score
+        test_loss, test_acc = model.evaluate(test_dir=test_dir)
+
+        # store accuracy & model parameters
+        if logging:
+            print("logging now...")
+            my_file = Path(log_filename)
+
+            # write header if this is the first run
+            if not my_file.is_file():
+                print("writing head")
+                with open(log_filename, "w") as log:
+                    log.write("datetime,epochs,learning_rate,batch_size,unfrozen_layers,input_dim,dense_layers,dropout,test_loss,test_acc\n")
+
+            # append parameters
+            with open(log_filename, "a") as log:
+                log.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+                log.write(',')
+                log.write(str(epochs))
+                log.write(',')
+                log.write(str(learning_rate))
+                log.write(',')
+                log.write(str(batch_size))
+                log.write(',')
+                log.write(str(unfrozen_layers))
+                log.write(',')
+                log.write(str(input_dim))
+                log.write(',')
+                log.write(str(dense_layers))
+                log.write(',')
+                log.write(str(dropout))
+                log.write(',')
+                log.write(str(test_loss))
+                log.write(',')
+                log.write(str(test_acc))
+                log.write('\n')
+
+
+def main_for_pipeline_using_zip():
+    logging = True
+    log_filename = 'learning_rate_grid.csv'
 
     # get all zip files to iterate over: List parameter, Directory?
 
@@ -483,6 +534,8 @@ def main_for_pipeline():
     dropout_grid = [0,0.2,0.5]
     layer_grid = [1,2]
     batch_size_grid = [16,32,64]
+
+    unfrozen_layers_grid = np.linspace(0,311,8)
 
     # input directories
     path_of_zip = '/vol/project/2017/530/g1753002/keras_test_data/train/train_test_zip2.zip'
@@ -501,16 +554,17 @@ def main_for_pipeline():
 
 
         # set parameters
-        input_dim = 299
+        input_dim = 224
         fine_tune = False # if true, some of the inceptionV3 layers will be trained for 5 epochs at the end of training
         add_salt_pepper_noise = False # if True, it adds SP noise
         augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
-        epochs = 10
+        epochs = 30
+        unfrozen_layers = 0
 
         learning_rate = lr
-        dense_layers = 2
+        dense_layers = 1
         batch_size = 64
-        dropout = 0.5
+        dropout = 0
 
         # initialize & train model
         model = KerasInception(input_dim=input_dim,
@@ -524,6 +578,7 @@ def main_for_pipeline():
                     validation_dir=validation_dir,
                     fine_tune=fine_tune,
                     epochs=epochs,
+                    unfrozen_layers=unfrozen_layers,
                     salt_pepper=add_salt_pepper_noise,
                     augmentation_params=get_augmentation_params(augmentation_mode),
                     classes_txt_dir=main_dir,
@@ -531,7 +586,7 @@ def main_for_pipeline():
                     )
 
         # get accuracy score
-        score = model.evaluate(test_dir=test_dir)
+        test_loss, test_acc = model.evaluate(test_dir=test_dir)
 
         # store accuracy & model parameters
         if logging:
@@ -542,7 +597,7 @@ def main_for_pipeline():
             if not my_file.is_file():
                 print("writing head")
                 with open(log_filename, "w") as log:
-                    log.write("datetime,epochs,learning_rate,batch_size,input_dim,dense_layers,dropout,score[0],score[1]\n")
+                    log.write("datetime,epochs,learning_rate,batch_size,unfrozen_layers,input_dim,dense_layers,dropout,test_loss,test_acc\n")
 
             # append parameters
             with open(log_filename, "a") as log:
@@ -554,22 +609,22 @@ def main_for_pipeline():
                 log.write(',')
                 log.write(str(batch_size))
                 log.write(',')
+                log.write(str(unfrozen_layers))
+                log.write(',')
                 log.write(str(input_dim))
                 log.write(',')
                 log.write(str(dense_layers))
                 log.write(',')
                 log.write(str(dropout))
                 log.write(',')
-                log.write(str(score[0]))
+                log.write(str(test_loss))
                 log.write(',')
-                log.write(str(score[1]))
+                log.write(str(test_acc))
                 log.write('\n')
 
 
-
-
-main()
+# main()
 
 # main_for_pipeline()
 
-# bayes_optimization()
+grid_search()
