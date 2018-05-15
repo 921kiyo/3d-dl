@@ -199,23 +199,23 @@ def gen_merge(image, save_as, pixels=300, adjust_brightness = False):
         pixels: The number of pixels the final square image will have.
             Default = 300
         adjust_brigtness (boolean): Whether the brigthness of the background
-            should be adjusted to match on average the brightness of the 
+            should be adjusted to match on average the brightness of the
             foreground image. Default = False
     """
 
     back = rb.rand_background(np.random.randint(2,4),pixels)
     scaled = back*256
-    
+
     if adjust_brightness:
         for_array = np.array(image)
         frgdnumber = np.count_nonzero(np.count_nonzero(for_array, axis=2))
         frgdsum = np.sum(np.sum(np.sum(for_array, axis=0), axis=0)[0:3])
-        
+
         bcgdnumber = pixels*pixels#np.count_nonzero(np.count_nonzero(back_array, axis=2))
         bcgdsum = np.sum(np.sum(np.sum(scaled, axis=0), axis=0))
-        
+
         frmean = frgdsum/frgdnumber
-        bcmean = bcgdsum/bcgdnumber 
+        bcmean = bcgdsum/bcgdnumber
         factor = frmean/bcmean
         # Imposing boundaries on the factor
         factor = min(factor, 1.5)
@@ -223,7 +223,7 @@ def gen_merge(image, save_as, pixels=300, adjust_brightness = False):
 
         scaled = scaled*factor
         scaled[scaled>255]=255
-    
+
     background = Image.fromarray(scaled.astype('uint8'), mode = "RGB")
     final, bbox = mi.merge_images(image, background)
 
@@ -269,7 +269,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
         n_of_pixels (int): The size of the edge of the square image.
             Is optional, default = 300
         adjust_brigtness (boolean): Whether the brigthness of the background
-            should be adjusted to match on average the brightness of the 
+            should be adjusted to match on average the brightness of the
             foreground image. Default = False
     """
     print('Checking data directories...')
@@ -280,8 +280,8 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
         message = "Can't find rendering workspace folder. Please create the folder" + workspace +  ", containing object files and background database. See group folder for example."
         print(message)
         raise RenderPipelineError(message)
-        
 
+    destroy_folders(work_dir, temp_folders)
     validate_folders(work_dir, data_folders)
 
     obj_poses = os.path.join(work_dir, "object_poses")
@@ -316,7 +316,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
 
         sub_final = os.path.join(final_im, folder)
         os.mkdir(sub_final)
-        
+
         # Merge images based on the choice of background
         if generate_background:
             bboxes = random_bg_for_all_objects(sub_obj, sub_final, adjust_brightness, n_of_pixels)
@@ -337,7 +337,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
     # Dump the parameters used for rendering and merging
     for folder in os.listdir(obj_poses):
         print(folder)
-    
+
     # Dump all merging parameters to a json file
     all_params= {"object_set": os.path.split(obj_set)[-1],
                  "images_per_class": renders_per_class,
@@ -349,15 +349,15 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
                  }
     dump_file = os.path.join(final_folder, 'mergeparams_dump.json')
     with open(dump_file, "w+") as f:
-        json.dump(all_params, f, sort_keys=True, indent=4, separators=(',', ': '))    
-        
+        json.dump(all_params, f, sort_keys=True, indent=4, separators=(',', ': '))
+
     # export everything into a zip file
     if generate_background:
         back_parameter = "random_bg"
     else:
         back_parameter = os.path.split(background_database)[-1]
     zip_name = os.path.join(work_dir,"final_zip",os.path.split(obj_set)[-1] + "_" + back_parameter + "_" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S").replace(" ","_").replace(":","_"))
-    
+
     make_archive(zip_name, 'zip', final_folder)
     destroy_folders(work_dir, temp_folders)
 
@@ -388,25 +388,25 @@ def example_run():
         "attribute_distribution_params": [["num_lamps","mid", 6], ["num_lamps","scale", 0.4], ["lamp_energy","mu", 500.0], ["lamp_size","mu",5], ["camera_radius","sigmu",0.1]],
         "attribute_distribution" : []
     }
-    
-    
+
+
     # Default paths
     # Set path for final zip file containing training data
 
     #zip_save1 = os.path.join(workspace, "final_zip","sun_bg_data")
     #zip_save2 = os.path.join(workspace, "final_zip","random_bg_data")
-    
+
     # Set backround image database path
     sun_database = os.path.join(workspace, "bg_database","SUN_back")
 
-    
+
     # Set object file path
     # obj_set = os.path.join(workspace, "object_files/two_set")
     obj_set = os.path.join(workspace, "object_files","two_set_model_format")
-    
+
     # Construct rendering parameters
     argument_list = []
-    
+
     arguments1 = {
         #"zip_name": zip_save1,
         "obj_set": obj_set,
@@ -419,7 +419,7 @@ def example_run():
         "n_of_pixels": 300,
         "adjust_brightness": True
         }
-    
+
     arguments2 = {
         #"zip_name": zip_save2,
         "obj_set": obj_set,
@@ -432,13 +432,13 @@ def example_run():
         "n_of_pixels": 300,
         "adjust_brightness": False
         }
-    
+
     argument_list.append(arguments1)
     #argument_list.append(arguments2)
     #argument_list.append(arguments3)
-    
-    
-    # First we clean the render workspace so any leftovers from 
+
+
+    # First we clean the render workspace so any leftovers from
     # failed jobs are removed
     destroy_folders(workspace, temp_folders)
     for value in argument_list:
@@ -451,8 +451,6 @@ def example_run():
         print("--- %s seconds ---" % (time.time() - start_time))
 
 if __name__=="__main__":
-    
+
     print("running the experiment")
     example_run()
-    
-
