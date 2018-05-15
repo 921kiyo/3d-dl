@@ -1,0 +1,53 @@
+{
+    "camera_loc": {
+        "dist": "CompositeShellRingDist",
+        "normals": "YZ",
+        "phi_sigma": 10.0
+    },
+    "camera_radius": {
+        "dist": "TruncNormDist",
+        "l": 2.0,
+        "mu": 6.0,
+        "r": null,
+        "sigmu": 0.1
+    },
+    "lamp_distance": {
+        "dist": "TruncNormDist",
+        "l": 2.0,
+        "mu": 5.0,
+        "r": null,
+        "sigmu": 0.0
+    },
+    "lamp_energy": {
+        "dist": "TruncNormDist",
+        "l": 0.0,
+        "mu": 500.0,
+        "r": null,
+        "sigmu": 0.3
+    },
+    "lamp_loc": {
+        "dist": "UniformShellCoordinateDist"
+    },
+    "lamp_size": {
+        "dist": "TruncNormDist",
+        "l": 0.0,
+        "mu": 5,
+        "r": null,
+        "sigmu": 0.3
+    },
+    "num_lamps": {
+        "dist": "PScaledUniformDDist",
+        "mid": 5,
+        "scale": 0.2
+    },
+    "spin_angle": {
+        "dist": "UniformCDist",
+        "l": 0.0,
+        "r": 360.0
+    },
+    "subject_size": {
+        "dist": "NormDist",
+        "mu": 8.0,
+        "sigma": 0.0
+    }
+}
