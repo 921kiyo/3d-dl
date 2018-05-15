@@ -27,7 +27,7 @@ else:
 
 """ --------------- Configure Coverage.py ------------- """
 coverage_data_dir = os.path.join(project_dir, 'test', 'coverage', 'data_blender')
-cov = coverage.Coverage(omit=["*/Applications/blender.app/Contents/Resources/2.79/*",  "*__init__*"], branch=report_branch, data_file=coverage_data_dir)
+cov = coverage.Coverage(omit=["*/Applications/blender.app/Contents/Resources/2.79/*",  "*__init__*", '*Blender/blender*'], branch=report_branch, data_file=coverage_data_dir)
 
 cov.start()
 
@@ -37,6 +37,7 @@ from rendering.TestBlenderAPI.TestBlenderObjects import BlenderObjectTest
 from rendering.TestBlenderAPI.TestBlenderCamera import BlenderCameraTest
 from rendering.TestBlenderAPI.TestBlenderShapes import BlenderShapeTest
 from rendering.TestBlenderAPI.TestBlenderScene import BlenderSceneTest
+from rendering.TestBlenderAPI.TestBlenderScene import BlenderRandomSceneTest
 from rendering.TestBlenderAPI.TestBlenderMesh import BlenderMeshTest
 from rendering.TestBlenderAPI.TestBlenderLamps import BlenderLampsTest
 
@@ -49,6 +50,7 @@ if __name__ == '__main__':
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderSceneTest))
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderMeshTest))
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderLampsTest))
+    suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(BlenderRandomSceneTest))
 
     alltests = unittest.TestSuite(suites)
     success = unittest.TextTestRunner().run(alltests).wasSuccessful()

@@ -29,6 +29,12 @@ parser.add_argument('-s', '---scene_tests', action='store_true',
 parser.add_argument('-p', '--pipeline_tests', action='store_true',
                     help='run pipeline tests')
 
+parser.add_argument('-f', '--flask_tests', action='store_true',
+                    help='run flask tests')
+
+parser.add_argument('-at', '--all_tests', action='store_true',
+                    help='run all tests')
+
 parser.add_argument('-rt', '--report_tests', action='store_true',
                     help='include test files in coverage report')
 
@@ -52,7 +58,7 @@ site_packages = get_python_lib()
 # blender_path = 'blender'
 blender_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
 
-if args.blender_tests:
+if args.blender_tests or args.all_tests:
     blender_script_dir = os.path.join(project_dir, 'test', 'test_blender.py')
     blender_args = [blender_path, '--background', '--python', blender_script_dir,
                     '--', project_dir, site_packages, str(args.report_branch)]
