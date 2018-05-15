@@ -69,7 +69,7 @@ class ValAccHistory(Callback):
         self.val_accs.append(logs.get('val_acc'))
 
 class ExtraValidationCallback(Callback):
-    def __init__(extra_validation):
+    def __init__(self,extra_validation):
         self.extra_validation_dir = extra_validation
 
     def on_train_begin(self, logs={}):
@@ -126,7 +126,7 @@ class ExtraValidationCallback(Callback):
                 log.write(',')
                 log.write(str(logs.get('val_acc'))),
                 log.write(',')
-                log.write(str(logs.get('val_loss'))),
+                log.write(str(logs.get('val_loss'))),/data/g1753002_ocado/manhattan_project/training_data/ten_set_model_official_SUN_back_2018-05-11_08_03_02/images/train
                 log.write(',')
                 log.write(str(acc)),
                 log.write(',')
@@ -145,8 +145,8 @@ class KerasInception:
     batch_size = 0
     dense_layers = 0
 
-    def __init__(self,input_dim=150,batch_size=16,dense_layers=1,dropout=None,lr=0.0001,
-                dense_dim=1024):
+    def __init__(self,input_dim=150,batch_size=16,dense_layers=1,dropout=None,
+            lr=0.0031622777, dense_dim=1024):
         self.input_dim = input_dim
         self.batch_size = batch_size
         self.dense_layers = dense_layers
@@ -164,7 +164,7 @@ class KerasInception:
         # global spatial average pooling layer
         x = base_model.output
 
-        base_model.layers[-1].name = 'base_output'
+        base_model.layers[-1].name = 'base_output'/data/g1753002_ocado/manhattan_project/training_data/ten_set_model_official_SUN_back_2018-05-11_08_03_02/images/train
 
         x = GlobalAveragePooling2D(name='pooling')(x)
 
@@ -402,151 +402,11 @@ def unzip_and_return_path_to_folder(path_to_zip_file):
 
     return path_to_zip_file.split('.')[0] # name of new folder
 
-def main():
-    # train_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/train'
-    train_dir = '/data/g1753002_ocado/manhattan_project/training_data/ten_set_model_official_SUN_back_2018-05-11_08_03_02/images/train'
-    # validation_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/validation'
-    validation_dir = '/data/g1753002_ocado/manhattan_project/training_data/ten_set_model_official_SUN_back_2018-05-11_08_03_02/images/validation'
-    # test_dir = '/data/g1753002_ocado/manhattan_project/test_data/extended_test_set_ambient'
-    test_dir = '/data/g1753002_ocado/manhattan_project/test_data/official_test_set_factory'
 
-    # can add second dir if need two validation sets
-    extra_validation_dir = None
-
-    dense_layers = 1
-    input_dim = 224
-    batch_size = 64
-    fine_tune = False # if true, some of the inceptionV3 layers will be trained for 1 epoch at the end of training
-    add_salt_pepper_noise = False # if True, it adds SP noise
-    augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
-    epochs = 20
-    # has to be a number between 0 and 311
-    unfrozen_layers = 311
-    learning_rate = 0.0031622777
-
-    model = KerasInception(input_dim=input_dim,
-                            batch_size=batch_size,
-                            dense_layers=dense_layers)
-
-
-    model.train(train_dir=train_dir,
-                validation_dir=validation_dir,
-                fine_tune=fine_tune,
-                epochs=epochs,
-                unfrozen_layers=unfrozen_layers,
-                salt_pepper=add_salt_pepper_noise,
-                augmentation_params=get_augmentation_params(augmentation_mode),
-                validation_dir_2=extra_validation_dir)
-
-    model.evaluate(test_dir=test_dir)
-
-    model.save_model('occlusion_model.h5')
-
-
-
-def main_for_pipeline_using_zip():
-    logging = True
-    log_filename = 'learning_rate_grid.csv'
-
-    # get all zip files to iterate over: List parameter, Directory?
-
-
-    # create grid of parameters: e.g. to a csv file, then read out line by line, once done, add 1 at the end
-    learning_rate_grid = np.logspace(-6,-3,10) # originally 10 pow -5
-    dropout_grid = [0,0.2,0.5]
-    layer_grid = [1,2]
-    batch_size_grid = [16,32,64]
-
-    unfrozen_layers_grid = np.linspace(0,311,8)
-
-    # input directories
-    path_of_zip = '/vol/project/2017/530/g1753002/keras_test_data/train/train_test_zip2.zip'
-    validation_dir = '/vol/project/2017/530/g1753002/keras_test_data/validation'
-    test_dir = '/vol/project/2017/530/g1753002/keras_test_data/test'
-
-    # load train images from one zip file
-    unzipped_dir = unzip_and_return_path_to_folder(path_of_zip)
-    train_dir = unzipped_dir + '/images'
-
-    # get path for classes.txt
-    main_dir, filename = os.path.split(path_of_zip)
-
-    # go through grid of parameters
-    for lr in learning_rate_grid:
-
-
-        # set parameters
-        input_dim = 224
-        fine_tune = False # if true, some of the inceptionV3 layers will be trained for 5 epochs at the end of training
-        add_salt_pepper_noise = False # if True, it adds SP noise
-        augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
-        epochs = 30
-        unfrozen_layers = 0
-
-        learning_rate = lr
-        dense_layers = 1
-        batch_size = 64
-        dropout = 0
-
-        # initialize & train model
-        model = KerasInception(input_dim=input_dim,
-                                batch_size=batch_size,
-                                dense_layers=dense_layers,
-                                dropout=dropout,
-                                lr=learning_rate)
-
-
-        model.train(train_dir=train_dir,
-                    validation_dir=validation_dir,
-                    fine_tune=fine_tune,
-                    epochs=epochs,
-                    unfrozen_layers=unfrozen_layers,
-                    salt_pepper=add_salt_pepper_noise,
-                    augmentation_params=get_augmentation_params(augmentation_mode),
-                    classes_txt_dir=main_dir,
-                    save_model=True
-                    )
-
-        # get accuracy score
-        test_loss, test_acc = model.evaluate(test_dir=test_dir)
-
-        # store accuracy & model parameters
-        if logging:
-            print("logging now...")
-            my_file = Path(log_filename)
-
-            # write header if this is the first run
-            if not my_file.is_file():
-                print("writing head")
-                with open(log_filename, "w") as log:
-                    log.write("datetime,epochs,learning_rate,batch_size,unfrozen_layers,input_dim,dense_layers,dropout,test_loss,test_acc\n")
-
-            # append parameters
-            with open(log_filename, "a") as log:
-                log.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
-                log.write(',')
-                log.write(str(epochs))
-                log.write(',')
-                log.write(str(learning_rate))
-                log.write(',')
-                log.write(str(batch_size))
-                log.write(',')
-                log.write(str(unfrozen_layers))
-                log.write(',')
-                log.write(str(input_dim))
-                log.write(',')
-                log.write(str(dense_layers))
-                log.write(',')
-                log.write(str(dropout))
-                log.write(',')
-                log.write(str(test_loss))
-                log.write(',')
-                log.write(str(test_acc))
-                log.write('\n')
 
 
 # main()
 
 # main_for_pipeline()
 
-grid_search()
+# grid_search()
