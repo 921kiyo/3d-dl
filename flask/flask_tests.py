@@ -16,7 +16,8 @@ class TestFlaskImplementations(unittest.TestCase):
         self.assertNotEqual(filepath_1, filepath_2)
 
     def test_crop_image(self):
-        copyfile('test_image.jpg', 'temp_test.jpg')
+        my_path = os.path.abspath(os.path.dirname(__file__))
+        copyfile(str(my_path) + '/test_image.jpg', str(my_path) + '/temp_test.jpg')
         flask_implementations.crop_image('/temp_test.jpg')
 
         im = Image.open('temp_test.jpg')
