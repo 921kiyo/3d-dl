@@ -39,7 +39,8 @@ class TestKerasRetrain(unittest.TestCase):
                     salt_pepper=True,
                     classes_txt_dir=os.getcwd(),
                     unfrozen_layers=311,
-                    steps_per_epoch=1000
+                    steps_per_epoch=1000,
+                    validation_dir_2=validation_dir
                     # save_model=True
                     )
 
@@ -114,8 +115,11 @@ class TestKerasRetrain(unittest.TestCase):
     # tests if model can be trained on two classes and perform significantly
     # better than random on a test set after 15 minutes of training
     def test_full_training(self):
+        path_of_zip = 'unit_test_images_zipped.zip'
+        train_dir = rt.unzip_and_return_path_to_folder(path_of_zip)
+
         # dummy directories with black/white images
-        train_dir = 'unit_test_images/'
+        # train_dir = 'unit_test_images/'
         validation_dir = 'unit_test_images/'
         test_dir = 'unit_test_images/'
 
