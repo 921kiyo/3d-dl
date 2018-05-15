@@ -235,7 +235,7 @@ class KerasInception:
     # choose whether to save the model
     def train(self,train_dir,validation_dir,epochs=0,fine_tune=False, unfrozen_layers=0,
             salt_pepper=False,augmentation_params={},classes_txt_dir=None,save_model=False,
-            validation_dir_2=None):
+            validation_dir_2=None,steps_per_epoch=12000):
         if classes_txt_dir:
             self.save_class_list(train_dir,classes_txt_dir)
 
@@ -306,7 +306,7 @@ class KerasInception:
 
         self.model.fit_generator(
                 train_generator,
-                steps_per_epoch=12000 // self.batch_size,
+                steps_per_epoch=steps_per_epoch // self.batch_size,
                 epochs=epochs,
                 validation_data=validation_generator,
                 validation_steps=1600 // self.batch_size,
@@ -350,7 +350,7 @@ class KerasInception:
                 validation_steps=800 // self.batch_size,
                 callbacks = [tensorboard])
 
-
+    # returns accuracy and loss of the trained model given a test directory
     def evaluate(self,test_dir):
         # augmentation configuration for testing: only rescaling
         test_datagen = ImageDataGenerator(rescale=1./255)
@@ -374,6 +374,7 @@ class KerasInception:
     def load_model(self,file_path):
         self.model = load_model(file_path)
 
+    # saves a model, provie a file path ending with .h5
     def save_model(self,path):
         self.model.save(path)
 
@@ -402,9 +403,12 @@ def unzip_and_return_path_to_folder(path_to_zip_file):
     return path_to_zip_file.split('.')[0] # name of new folder
 
 def main():
-    train_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/train'
-    validation_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/validation'
-    test_dir = '/data/g1753002_ocado/manhattan_project/test_data/extended_test_set_ambient'
+    # train_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/train'
+    train_dir = '/data/g1753002_ocado/manhattan_project/training_data/ten_set_model_official_SUN_back_2018-05-11_08_03_02/images/train'
+    # validation_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/validation'
+    validation_dir = '/data/g1753002_ocado/manhattan_project/training_data/ten_set_model_official_SUN_back_2018-05-11_08_03_02/images/validation'
+    # test_dir = '/data/g1753002_ocado/manhattan_project/test_data/extended_test_set_ambient'
+    test_dir = '/data/g1753002_ocado/manhattan_project/test_data/official_test_set_factory'
 
     # can add second dir if need two validation sets
     extra_validation_dir = None
@@ -415,9 +419,10 @@ def main():
     fine_tune = False # if true, some of the inceptionV3 layers will be trained for 1 epoch at the end of training
     add_salt_pepper_noise = False # if True, it adds SP noise
     augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
-    epochs = 25
+    epochs = 20
     # has to be a number between 0 and 311
     unfrozen_layers = 311
+    learning_rate = 0.0031622777
 
     model = KerasInception(input_dim=input_dim,
                             batch_size=batch_size,
@@ -435,91 +440,8 @@ def main():
 
     model.evaluate(test_dir=test_dir)
 
+    model.save_model('occlusion_model.h5')
 
-def grid_search():
-    logging = True
-    log_filename = 'log_unfrozen_layers_grid_1epoch.csv'
-
-    train_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/train'
-    validation_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/validation'
-    test_dir = '/data/g1753002_ocado/manhattan_project/test_data/extended_test_set_ambient'
-
-    learning_rate_grid = np.logspace(-3,-2,3) # originally 10 pow -5
-    unfrozen_layers_grid = np.linspace(0,311,10)
-    dropout_grid = [0,0.2,0.5]
-    layer_grid = [1,2]
-    batch_size_grid = [16,32,64]
-
-    # go through grid of parameters
-    for lr in learning_rate_grid:
-
-        # set parameters
-        input_dim = 224
-        fine_tune = False
-        add_salt_pepper_noise = False # if True, it adds SP noise
-        augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
-        epochs = 18
-        unfrozen_layers = 311
-
-        learning_rate = lr # 0.0001
-        dense_layers = 1
-        batch_size = 64
-        dropout = 0
-
-        # initialize & train model
-        model = KerasInception(input_dim=input_dim,
-                                batch_size=batch_size,
-                                dense_layers=dense_layers,
-                                dropout=dropout,
-                                lr=learning_rate)
-
-
-        model.train(train_dir=train_dir,
-                    validation_dir=validation_dir,
-                    fine_tune=fine_tune,
-                    epochs=epochs,
-                    salt_pepper=add_salt_pepper_noise,
-                    augmentation_params=get_augmentation_params(augmentation_mode),
-                    save_model=True,
-                    unfrozen_layers=unfrozen_layers
-                    )
-
-        # get accuracy score
-        test_loss, test_acc = model.evaluate(test_dir=test_dir)
-
-        # store accuracy & model parameters
-        if logging:
-            print("logging now...")
-            my_file = Path(log_filename)
-
-            # write header if this is the first run
-            if not my_file.is_file():
-                print("writing head")
-                with open(log_filename, "w") as log:
-                    log.write("datetime,epochs,learning_rate,batch_size,unfrozen_layers,input_dim,dense_layers,dropout,test_loss,test_acc\n")
-
-            # append parameters
-            with open(log_filename, "a") as log:
-                log.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
-                log.write(',')
-                log.write(str(epochs))
-                log.write(',')
-                log.write(str(learning_rate))
-                log.write(',')
-                log.write(str(batch_size))
-                log.write(',')
-                log.write(str(unfrozen_layers))
-                log.write(',')
-                log.write(str(input_dim))
-                log.write(',')
-                log.write(str(dense_layers))
-                log.write(',')
-                log.write(str(dropout))
-                log.write(',')
-                log.write(str(test_loss))
-                log.write(',')
-                log.write(str(test_acc))
-                log.write('\n')
 
 
 def main_for_pipeline_using_zip():
