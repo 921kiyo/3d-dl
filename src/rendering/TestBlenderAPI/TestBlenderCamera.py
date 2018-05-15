@@ -8,8 +8,8 @@ boop = "/Users/maxbaylis/Lobster/src/"
 if not (boop in sys.path):
     sys.path.append(boop)
 
-from rendering.BlenderAPI.BlenderObjects import to_quaternion
-import rendering.BlenderAPI as bld
+from ..BlenderAPI.BlenderObjects import to_quaternion
+from .. import BlenderAPI as bld
 
 import unittest
 

@@ -15,14 +15,9 @@ C.scene.render.engine = 'CYCLES'
 import unittest
 
 
-import rendering.BlenderAPI as bld
+from .. import BlenderAPI as bld
 
-
-from rendering.BlenderAPI.BlenderScene import BlenderScene
-from rendering.BlenderAPI.BlenderScene import BlenderRoom
-from rendering.BlenderAPI.BlenderCamera import BlenderCamera
-from rendering.BlenderAPI.BlenderLamps import BlenderLamp, BlenderSun
-from rendering.BlenderAPI.BlenderShapes import *
+from ..BlenderAPI.BlenderShapes import *
 
 class BlenderMeshTest(unittest.TestCase):
 

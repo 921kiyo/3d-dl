@@ -6,8 +6,8 @@ boop = "/Users/maxbaylis/Lobster/src/"
 if not (boop in sys.path):
     sys.path.append(boop)
 
-import rendering.BlenderAPI.BlenderObjects as bld
-from rendering.BlenderAPI.BlenderExceptions import *
+from ..BlenderAPI import BlenderObjects as bld
+from ..BlenderAPI.BlenderExceptions import *
 
 import unittest
 

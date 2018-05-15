@@ -14,13 +14,13 @@ C.scene.render.engine = 'CYCLES'
 import unittest
 
 
-import rendering.BlenderAPI as bld
+from .. import BlenderAPI as bld
 
 
-from rendering.BlenderAPI.BlenderScene import BlenderScene, BlenderRandomScene
-from rendering.BlenderAPI.BlenderScene import BlenderRoom
-from rendering.BlenderAPI.BlenderCamera import BlenderCamera
-from rendering.BlenderAPI.BlenderLamps import BlenderLamp, BlenderSun, BlenderPoint
+from ..BlenderAPI.BlenderScene import BlenderScene, BlenderRandomScene
+from ..BlenderAPI.BlenderScene import BlenderRoom
+from ..BlenderAPI.BlenderCamera import BlenderCamera
+from ..BlenderAPI.BlenderLamps import BlenderLamp, BlenderSun, BlenderPoint
 
 import os
 

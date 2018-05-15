@@ -14,14 +14,14 @@ cov = coverage.Coverage()
 cov.start()
 
 
-from rendering.TestBlenderAPI.TestBlenderObjects import BlenderObjectTest
-from rendering.TestBlenderAPI.TestBlenderCamera import BlenderCameraTest
-from rendering.TestBlenderAPI.TestBlenderShapes import BlenderShapeTest
-from rendering.TestBlenderAPI.TestBlenderScene import BlenderSceneTest
-from rendering.TestBlenderAPI.TestBlenderScene import BlenderRandomSceneTest
-from rendering.TestBlenderAPI.TestBlenderMesh import BlenderMeshTest
-from rendering.TestBlenderAPI.TestBlenderLamps import BlenderLampsTest
-from rendering.TestBlenderAPI.TestBlenderNode import BlenderNodeTest
+from .TestBlenderObjects import BlenderObjectTest
+from .TestBlenderCamera import BlenderCameraTest
+from .TestBlenderShapes import BlenderShapeTest
+from .TestBlenderScene import BlenderSceneTest
+from .TestBlenderScene import BlenderRandomSceneTest
+from .TestBlenderMesh import BlenderMeshTest
+from .TestBlenderLamps import BlenderLampsTest
+from .TestBlenderNode import BlenderNodeTest
 
 
 
