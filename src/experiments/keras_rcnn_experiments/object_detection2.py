@@ -9,7 +9,6 @@ import datetime
 
 import keras
 import keras.preprocessing.image
-from keras.utils import multi_gpu_model
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import Callback
 from keras import backend as K
@@ -19,26 +18,27 @@ import numpy as np
 import gc
 
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
-from keras_retinanet import layers
-from keras_retinanet import losses
 from keras_retinanet import models
-from keras_retinanet.callbacks import RedirectModel
-from keras_retinanet.callbacks.eval import Evaluate
 from keras_retinanet.models.retinanet import retinanet_bbox
-from keras_retinanet.preprocessing.csv_generator import CSVGenerator
-from keras_retinanet.preprocessing.kitti import KittiGenerator
-from keras_retinanet.preprocessing.open_images import OpenImagesGenerator
-from keras_retinanet.preprocessing.pascal_voc import PascalVocGenerator
-from keras_retinanet.utils.anchors import make_shapes_callback, anchor_targets_bbox
 from keras_retinanet.utils.keras_version import check_keras_version
-from keras_retinanet.utils.model import freeze as freeze_model
-from keras_retinanet.utils.transform import random_transform_generator
-
+from keras_retinanet.preprocessing import csv_generator
 from keras_retinanet.bin import train
 from keras_retinanet.utils.image import read_image_bgr, preprocess_image, resize_image
 
 score_threshold = 0.05
 
+def read_class_csv(csv_class_file):
+    try:
+        with csv_generator._open_for_csv(csv_class_file) as file:
+            classes = csv_generator._read_classes(csv.reader(file, delimiter=','))
+            class_list = list(classes.keys())
+            for c in classes:
+                class_idx = classes[c]
+                class_list[class_idx] = c
+            return class_list
+    except ValueError as e:
+        raise_from(ValueError('invalid CSV class file: {}: {}'.format(csv_class_file, e)), None)
+        
 def filter(scores, labels, threshold):
 
     hi = []
@@ -133,8 +133,8 @@ def detection_as_classification(model, test_generator):
     for X,Y in test_generator:
         if i >= len(test_generator):
             break # otherwise will run indefinitely
-        X = preprocess_image(X)
         X = rgb2bgr(X)
+        X = preprocess_image(X)
         boxes, scores, labels = model.predict_on_batch(X)
         tp, fp = evaluate(filter(scores, labels, score_threshold), Y)
         i += 1
@@ -147,6 +147,7 @@ class ClassificationCallback(Callback):
     def __init__(self, args, log_filename, test_data_dir, prediction_model, delete_model=False, batch_size=50):
 
         super(ClassificationCallback, self).__init__()
+        self.class_list = read_class_csv(args.classes)
         self.log_filename = log_filename
         self.batch_size = batch_size
         self.model = prediction_model
@@ -162,6 +163,7 @@ class ClassificationCallback(Callback):
             self.test_data_dir,
             target_size=(224, 224),
             batch_size=self.batch_size,
+            classes = self.class_list,
             class_mode='categorical',
             shuffle=False)
 
@@ -201,8 +203,8 @@ class ClassificationCallback(Callback):
             log.write(str(recall))
             log.write('\n')
 
-        print('\nValidation set at {}% :'.format(self.test_data_dir))
-        print('Precision: {}% , Recall: {}%'.format(precision*100, recall*100))
+        print('\nValidation set at {}:'.format(self.test_data_dir))
+        print('Precision: {}% , Recall: {}% \n'.format(precision*100, recall*100))
 
         # remove snapshots, but save the last one
         if (not epoch >= self.num_epochs-1) and self.delete_model:
@@ -302,39 +304,44 @@ def test(saved_model_path, test_data_dir):
     detection_as_classification(model, test_data_dir)
     
 if __name__ == '__main__':
+    
     args = sys.argv[1:]
     args = train.parse_args(args)
 
+    manhattan_root = '/data/g1753002_ocado/manhattan_project/'
+    images_root = os.path.join(manhattan_root, 'training_data/ten_set_model_official_SUN_back_2018-05-11_08_03_02/images')
+    
     args.batch_size = 50
-    args.steps = 5000/args.batch_size
+    args.steps = 10000/args.batch_size
     args.epochs = 1
     args.image_max_side = 224
     args.image_min_side = 224
-    args.random_transform = False
+    args.random_transform = True
     args.dataset_type = 'csv'
-    args.annotations = './shapes.csv'
-    args.classes = './classes.csv'
-    args.val_annotations = './shapes.csv'
-    args.rendered_val_data = '/vol/project/2017/530/g1753002/ThirdPartyRepos/keras-rcnn/keras_rcnn/data/shape/images_classify/'
-    args.real_val_data = '/vol/project/2017/530/g1753002/ThirdPartyRepos/keras-rcnn/keras_rcnn/data/shape/images_classify/'
-    args.initial_epoch = 0
+    args.annotations = os.path.join(images_root, 'train','annotations.csv')
+    args.classes = os.path.join(images_root,'classes.csv')
+    args.val_annotations = os.path.join(images_root, 'validation','annotations.csv')
+    args.snapshot_path = os.path.join(manhattan_root, 'trained_models', 'retinanet_second_attempt')
+    args.tensorboard_dir = os.path.join(args.snapshot_path, 'logs')
+    args.rendered_val_data = os.path.join(images_root, 'validation')
+    args.real_val_data = os.path.join(manhattan_root, 'test_data', 'extended_test_set_ambient')
+    args.initial_epoch = 100
+    args.freeze_backbone = False
+    epochs = 150
 
-    epochs = 30
-
-    for e in range(epochs):
+    for e in range(args.initial_epoch, epochs, 1):
         args.initial_epoch = e
         args.epochs = e+1
         if e > 0:
             model_path = '{backbone}_{dataset_type}_{epoch:02d}.h5'.format(
             backbone='resnet50', dataset_type=args.dataset_type, epoch=(e))
-            model_path = os.path.join('./snapshots', model_path)
+            model_path = os.path.join(args.snapshot_path, model_path)
             args.snapshot = model_path
         train_main(args=args)
         # remove
         if e > 0:
             os.remove(model_path)
-        
-    
+
     #shapes = '/vol/project/2017/530/g1753002/ThirdPartyRepos/keras-rcnn/keras_rcnn/data/shape/images_classify/'
     #ocado = '/data/g1753002_ocado/manhattan_project/test_data/extended_test_set_ambient/'
     #test('./snapshots_inference/resnet50_csv_10.h5', shapes)
