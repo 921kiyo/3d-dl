@@ -229,8 +229,6 @@ class NormDist(Distribution):
             raise ValueError('NormDist accepts only non-negative sigmas!')
 
         self_dict[param_name] = param_val
-        if self.l > self.r:
-            raise ValueError('Lower bound greater than upper bound!')
         
 
 class UniformCDist(Distribution):
@@ -274,8 +272,7 @@ class UniformCDist(Distribution):
         if param_name not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
         self_dict[param_name] = param_val
-        if self.l > self.r:
-            raise ValueError('Lower bound greater than upper bound!')
+
 
 class UniformDDist(Distribution):
     """
@@ -318,8 +315,7 @@ class UniformDDist(Distribution):
         if param_name not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
         self_dict[param_name] = param_val
-        if self.l > self.r:
-            raise ValueError('Lower bound greater than upper bound!')
+
 
 class PScaledUniformDDist(Distribution):
     """

@@ -134,7 +134,6 @@ class Testturbulence(unittest.TestCase):
         for i in range(10):
             X = D.sample_param()
 
-        self.assertRaises(ValueError, D.change_param, 'mu', -2.0)
         self.assertRaises(ValueError, D.change_param, 'sigmu', -2.0)
 
         
