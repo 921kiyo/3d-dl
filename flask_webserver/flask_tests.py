@@ -2,6 +2,8 @@ import unittest
 from shutil import copyfile
 from PIL import Image
 
+import os.path
+
 import flask_implementations
 
 from keras.models import load_model
@@ -17,10 +19,12 @@ class TestFlaskImplementations(unittest.TestCase):
 
     def test_crop_image(self):
         my_path = os.path.abspath(os.path.dirname(__file__))
-        copyfile(str(my_path) + '/test_image.jpg', str(my_path) + '/temp_test.jpg')
+        original_path = str(my_path) + '/test_image.jpg'
+        target_path = str(my_path) + '/temp_test.jpg'
+        copyfile(original_path, target_path)
         flask_implementations.crop_image('/temp_test.jpg')
 
-        im = Image.open('temp_test.jpg')
+        im = Image.open(target_path)
         width, height = im.size
 
         self.assertEqual(width, height)
@@ -46,6 +50,8 @@ class TestFlaskImplementations(unittest.TestCase):
 
         self.assertEqual(result['max_class'], "Anchor")
         self.assertEqual(result['max_value'], "99.5")
+
+
 
 
 if __name__ == '__main__':
