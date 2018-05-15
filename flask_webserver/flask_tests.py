@@ -4,6 +4,8 @@ from PIL import Image
 
 import flask_implementations
 
+from keras.models import load_model
+
 class TestFlaskImplementations(unittest.TestCase):
 
     def test_generate_unique_filepath(self):
@@ -15,7 +17,7 @@ class TestFlaskImplementations(unittest.TestCase):
 
     def test_crop_image(self):
         copyfile('test_image.jpg', 'temp_test.jpg')
-        flask_implementations.crop_image('temp_test.jpg')
+        flask_implementations.crop_image('/temp_test.jpg')
 
         im = Image.open('temp_test.jpg')
         width, height = im.size
@@ -23,7 +25,13 @@ class TestFlaskImplementations(unittest.TestCase):
         self.assertEqual(width, height)
 
     def test_get_predictions(self):
-        self.assertEqual(1, 1)
+        model = load_model('/data/g1753002_ocado/manhattan_project/trained_models/first_attempt_with_all_layers_unfrozen/model.h5')
+        predictions = flask_implementations.get_predictions('/temp_test.jpg', model)
+        print(predictions.shape)
+        print(predictions[0].shape)
+        self.assertEqual(predictions.shape, (1,10))
+        self.assertEqual(predictions[0].shape, (10,))
+
 
     def test_process_predictions(self):
         # Array of sample predictions - corresponds to Anchor being the max class with 99.5% accuracy

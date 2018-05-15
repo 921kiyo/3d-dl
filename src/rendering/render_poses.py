@@ -84,6 +84,10 @@ if not argv:
 sys.path.append(os.path.join(args.project_dir))
 
 import rendering.RenderInterface as Render
+#from . import RenderInterface as Render
+#import RenderInterface as Render
+
+
 
 
 """" --------------- Blender Setup ------------- """

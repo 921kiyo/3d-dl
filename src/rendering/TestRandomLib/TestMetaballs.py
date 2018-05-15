@@ -20,7 +20,7 @@ if not (base_path in sys.path):
     sys.path.append(base_path)
 
 
-import rendering.RandomLib.metaballs as mb
+from ..RandomLib import metaballs as mb
 
 class Testturbulence(unittest.TestCase):
     
