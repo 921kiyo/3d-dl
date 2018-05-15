@@ -5,16 +5,17 @@ Created on Tue Mar  6 17:51:48 2018
 @author: Pavel
 
 Rendering Pipeline. This file contains all necessary calling functions
-for full rendering from object files to final images.
-The command for running the script can be found in bottom part of the code.
+for full rendering from object files to final images zip file.
+
+The calls for running the script can be found in bottom part of the code.
 Two dictionaries of parameters are necessary. One contains the parameters
 for Blender and one contains the parameters for Merging.
 
 For more detailed description and example see the appropriate function
 and an example at the end of file.
 
-Run on commmand line using this command
-python render_pipeline.py
+Run on commmand line using this command from parent directory src
+python -m rendering.render_pipeline
 
 """
 
@@ -65,12 +66,12 @@ if not src_path in sys.path:
     sys.path.append(src_path)
 
 
-import rendering.SceneLib.Merge_Images as mi
-import rendering.RandomLib.random_background as rb
+from .SceneLib import Merge_Images as mi
+from .RandomLib import random_background as rb
 
 """------------ Create Slack reporter ----------- """
-from rendering import SlackReporter
-
+from . import SlackReporter
+cach
 # to disable sending messages pass disable=True to constructor
 slack = SlackReporter.SlackReporter(disable=True)
 
@@ -102,6 +103,9 @@ def validate_folders(target_folder, folder_list):
     """
     Check whether all folders in folder_list are present in the target_folder
     If not, create them.
+    :param target_folder: path to the folder in which to create subfolders
+    :param folder_list: list of strings, giving the names of folders that
+            must be present in the target_folder
     """
     diff = sorted(list(set(folder_list) - set(os.listdir(target_folder))))
     print("Creating the following folders: ", sorted(diff))
@@ -114,6 +118,8 @@ def validate_folders(target_folder, folder_list):
 def destroy_folders(target_folder, folder_list):
     """
     Destroy all folders in the target folder that are on the folder list
+    :param target_folder: path to folder in which to delete subfolders
+    :param folder_list: list of folder names to delete
     """
     for folder in folder_list:
         full_path = os.path.join(target_folder, folder)
@@ -129,7 +135,7 @@ def generate_poses(src_dir, blender_path, object_folder, output_folder, renders_
 
     args:
         src_dir: full path to project source code, so Blender can add to its path
-        blender_path: path the the Blender executable
+        blender_path: path to the Blender executable
         object_folder: path to a folder containing folders of .obj files
         output_folder: path to which Blender should save the rendered images
         renders_per_product: number of images to generate per product (.obj file)
@@ -201,6 +207,9 @@ def gen_merge(image, save_as, pixels=300, adjust_brightness = False):
         adjust_brigtness (boolean): Whether the brigthness of the background
             should be adjusted to match on average the brightness of the
             foreground image. Default = False
+
+    returns:
+        bbox - bounding box information around the object after translation
     """
 
     back = rb.rand_background(np.random.randint(2,4),pixels)
@@ -235,7 +244,20 @@ def gen_merge(image, save_as, pixels=300, adjust_brightness = False):
         raise RenderPipelineError("Error during image merging!")
 
 def random_bg_for_all_objects(objects_folder, final_folder, adjust_brightness = False, n_of_pixels = 300):
-
+    """
+    Provides interface for gen_merge for large number of images.
+    For each object pose (image) in objects_folder, generates a random colour
+    mesh background, merge the images and save the final image into
+    final_folder.
+    args:
+        objects_folder (string): path to folder containing object poses
+        final_folder (string): path to destination folder for the final images
+        adjust_brightness (bool): If the background brightness should be
+                adjusted to match the foreground brightness
+        n_ox_pixels (int): the size of one side of the final square image.
+    returns:
+        bboxes: Dictionary of bounding boxes for each object
+    """
     bboxes = {}
     # for each object pose
     for image in os.listdir(objects_folder):
@@ -258,26 +280,44 @@ def random_bg_for_all_objects(objects_folder, final_folder, adjust_brightness = 
 def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, generate_background=True, background_database=None, blender_attributes={}, visualize_dump=False, dry_run_mode=False, n_of_pixels = 300, adjust_brightness =False, render_samples=128):
     """
     Function that will take all the parameters and execute the
-    appropriate pipeline
+    complete pipeline. Given object model files it will generate the specified
+    number of training images and save them in a zip file format.
+    At the end of the run, this function will clean up all files created,
+    apart from the final zip file. This is due to the fact that large number
+    of images is produced which would require large amounts of storage space.
 
     args:
-        work_dir : path to the workspace that contains individual folders
-        generate_background : Flag, if True, we will generate random background
-                if False, we will use images in a given database
-        background_database : Path to databse of backgrounds to use if
-            generate_background is False
+        obj_set: Path to the folder containing folders with individual
+                model object files
+        blender_path: path to the blender executable
+        renders_per_class: number of images to be generated per class.
+                Default = 10
+        work_dir: path to the workspace that contains individual folders
+        generate_background: Flag, if True, we will generate random background
+                if False, will use images in a given database. Default =True
+        background_database: Path to databse of backgrounds to use if
+                generate_background is False
+        blender_attributes: A dictionary containing attributes for blender.
+                Optional parameter, if none given, basic predefined attributes
+                will be used. Default = {}
+        visualize_dump:
+                Default = False
+        dry_run_mode:
+                Default = False
         n_of_pixels (int): The size of the edge of the square image.
-            Is optional, default = 300
+                Is optional, Default = 300
         adjust_brigtness (boolean): Whether the brigthness of the background
-            should be adjusted to match on average the brightness of the
-            foreground image. Default = False
+                should be adjusted to match on average the brightness of the
+                foreground image. Default = False
+        render_samples:
+                Default = 128
     """
     print('Checking data directories...')
     slack.send_message('Obj_set: ' + obj_set + '\n renders_per_class: ' + str(renders_per_class), 'Rendering Run Started', 'good')
 
     # Ensure render_workspace folder exists
     if not os.path.isdir(work_dir):
-        message = "Can't find rendering workspace folder. Please create the folder" + workspace +  ", containing object files and background database. See group folder for example."
+        message = "Can't find rendering workspace folder. Please create the folder " + work_dir +  ", containing object files and background database. See group folder for example."
         print(message)
         raise RenderPipelineError(message)
 
@@ -319,13 +359,14 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
 
         # Merge images based on the choice of background
         if generate_background:
+            # Generate random background
             bboxes = random_bg_for_all_objects(sub_obj, sub_final, adjust_brightness, n_of_pixels)
 
         elif generate_background is False and background_database is None:
             print("We need a background database")
             raise RenderPipelineError("A background database is missing")
         else:
-            # We generate a random mesh background
+            # We draw background images from given database
             try:
                 bboxes = mi.generate_for_all_objects(sub_obj,background_database ,sub_final, adjust_brightness, n_of_pixels)
             except Exception as e:
@@ -352,6 +393,8 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
         json.dump(all_params, f, sort_keys=True, indent=4, separators=(',', ': '))
 
     # export everything into a zip file
+    # compose the zip file name by specifying the background type
+    # and a timestamp
     if generate_background:
         back_parameter = "random_bg"
     else:
@@ -359,6 +402,7 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
     zip_name = os.path.join(work_dir,"final_zip",os.path.split(obj_set)[-1] + "_" + back_parameter + "_" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S").replace(" ","_").replace(":","_"))
 
     make_archive(zip_name, 'zip', final_folder)
+    # Clean up all generated files, apart from the zip file
     destroy_folders(work_dir, temp_folders)
 
     final_result = zip_name + ".zip"
@@ -366,6 +410,11 @@ def full_run( obj_set, blender_path, renders_per_class=10, work_dir=workspace, g
     return final_result
 
 def full_run_with_notifications(*args, **kwargs):
+    """
+    Exactly same as the `full_run` function but sends additional notifications
+    to the Slack channel.
+    Expects same parameters as `full_run`
+    """
     try:
         full_run(*args, **kwargs)
     except RenderPipelineError as e:
@@ -377,38 +426,33 @@ def full_run_with_notifications(*args, **kwargs):
         raise e
 """
 The blender parameters. Keywords should be self explanatory.
-For more details ask Ong.
 A default parameters can be used by passing an empty dictionary
 blender_attributes={}
 """
 
 """------------------ Running the pipeline ------------------"""
+# Uncomment the below function if you want to run an example run
+"""
 def example_run():
+    #Function that holds all that is necessary for example run.
+
+
     blender_attributes = {
         "attribute_distribution_params": [["num_lamps","mid", 6], ["num_lamps","scale", 0.4], ["lamp_energy","mu", 500.0], ["lamp_size","mu",5], ["camera_radius","sigmu",0.1]],
         "attribute_distribution" : []
     }
 
-
-    # Default paths
-    # Set path for final zip file containing training data
-
-    #zip_save1 = os.path.join(workspace, "final_zip","sun_bg_data")
-    #zip_save2 = os.path.join(workspace, "final_zip","random_bg_data")
-
     # Set backround image database path
     sun_database = os.path.join(workspace, "bg_database","SUN_back")
 
-
     # Set object file path
-    # obj_set = os.path.join(workspace, "object_files/two_set")
     obj_set = os.path.join(workspace, "object_files","two_set_model_format")
 
     # Construct rendering parameters
     argument_list = []
 
+    # An example argument dictionary using sun_database as source of background
     arguments1 = {
-        #"zip_name": zip_save1,
         "obj_set": obj_set,
         "blender_path": bl_path,
         "renders_per_class": 2,
@@ -419,9 +463,8 @@ def example_run():
         "n_of_pixels": 300,
         "adjust_brightness": True
         }
-
+    # An example argument dictionary generating random colour background
     arguments2 = {
-        #"zip_name": zip_save2,
         "obj_set": obj_set,
         "blender_path": bl_path,
         "renders_per_class": 2,
@@ -433,6 +476,7 @@ def example_run():
         "adjust_brightness": False
         }
 
+    # All run instructions should be appended to the `argument_list`
     argument_list.append(arguments1)
     #argument_list.append(arguments2)
     #argument_list.append(arguments3)
@@ -450,7 +494,9 @@ def example_run():
         print("One run done")
         print("--- %s seconds ---" % (time.time() - start_time))
 
+
 if __name__=="__main__":
 
-    print("running the experiment")
+    print("Running the Rendering Pipeline")
     example_run()
+"""

@@ -8,8 +8,8 @@ import os
 import numpy as np
 #from scipy.interpolate import interp2d
 #from scipy.misc import imresize
-import rendering.RandomLib.turbulence as turbulence
-import rendering.RandomLib.metaballs as metaballs
+from . import turbulence
+from . import metaballs 
 #import matplotlib.pyplot as plt
 from PIL import Image
 

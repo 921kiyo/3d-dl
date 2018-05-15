@@ -118,6 +118,7 @@ Refer to MATTHEW README
 
 - The code is tested with Python 3.5
 - Agisoft
+- Blender
 - List Any other third-party software
 
 
