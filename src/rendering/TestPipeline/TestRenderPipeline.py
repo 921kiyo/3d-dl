@@ -166,8 +166,6 @@ class TestPipeline(unittest.TestCase):
         self.assertTrue(os.listdir(os.path.join(workspace, 'final_zip'))[0].endswith('.zip'))
 
 
-
-
         destroy_folders(workspace, temp_folders)
 
     def test_full_run_error(self):
@@ -253,5 +251,5 @@ class TestPipeline(unittest.TestCase):
 
 if __name__ == '__main__':
 
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestResizeImages)
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestPipeline)
     success = unittest.TextTestRunner().run(suite).wasSuccessful()
