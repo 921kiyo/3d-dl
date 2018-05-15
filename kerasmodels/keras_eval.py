@@ -308,13 +308,13 @@ class KerasEval:
         resize_shape_as_int = tf.cast(resize_shape, dtype=tf.int32)
         resized_image = tf.image.resize_bilinear(decoded_image_4d,
                                                  resize_shape_as_int)
-
         predicted_placeholder = tf.placeholder(tf.string, name="PredictedLabel")
         c = len(label2idx.keys())
 
         predictions = []
         truth = []
         for label in per_class_test_results:
+            print("LABEL ", label)
             test_results = per_class_test_results[label]
             n = len(test_results)
 
@@ -453,14 +453,13 @@ class KerasEval:
             }
             pickle.dump(test_results, f)
 
-
-keras_eval = KerasEval()
-
-# Provide the path to each argument
-keras_eval.eval(output_folder="/data/g1753002_ocado/manhattan_project/trained_models/resnet50_unfrozen/", \
-                test_result_path="/data/g1753002_ocado/manhattan_project/trained_models/resnet50_unfrozen/training_results.pkl",
-                test_result_file=None,
-                test_folder='/data/g1753002_ocado/manhattan_project/test_data/extended_test_set_ambient',
-                notify_interval=100,
-                input_dim=224
-)
+# keras_eval = KerasEval()
+#
+# # Provide the path to each argument
+# keras_eval.eval(output_folder="/data/g1753002_ocado/manhattan_project/trained_models/resnet50_unfrozen/", \
+#                 test_result_path="/data/g1753002_ocado/manhattan_project/trained_models/resnet50_unfrozen/training_results.pkl",
+#                 test_result_file=None,
+#                 test_folder='/data/g1753002_ocado/manhattan_project/test_data/extended_test_set_ambient',
+#                 notify_interval=100,
+#                 input_dim=224
+# )
