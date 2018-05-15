@@ -23,11 +23,11 @@ parser.add_argument('-b', '--blender_tests', action='store_true',
 parser.add_argument('-k', '--keras_tests', action='store_true',
                     help='run keras tests')
 
-parser.add_argument('-t', '--tersorflow_tests', action='store_true',
-                    help='run tersorflow tests')
+parser.add_argument('-l', '---scene_tests', action='store_true',
+                    help='run RandomLib and SceneLib tests')
 
-parser.add_argument('-l', '--random_scene_tests', action='store_true',
-                    help='run randomLib and sceneLib tests')
+parser.add_argument('-p', '--pipeline_tests', action='store_true',
+                    help='run pipeline tests')
 
 parser.add_argument('-rt', '--report_tests', action='store_true',
                     help='include test files in coverage report')
@@ -58,42 +58,34 @@ cov = coverage.Coverage(omit=['*lib*', '*__init__*'], branch=args.report_branch,
 cov.start()
 
 """ --------------- Module Imports ------------- """
-# Import Retraining
-if args.tersorflow_tests:
-    # from image_retraining.testRetrainTest.test_test import TestTest
-    from kerasmodels.testRetrainTest.keras_eval_test import KerasEvalTest
-    from kerasmodels.retrain_unittest import TestKerasRetrain
-
 # Import keras
 if args.keras_tests:
-    # from kerasmodels.retrain_unittest import TestKerasRetrain
     from kerasmodels.testRetrainTest.keras_eval_test import KerasEvalTest
     from kerasmodels.retrain_unittest import TestKerasRetrain
 
-if args.random_scene_tests:
+if args.scene_tests:
     # Import randomLib
-    from rendering.TestRandomLib.TestMetaballs import Testturbulence
-    from rendering.TestRandomLib.TestRandomRender import Testturbulence as render_Testturbulence
-    from rendering.TestRandomLib.TestTurbulence import Testturbulence as turbulence_Testturbulence
-    from rendering.TestRandomLib.TestRandBack import TestResizeImages as rand_TestResizeImages
+    from src.rendering.TestRandomLib.TestMetaballs import Testturbulence
+    from src.rendering.TestRandomLib.TestRandomRender import Testturbulence as render_Testturbulence
+    from src.rendering.TestRandomLib.TestTurbulence import Testturbulence as turbulence_Testturbulence
+    from src.rendering.TestRandomLib.TestRandBack import TestResizeImages as rand_TestResizeImages
 
     # Import merge/resize
-    from rendering.TestSceneLib.TestMergeResize import TestResizeImages
+    from src.rendering.TestSceneLib.TestMergeResize import TestResizeImages
+
+if args.pipeline_tests:
+    from src.rendering.TestPipeline.TestRenderPipeline import TestPipeline
 
 
 """ --------------- Load Tests Cases ------------- """
 suites = []
-
-# Load Retraining
-if args.tersorflow_tests:
-    suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestTest))
 
 # Load Keras
 if args.keras_tests:
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestKerasRetrain))
 
 
-if args.random_scene_tests:
+if args.scene_tests:
     # Load randomLib
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(Testturbulence))
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(render_Testturbulence))
@@ -103,6 +95,8 @@ if args.random_scene_tests:
     # Load sceneLib
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestResizeImages))
 
+if args.pipeline_tests:
+    suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestPipeline))
 
 """ --------------- Run tests ------------- """
 tests = unittest.TestSuite(suites)

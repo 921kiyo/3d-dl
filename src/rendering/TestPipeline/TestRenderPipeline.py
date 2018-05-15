@@ -6,7 +6,7 @@ import shutil
 
 # Ensure source directory is in python path
 src_dir = str(pathlib.Path(__file__).resolve().parents[2])
-project_dir = str(pathlib.Path(__file__).resolve().parents[2])
+project_dir = str(pathlib.Path(__file__).resolve().parents[3])
 #print(project_dir)
 sys.path.append(src_dir)
 sys.path.append(project_dir)
