@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		345F91DB20A9B91F008EF01E /* anchor_test_image.JPG in Resources */ = {isa = PBXBuildFile; fileRef = 345F91DA20A9B91F008EF01E /* anchor_test_image.JPG */; };
 		34B8828C203FAF9500E131FB /* Alamofire.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34B8828B203FAF9500E131FB /* Alamofire.framework */; };
+		34F3119D20AAED960085DDEB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 65C0E04C1EF3B68E00FBA1B3 /* Assets.xcassets */; };
 		65C0E0461EF3B68E00FBA1B3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C0E0451EF3B68E00FBA1B3 /* AppDelegate.swift */; };
 		65C0E0481EF3B68E00FBA1B3 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C0E0471EF3B68E00FBA1B3 /* ViewController.swift */; };
 		65C0E04B1EF3B68E00FBA1B3 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 65C0E0491EF3B68E00FBA1B3 /* Main.storyboard */; };
@@ -35,6 +37,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		345F91DA20A9B91F008EF01E /* anchor_test_image.JPG */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = anchor_test_image.JPG; sourceTree = "<group>"; };
 		34B8828B203FAF9500E131FB /* Alamofire.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Alamofire.framework; sourceTree = "<group>"; };
 		65C0E0421EF3B68E00FBA1B3 /* Camera.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Camera.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		65C0E0451EF3B68E00FBA1B3 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -123,6 +126,7 @@
 			isa = PBXGroup;
 			children = (
 				65C0E05A1EF3B68E00FBA1B3 /* CameraTests.swift */,
+				345F91DA20A9B91F008EF01E /* anchor_test_image.JPG */,
 				65C0E05C1EF3B68E00FBA1B3 /* Info.plist */,
 			);
 			path = CameraTests;
@@ -201,7 +205,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0830;
-				LastUpgradeCheck = 0920;
+				LastUpgradeCheck = 0930;
 				ORGANIZATIONNAME = Rizwan;
 				TargetAttributes = {
 					65C0E0411EF3B68E00FBA1B3 = {
@@ -212,7 +216,7 @@
 					};
 					65C0E0551EF3B68E00FBA1B3 = {
 						CreatedOnToolsVersion = 8.3.3;
-						DevelopmentTeam = 7DDZ7Z48Q7;
+						DevelopmentTeam = JFRCZWMYX9;
 						LastSwiftMigration = 0920;
 						ProvisioningStyle = Automatic;
 						TestTargetID = 65C0E0411EF3B68E00FBA1B3;
@@ -261,6 +265,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				34F3119D20AAED960085DDEB /* Assets.xcassets in Resources */,
+				345F91DB20A9B91F008EF01E /* anchor_test_image.JPG in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -366,6 +372,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -373,6 +380,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -422,6 +430,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -429,6 +438,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -498,7 +508,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				DEVELOPMENT_TEAM = 7DDZ7Z48Q7;
+				DEVELOPMENT_TEAM = JFRCZWMYX9;
 				INFOPLIST_FILE = CameraTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.rizwankce.CameraTests;
@@ -514,7 +524,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				DEVELOPMENT_TEAM = 7DDZ7Z48Q7;
+				DEVELOPMENT_TEAM = JFRCZWMYX9;
 				INFOPLIST_FILE = CameraTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.rizwankce.CameraTests;
