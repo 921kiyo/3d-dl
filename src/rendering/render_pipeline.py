@@ -71,7 +71,6 @@ from .RandomLib import random_background as rb
 
 """------------ Create Slack reporter ----------- """
 from . import SlackReporter
-cach
 # to disable sending messages pass disable=True to constructor
 slack = SlackReporter.SlackReporter(disable=True)
 
