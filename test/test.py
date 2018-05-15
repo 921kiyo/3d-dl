@@ -23,7 +23,7 @@ parser.add_argument('-b', '--blender_tests', action='store_true',
 parser.add_argument('-k', '--keras_tests', action='store_true',
                     help='run keras tests')
 
-parser.add_argument('-l', '---scene_tests', action='store_true',
+parser.add_argument('-s', '---scene_tests', action='store_true',
                     help='run RandomLib and SceneLib tests')
 
 parser.add_argument('-p', '--pipeline_tests', action='store_true',
@@ -41,10 +41,21 @@ args = parser.parse_args()
 print(args)
 
 """ --------------- Run blender tests ------------- """
+
+# virtualenv uses its own site module, which doesn't include getsitepackages()
+from distutils.sysconfig import get_python_lib
+
+# site_packages = site.getsitepackages()[0]
+site_packages = get_python_lib()
+
+# set path to blender
+# blender_path = 'blender'
+blender_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender' # for GPU04
+
 if args.blender_tests:
     blender_script_dir = os.path.join(project_dir, 'test', 'test_blender.py')
-    blender_args = ['blender', '--background', '--python', blender_script_dir,
-                    '--', project_dir, site.getsitepackages()[0], str(args.report_branch)]
+    blender_args = [blender_path, '--background', '--python', blender_script_dir,
+                    '--', project_dir, site_packages, str(args.report_branch)]
 
     print('Running Blender tests')
     subprocess.check_call(blender_args)
@@ -99,8 +110,10 @@ if args.pipeline_tests:
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestPipeline))
 
 """ --------------- Run tests ------------- """
-tests = unittest.TestSuite(suites)
-success = unittest.TextTestRunner().run(tests).wasSuccessful()
+
+if suites:
+    tests = unittest.TestSuite(suites)
+    success = unittest.TextTestRunner().run(tests).wasSuccessful()
 
 cov.stop()
 
@@ -108,10 +121,15 @@ cov.stop()
 """ ---------------Save and Combine Results ------------- """
 cov.save()
 
+data_paths = [os.path.join(project_dir, 'test', 'coverage', 'data')]
 if args.blender_tests:
-    cov.combine(data_paths=[os.path.join(project_dir, 'test', 'coverage', 'data'),
-                            os.path.join(project_dir, 'test', 'coverage', 'data_blender'),
-                            os.path.join(project_dir, 'test', 'coverage', 'data_keras')])
+    data_paths.append(os.path.join(project_dir, 'test', 'coverage', 'data_blender'))
+if args.keras_tests:
+    data_paths.append(os.path.join(project_dir, 'test', 'coverage', 'data_keras'))
+
+if args.blender_tests:
+    cov.combine(data_paths=data_paths)
+
 
 omit = ['*testBlenderAPI*', '*TestRandomLib*', '*TestSceneLib*', '*test_*', '*retrain_unittest*']
 if args.report_tests:
