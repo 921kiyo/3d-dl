@@ -367,7 +367,7 @@ class KerasEval:
 
                 # pre-process the image using the appropriate function based on the
                 # model that has been loaded (i.e., mean subtraction, scaling, etc.)
-                image = preprocess(image)
+                image /= 255.
 
 
                 pred = model.predict(image)
@@ -398,10 +398,10 @@ class KerasEval:
 
 
 keras_eval = KerasEval()
-keras_eval.eval(output_folder="/data/g1753002_ocado/matthew_trained_networks/unfrozen_cov/", \
-                test_result_path="/data/g1753002_ocado/matthew_trained_networks/unfrozen_cov/training_results.pkl",
-                test_result_file=None,
-                test_folder="/data/g1753002_ocado/images_proc_test_and_validation",
+keras_eval.eval(output_folder="/data/g1753002_ocado/manhattan_project/trained_models/first_attempt_with_unfrozen_cov_layers", \
+                test_result_path="/data/g1753002_ocado/manhattan_project/trained_models/vgg16_unfrozen/training_results.pkl",
+                test_result_file='/data/g1753002_ocado/manhattan_project/trained_models/first_attempt_with_unfrozen_cov_layers/training_results_ambient.pkl',
+                test_folder="/data/g1753002_ocado/manhattan_project/test_data/extended_test_set_ambient",
                 notify_interval=100,
                 input_dim=224
 )
