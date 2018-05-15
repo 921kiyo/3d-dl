@@ -5,7 +5,9 @@ Created on Thu Jan 25 20:40:33 2018
 @author: Pavel
 
 This file includes functionality for combination of object poses with 
-background images.
+background images. It also allows for the object to be translated first.
+During merging the brightness of the background can be adjusted to match
+that of the object pose.
 
 """
 import os
@@ -29,6 +31,27 @@ class ImageError(Exception):
 
 
 def add_random_offset_foreground(foreground_image, pad_ratio=0.0):
+    """
+    Function that adds a translation to the object pose, before merging
+    with the background. An occlusion is also introduced by allowing part
+    of the object to move outside of the image frame. This leads to only part
+    of the object being visible in the final image. The amount of possible
+    occlusion is controlled by the pad_ratio. A temporary frame is created
+    that is larger on each side than the original image by 
+    original_dim*pad_ratio. E.g. 300*300 pixel image with pad_ratio 0.1
+    will create a 320*320 frame. The object is then moved to a random position
+    within this frame. A final image is created by taking the original sized
+    image, cutting out any part of the object being outside of this image. 
+
+    Arguments:
+        foreground_image (PIL image): An object pose to be translated
+        pad_ratio (float): Additional padding around the original image.
+                        Introduced for the purpose of occlusion. See above.
+                        
+    Returns:
+        Translated Image (PIL image):
+        A object bounding box coordinates (tuple): (x0,x1),(y0,y1)
+    """
 
     # extract subject square
     size = foreground_image.size
@@ -70,28 +93,38 @@ def add_random_offset_foreground(foreground_image, pad_ratio=0.0):
 def add_background(foreground_name, background_name, save_as, adjust_brightness = False, n_of_pixels = 300):
     """
     Function that give an RGBA and any image file merges them into one.
+    It ensures that the final image is of the specified size. 
+    If either of the given images is too small, an error is returned.
+    The brightness of the background can be adjusted to be better
+    correspond to the brightness of the foreground. This is optional
+    functionality that is triggered by the corresponding input parameter.
     
     Args:
         foregroun_name (string): The name of the RGBA image
         background_name (string): Name of the background image
-        save_as (string): Name under which the final image is to be saved
+        save_as (string): Complete path with name under which the final image 
+            is to be saved
         adjust_brigtness (boolean): Whether the brigthness of the background
             should be adjusted to match on average the brightness of the 
             foreground image. Default = False
+            
+    Return:
+        bbox (integer tuple): (x0,x1),(y0,y1) the bounding box around the 
+                    foreground object .
     """
     try:
         foreground=Image.open(foreground_name)
         foreground, bbox = add_random_offset_foreground(foreground, pad_ratio=0.1)
     except:
         print("Invalid foreground images, skipping", foreground_name)
-        raise ImageError("Invalid foreground images, skipping", foreground_name)   
+        raise ImageError(("Invalid foreground images, skipping", foreground_name))   
     try:
         background=Image.open(background_name)
     except:
         #This is technically problematic as we might throw away
         # valid object poses because of invalid backgrounds
         print("Invalid background image skipping", background_name)
-        raise ImageError("Invalid background image skipping", background_name)
+        raise ImageError(("Invalid background image skipping", background_name))
     
     bc_size = background.size
     if(n_of_pixels > bc_size[0] or n_of_pixels > bc_size[1]):
@@ -164,8 +197,17 @@ def add_background(foreground_name, background_name, save_as, adjust_brightness 
 
 def merge_images(foreground, background):
     """                          
-    Merges two images. The difference is that this accepts Images as input
-    not path to the image
+    Merges two PIL images. 
+    Arguments:
+        foreground (PIL image): Foreground image. It is necessary for this 
+                image to have alpha channel so that the background is visible
+        background (PIL image): Image to be used as background. 
+                Does not have to have alpha channel
+                
+    Return:
+        background (PIL image): Final merged image
+        bbox (integer tuple): (x0,x1),(y0,y1) the bounding box around the 
+                    foreground object .
     """
     foreground, bbox = add_random_offset_foreground(foreground, pad_ratio=0.1)
     background.paste(foreground, (0, 0), foreground)
@@ -183,8 +225,11 @@ def generate_for_all_objects(objects_folder, background_folder, final_folder, ad
         background_folder (string): Folder containg background images
         final_folder (string): Folder to which save the final images
         
-    Returns:
-        Nothing
+    Return:
+        all_bbox (Dictionary): Dictionary of bounding boxes (x0,x1),(y0,y1) 
+            around the object. The name of the final image is used as a key in
+            the dictionary.
+        
     """
 
     all_backgrounds = os.listdir(background_folder)
@@ -203,8 +248,8 @@ def generate_for_all_objects(objects_folder, background_folder, final_folder, ad
             
         
 if __name__ == "__main__":
-    start_time = time.time()
+    #start_time = time.time()
     generate_for_all_objects(base_address+"object_poses/test", base_address+"resized_background/test", base_address+"test_results", n_of_pixels = 300)
     
     #generate_for_all_objects(base_address+"object_poses/Halloumi_white", base_address+"resized_background/SUN_back", base_address+"final_images/sun/halloumi/train", True)
-    print("--- %s seconds ---" % (time.time() - start_time))
+    #print("--- %s seconds ---" % (time.time() - start_time))

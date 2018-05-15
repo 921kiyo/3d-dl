@@ -3,8 +3,8 @@ import os
 from skimage import data, img_as_float, io
 from skimage import exposure
 
-src_folder = 'D:\\PycharmProjects\\manhattan_test_data\\warehouse_test\\Anchor'
-dest_folder = 'D:\\PycharmProjects\\manhattan_test_data\\warehouse_test_adap_eq2\\Anchor'
+src_folder = '/vol/bitbucket/g1753002/Cropped_Warehouse'
+dest_folder = '/vol/bitbucket/g1753002/Equalized_Cropped_Warehouse'
 
 for (dirpath,_,filenames) in os.walk(src_folder):
 
@@ -16,7 +16,7 @@ for (dirpath,_,filenames) in os.walk(src_folder):
 
     for filename in filenames:
 
-        if filename.lower().endswith('.jpg'):
+        if filename.lower().endswith('.png'):
 
             img = io.imread(os.path.join(dirpath,filename))
             img_eq = exposure.equalize_adapthist(img, clip_limit=0.05)

@@ -1,3 +1,9 @@
+"""
+This script is the only one in the rendering package that does not do 
+relative imports. (line 89 import rendering.RenderInterface as Render)
+This is due to the fact that blender can only run python scripts, not modules
+and scripts do not support relative import.
+"""
 import sys
 import argparse
 import json
@@ -82,7 +88,6 @@ if not argv:
 """" --------------- Blender Setup ------------- """
 # Ensure source directory in Blender python path
 sys.path.append(os.path.join(args.project_dir))
-
 import rendering.RenderInterface as Render
 
 

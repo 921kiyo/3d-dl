@@ -18,21 +18,18 @@ way of testing the functions.
 
 import unittest
 
-
 import os,io, sys
 from PIL import Image
-
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.abspath(os.path.join(dir_path, os.pardir))
 gr_parent = os.path.abspath(os.path.join(parent,os.pardir))
 base_path = os.path.abspath(os.path.join(gr_parent,os.pardir))
-
-if not (parent in sys.path):
-    sys.path.append(parent)
+if not (gr_parent in sys.path):
+    sys.path.append(gr_parent)
     
-import rendering.SceneLib.Resize_background as rb
-import rendering.SceneLib.Merge_Images as mi
+from ..SceneLib import Resize_background as rb
+from ..SceneLib import Merge_Images as mi
 
 #base_path = 'D:/old_files/aaaaa/Anglie/imperial/2017-2018/group_project/OcadoLobster/test_data/'
 
@@ -40,7 +37,7 @@ class TestResizeImages(unittest.TestCase):
     
     def test_full_resize(self):
         """
-        should find seven images and resize them.
+        Finds seven images and resize them.
         One of them is too small and so should be ignored
         Final folder should have 6 images
         Tests that all images are found in any subfolder
@@ -98,17 +95,12 @@ class TestResizeImages(unittest.TestCase):
         """
         Resize and crop single image succesfully.
         After doing so, checks that there is exactly one image present.
-        First it deletes any file in the output folder.
         """
     
         to_resize = base_path +'/test_data/rendering_tests/just_resize/original/good.jpg'
         to_output = base_path +'/test_data/rendering_tests/just_resize/results/'
- 
-        for the_file in os.listdir(to_output):
-            file_path = os.path.join(to_output, the_file)
-            if os.path.isfile(file_path):
-                os.unlink(file_path)
-    
+        
+     
         rb.resize_and_crop(to_resize, to_output+"good.jpg", 300,300 )
         self.assertEqual(1, len(os.listdir(to_output)))
         
@@ -154,7 +146,7 @@ class TestResizeImages(unittest.TestCase):
             if os.path.isfile(file_path):
                 os.unlink(file_path)
                 
-        mi.generate_for_all_objects(test_folder+"object_poses/", test_folder+"backgrounds", results_folder)
+        mi.generate_for_all_objects(test_folder+"object_poses/", test_folder+"backgrounds", results_folder, adjust_brightness = True)
         self.assertEqual(len(os.listdir(test_folder+"object_poses")), len(os.listdir(results_folder)))
         
         for the_file in os.listdir(results_folder):
@@ -164,7 +156,36 @@ class TestResizeImages(unittest.TestCase):
             self.assertEqual('JPEG', im.format)
             self.assertNotEqual('PNG', im.format)
             
+    def test_merge_images(self):
+        """
+        This function will test merge of two images, for the function
+        where you already pass the image object. We check that the returned
+        image has the right dimensions and correct format.         
+        """
+        test_folder = base_path +'/test_data/merging_tests/single_merge/'
+        # the files are: render1.png and background.jpg        
+         
+        background = Image.open(test_folder+"background.jpg")
+        foreground = Image.open(test_folder+"render1.png")
+        output, bbox = mi.merge_images(foreground, background)
+        self.assertEqual((300,300),output.size)
+        self.assertEqual('JPEG',output.format)
         
+    def test_single_error_merge(self):
+        """
+        This function will test that the add_background function
+        handles errors correctly. 
+        Check that ImageError is raised when an invalid file or too small
+        image is supplied
+        """
+        test_folder = base_path +'/test_data/merging_tests/error_test/'
+        output_file = os.path.join(test_folder, "output1.jpg")
+      
+        self.assertRaises(mi.ImageError, lambda: mi.add_background(test_folder+"dummy.txt", test_folder+"background.jpg", output_file))
+        self.assertRaises(mi.ImageError, lambda: mi.add_background(test_folder+"render_small.png", test_folder+"background.jpg", output_file))
+        self.assertRaises(mi.ImageError, lambda: mi.add_background(test_folder+"render1.png", test_folder+"dummy.txt", output_file))
+        self.assertRaises(mi.ImageError, lambda: mi.add_background(test_folder+"render1.png", test_folder+"background_small.jpg", output_file))
+        self.assertRaises(mi.ImageError, lambda: mi.add_background(test_folder+"render1.png", test_folder+"background_large.jpg", output_file))
 
 
 if __name__=='__main__':

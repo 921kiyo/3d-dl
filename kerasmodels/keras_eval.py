@@ -47,7 +47,6 @@ from keras.applications.inception_v3 import preprocess_input
 from keras.preprocessing.image import img_to_array
 from keras.preprocessing.image import load_img
 
-
 class KerasEval:
     def __init__(self):
         pass
@@ -110,6 +109,13 @@ class KerasEval:
         return test_files
 
     def eval_result(self, result_tensor, ground_truth, idx2label):
+        """
+        Run prediction and compare the results with the correct labels
+        :param result_tensor: prediction model
+        :param ground_truth: dict containing the correct labels
+        :param idx2label: dict containing the labels of each encoding
+        :return: prediction result, correct label, predicted label and max score
+        """
         if not check_confidence_tensor(result_tensor):
             raise InvalidInputError('Result confidence tensor invalid!')
 
@@ -122,7 +128,12 @@ class KerasEval:
         return prediction, correct_label, predicted_label, max_score
 
     def extract_summary_tensors(self, test_results, label2idx):
-
+        """
+        Get evaluation components we will export to Tensorboard
+        :param test_results: result of the prediction per class
+        :param label2idx: dict containing the encoding of each label
+        :return: np array of confidences, predictions and correct labels
+        """
         confidences = []
         predictions = []
         truth = []
@@ -143,6 +154,12 @@ class KerasEval:
         """
         This function prints and plots the confusion matrix.
         Normalization can be applied by setting `normalize=True`.
+        :param cm: Confusion Matrix plot
+        :param classes: list for classes with labels and encoding of each label
+        :param normalize: Boolean for applying normalisation
+        :param title: Title of the plot
+        :param cmap: color map for plot
+        :return: tensor image to be exported to Tensorboard
         """
         if (not check_confusion_matrix(cm)):
             raise InvalidInputError('Confusion Matrix Invalid!')
@@ -180,7 +197,11 @@ class KerasEval:
         return image
 
     def compute_sensitivity(self, cm):
-
+        """
+        Calculate the sensitivity of the classification performance and that of average
+        :param cm: Confusion Matrix plot
+        :return: np array of sensitivity and mean sensitivity
+        """
         if (not check_confusion_matrix(cm)):
             raise InvalidInputError('Confusion Matrix Invalid!')
 
@@ -196,7 +217,11 @@ class KerasEval:
         return sensitivity, average_sensitivity
 
     def compute_precision(self, cm):
-
+        """
+        Calculate the precision of the classification
+        :param cm: Confusion Matrix plot
+        :return: np array of precision and mean precision
+        """
         if (not check_confusion_matrix(cm)):
             raise InvalidInputError('Confusion Matrix Invalid!')
 
@@ -212,6 +237,11 @@ class KerasEval:
         return precision, average_precision
 
     def compute_accuracy(self, cm):
+        """
+        Calculate the accuracy of the classification
+        :param cm: Confusion Matrix plot
+        :return: accuray
+        """
         if (not check_confusion_matrix(cm)):
             raise InvalidInputError('Confusion Matrix Invalid!')
 
@@ -221,6 +251,16 @@ class KerasEval:
         return accuracy
 
     def plot_bar(self, x,heights, heights2=None, title='Bar Chart', xlabel='X', ylabel='Y'):
+        """
+        Drawing precision and sensitivity plot
+        :param x: length of dict containing the encoding of each label
+        :param heights: precision
+        :param heights2: sensitivity
+        :param title: title of the plot
+        :param xlabel: x label for the plot
+        :param ylabel: y label for the plot
+        :return: tensor image to be exported to Tensorboard
+        """
         bar_width = 0.4
         x = np.array(x)
         plt.bar(x,heights,bar_width)
@@ -242,6 +282,16 @@ class KerasEval:
         return image
 
     def summarize_results(self, sess, label2idx, per_class_test_results, model_source_dir, print_results=False):
+        """
+        Sending all components to Tensorboard
+        :param sess: Tensorflow session
+        :param label2idx: dict containing the encoding of each label
+        :param per_class_test_results: dictionary containing correct and predicted labels
+        :param model_source_dir: output folder
+        :param print_results: boolean value to determine whether the matrices are printed or not
+        :return: Dictionary containing all the matrices
+        """
+
         # Check if directory already exists. If so, create a new one
         if tf.gfile.Exists(model_source_dir + '/test_results'):
             tf.gfile.DeleteRecursively(model_source_dir + '/test_results')
@@ -327,13 +377,20 @@ class KerasEval:
         }
 
     def eval(self, output_folder, test_folder, test_result_file, test_result_path, notify_interval, input_dim):
-
+        """
+        Starting point of evaluation and run all other functions above
+        :param output_folder: folder path to where the trained model is.
+        :param test_result_path: path to the test dataset
+        :param test_result_file: path to the pre-supplied test result file
+        :param notify_interval: frequency of printing the progress of the evaluation
+        :return: N/A
+        """
         # Look at the folder structure, and create lists of all the images.
         label = os.path.join(output_folder, "labels.txt")
 
         # label_path is the same as output.txt
         label2idx, idx2label = self.create_label_lists(label)
-        test_data = self.get_test_files(test_folder, label2idx, n=160)
+        test_data = self.get_test_files(test_folder, label2idx, n=200)
         model_path = os.path.join(output_folder, "model.h5")
         model = load_model(model_path)
 
@@ -367,7 +424,11 @@ class KerasEval:
 
                 # pre-process the image using the appropriate function based on the
                 # model that has been loaded (i.e., mean subtraction, scaling, etc.)
+<<<<<<< HEAD
                 image /= 255.
+=======
+                image = image/255.
+>>>>>>> refs/remotes/origin/pavel/pipeline
 
 
                 pred = model.predict(image)
@@ -398,10 +459,12 @@ class KerasEval:
 
 
 keras_eval = KerasEval()
-keras_eval.eval(output_folder="/data/g1753002_ocado/manhattan_project/trained_models/first_attempt_with_unfrozen_cov_layers", \
-                test_result_path="/data/g1753002_ocado/manhattan_project/trained_models/vgg16_unfrozen/training_results.pkl",
-                test_result_file='/data/g1753002_ocado/manhattan_project/trained_models/first_attempt_with_unfrozen_cov_layers/training_results_ambient.pkl',
-                test_folder="/data/g1753002_ocado/manhattan_project/test_data/extended_test_set_ambient",
+
+# Provide the path to each argument
+keras_eval.eval(output_folder="/data/g1753002_ocado/manhattan_project/trained_models/resnet50_unfrozen/", \
+                test_result_path="/data/g1753002_ocado/manhattan_project/trained_models/resnet50_unfrozen/training_results.pkl",
+                test_result_file=None,
+                test_folder='/data/g1753002_ocado/manhattan_project/test_data/extended_test_set_ambient',
                 notify_interval=100,
                 input_dim=224
 )

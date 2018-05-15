@@ -1,11 +1,13 @@
 """
-metballs!
+Contains the means to sample from various trivial and non trivial distributions
+An abstract parent class Distribution defines the interface, while each of
+its child classes define the logic, pased on the desired distribution.
 """
 
 import numpy as np
 import random
 import math
-from rendering.RandomLib.random_exceptions import ImprobableError
+from .random_exceptions import ImprobableError
 
 def random_color():
     """
@@ -73,6 +75,16 @@ def sample_trunc_norm(mu, sigma, a = None , b = None, tol=1e06):
     return x
 
 def random_shell_coords_cons(radius, phi_sigma):
+    """
+    Returns a cartesian coordinates of a point on the surface of sphere defined 
+    by radius (given), theta angle (drawn from uniform distribution 
+    0° to 360°) and sigma which is drawn from trunctated normal distribution 
+    centered at 90° with sigma of the distribution given.
+    :param radius: radius of the sphere
+    :param phi_sigma: standard devitaion of the phi distribution
+    :return: (x,y,z) cartesian coordinates of random point on the surface of 
+            a sphere
+    """
 
     if (radius < 0 or phi_sigma < 0):
         raise ValueError("Cannot have negative radius or sigma values!")
@@ -84,21 +96,14 @@ def random_shell_coords_cons(radius, phi_sigma):
     z = radius * np.cos(phi)
     return x, y, z
 
-def random_lighting_conditions(blender_lamp, reference_location=(0.0, 0.0, 0.0), location_variance=1.0):
-    """
-    choose a random coordinate to face
-    choose a random brightness and size
-    both according to a gaussian distribution with mean (0,0,0), default brightness and size
-    and variance being 30% of mean (negative values of brightness and size will be evaluated
-    to zero)
-    """
-    loc = random_cartesian_coords(*reference_location, location_variance, 6.0)
-    blender_lamp.face_towards(*loc)
-    brightness = sample_trunc_norm(blender_lamp.default_brightness, 0.3 * blender_lamp.default_brightness, 0.0, None)
-    blender_lamp.set_brightness(brightness)
-    blender_lamp.set_size(random.gauss(blender_lamp.default_size, 0.3 * blender_lamp.default_size))
-
 def check_required_kwargs(kwarg_dict, kw_list):
+    """
+    Checks that any argument given in kw_list has an corresponding entry
+    in the kwarg_dict
+    :param kwarg_dict: Dictionary which entries are the only allowed values
+    :param kw_list: A list of arguments to check
+    :return void: If problem, raise KeyError(), otherwise return void
+    """
     for kw in kw_list:
         if not kw in kwarg_dict.keys():
             raise KeyError()
@@ -169,6 +174,12 @@ class TruncNormDist(Distribution):
         return y
     
     def change_param(self, param_name, param_val):
+        """
+        Function to update the value of a parameter.
+        :param param_name: name of parameter to be updated
+        :param param_val: value to be updated
+        :return void: If invalid input, raises Error.
+        """
         self_dict = vars(self)
         if param_name not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
@@ -208,6 +219,12 @@ class NormDist(Distribution):
         return {"dist": "NormDist","mu": self.mu, "sigma": self.sigma}
 
     def change_param(self, param_name, param_val):
+        """
+        Function to update the value of a parameter.
+        :param param_name: name of parameter to be updated
+        :param param_val: value to be updated
+        :return void: If invalid input, raises Error.
+        """
         self_dict = vars(self)
         if param_name not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
@@ -248,6 +265,12 @@ class UniformCDist(Distribution):
         return {"dist": "UniformCDist", "l": self.l, "r": self.r}
 
     def change_param(self, param_name, param_val):
+        """
+        Function to update the value of a parameter.
+        :param param_name: name of parameter to be updated
+        :param param_val: value to be updated
+        :return void: If invalid input, raises Error.
+        """
         self_dict = vars(self)
         if param_name not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
@@ -284,6 +307,12 @@ class UniformDDist(Distribution):
         return {"dist": "UniformDDist", "l": self.l, "r": self.r}
 
     def change_param(self, param_name, param_val):
+        """
+        Function to update the value of a parameter.
+        :param param_name: name of parameter to be updated
+        :param param_val: value to be updated
+        :return void: If invalid input, raises Error.
+        """        
         self_dict = vars(self)
         if param_name not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
@@ -325,6 +354,13 @@ class PScaledUniformDDist(Distribution):
         return {"dist": "PScaledUniformDDist", "mid": self.mid, "scale": self.scale}
 
     def change_param(self, param_name, param_val):
+        """
+        Function to update the value of a parameter. It also update
+        any parameter dependend on the changed parameter
+        :param param_name: name of parameter to be updated
+        :param param_val: value to be updated
+        :return void: If invalid input, raises Error.
+        """        
         self_dict = vars(self)
 
         if param_name=='scale':
@@ -394,6 +430,13 @@ class ShellRingCoordinateDist(Distribution):
         return {"dist": "ShellRingCoordinateDist", "phi_sigma": self.phi_sigma, "normal": self.normal}
 
     def change_param(self, param_name, param_val):
+        """
+        Function to update the value of a parameter. If other parameter
+        depends on the changed one, it will update as well.
+        :param param_name: name of parameter to be updated
+        :param param_val: value to be updated
+        :return void: If invalid input, raises Error.
+        """
         self_dict = vars(self)
         if param_name=='normal':
             if param_val not in ['X','Y','Z']:
@@ -447,6 +490,13 @@ class CompositeShellRingDist(Distribution):
         return {"dist": "CompositeShellRingDist", "phi_sigma": self.phi_sigma, "normals": self.normals}
 
     def change_param(self, param_name, param_val):
+        """
+        Function to update the value of a parameter. It also changes
+        any dependent parameter in any of the associated distributions.
+        :param param_name: name of parameter to be updated
+        :param param_val: value to be updated
+        :return void: If invalid input, raises Error.
+        """
 
         if param_name=='phi_sigma':
             self.phi_sigma = param_val

@@ -23,8 +23,7 @@ base_path = os.path.abspath(os.path.join(parent, os.pardir))
 if not (base_path in sys.path):
     sys.path.append(base_path)
 
-
-import rendering.RandomLib.turbulence as tb
+from ..RandomLib import turbulence as tb
 
 class Testturbulence(unittest.TestCase):
     

@@ -24,8 +24,8 @@ if not (base_path in sys.path):
     sys.path.append(base_path)
 
 
-import rendering.RandomLib.random_render as rr
-from rendering.RandomLib.random_exceptions import ImprobableError
+from ..RandomLib import random_render as rr 
+from ..RandomLib.random_exceptions import ImprobableError
 import itertools as it
 
 class Testturbulence(unittest.TestCase):
@@ -246,8 +246,8 @@ class Testturbulence(unittest.TestCase):
 
         self.assertAlmostEqual(D.mid, 5.0)
         self.assertAlmostEqual(D.scale, 0.5)
-        self.assertAlmostEqual(D.l, 2.5)
-        self.assertAlmostEqual(D.r, 7.5)
+        self.assertAlmostEqual(D.l, 2)
+        self.assertAlmostEqual(D.r, 8)
 
         self.assertRaises(ValueError, rr.PScaledUniformDDist, mid=-0.1, scale=0.5)
         self.assertRaises(ValueError, rr.PScaledUniformDDist, mid=1.0, scale=1.2)
@@ -257,8 +257,8 @@ class Testturbulence(unittest.TestCase):
 
         self.assertAlmostEqual(D.mid, 3.0)
         self.assertAlmostEqual(D.scale, 0.7)
-        self.assertAlmostEqual(D.l, 0.9)
-        self.assertAlmostEqual(D.r, 5.1)
+        self.assertAlmostEqual(D.l, 1)
+        self.assertAlmostEqual(D.r, 5)
 
         for i in range(10):
             X = D.sample_param()
@@ -355,6 +355,20 @@ class Testturbulence(unittest.TestCase):
         self.assertRaises(ValueError, D.change_param, 'phi_sigma',-1.0)
 
         self.assertRaises(KeyError, D.change_param, 'foo','A')
+        
+    def test_UniformShellCoordinateDist(self):
+        
+        D=rr.UniformShellCoordinateDist()
+        self.assertEqual(D.theta.l, 0.0)
+        self.assertTrue(0.0 <= D.phi.mu <= 180.0)
+        self.assertEqual(D.phi.l,0.0)
+        x,y,z = D.sample_param()
+        self.assertTrue(-1.0<=x<=1.0)
+        self.assertTrue(-1.0<=y<=1.0)
+        self.assertTrue(-1.0<=z<=1.0)
+        
+        param = D.give_param()
+        self.assertEqual(param,{"dist": "UniformShellCoordinateDist"})        
 
 
 if __name__=='__main__':
