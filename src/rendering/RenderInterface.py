@@ -62,10 +62,14 @@ class RenderInterface(object):
         controls all rendering
         :return: None
         """
-        C = bpy.context
-        C.user_preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
-        C.user_preferences.addons['cycles'].preferences.devices[0].use = True
-        C.scene.render.engine = 'CYCLES'
+        try:
+            C = bpy.context
+            C.user_preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
+            C.user_preferences.addons['cycles'].preferences.devices[0].use = True
+            C.scene.render.engine = 'CYCLES'
+        except:
+            print("Warning: CUDA device not detected, using CPU instead!", file=sys.stderr)
+
         # instantiate scene
         self.scene = bld.BlenderRandomScene(bpy.data.scenes[0])
         # delete the initial cube
