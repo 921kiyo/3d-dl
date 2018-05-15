@@ -10,6 +10,25 @@ flask_implementations.py contains the implementation of each function called in 
 
 flask_tests.py contains tests for each of the functions in flask_implementations.py. The main file does not need to be tested because it only contains standard Flask initialisation code and calls to tested functions.
 
-##
 
-How to Run
+### Dependencies
+Flask
+Keras
+PIL
+Numpy
+
+## How to Run
+
+In terminal on a system with an internet connection, enter the following:
+- export FLASK_APP=flask_main.py
+- flask run --host=0.0.0.0
+
+Wait for Keras to load Tensorflow, the server is ready to take requests when you see the following:
+- * Serving Flask app "flask_main"
+- * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+
+You can now use a client (e.g. the iPhone app) to submit HTTP POST requests to http://<hostname>:5000/api
+
+### How to Test
+Run:
+ - python3 flask_tests.py

@@ -85,6 +85,7 @@ class TestKerasRetrain(unittest.TestCase):
         model.train(train_dir=train_dir,
                     validation_dir=validation_dir,
                     epochs=0,
+                    augmentation_params=rt.get_augmentation_params(1),
                     )
 
         for layer_bm, layer_fm in zip(base_model.layers,model.model.layers):
@@ -101,6 +102,8 @@ class TestKerasRetrain(unittest.TestCase):
                     salt_pepper=True,
                     classes_txt_dir=os.getcwd(),
                     unfrozen_layers=0,
+                    dropout=0.01,
+                    augmentation_params=rt.get_augmentation_params(0),
                     steps_per_epoch=1000
                     # save_model=True
                     )

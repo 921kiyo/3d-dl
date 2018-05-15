@@ -27,7 +27,7 @@ else:
 
 """ --------------- Configure Coverage.py ------------- """
 coverage_data_dir = os.path.join(project_dir, 'test', 'coverage', 'data_blender')
-cov = coverage.Coverage(omit=["*/Applications/blender.app/Contents/Resources/2.79/*",  "*__init__*", '*Blender/blender*'], branch=report_branch, data_file=coverage_data_dir)
+cov = coverage.Coverage(include=["*/BlenderAPI/*.py"], branch=report_branch, data_file=coverage_data_dir)
 
 cov.start()
 

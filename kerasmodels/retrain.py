@@ -2,7 +2,6 @@
 An object-oriented high-level wrapper for training InceptionV3 CNNs.
 """
 
-
 from keras.applications.inception_v3 import InceptionV3
 from keras.preprocessing import image
 from keras.models import Model
@@ -11,7 +10,6 @@ from keras.layers import Dense, GlobalAveragePooling2D, Dropout
 from keras import backend as K
 from time import *
 import os
-
 
 # For Function to feed images to model and augment images at the same time
 from keras.preprocessing.image import ImageDataGenerator
@@ -28,7 +26,7 @@ import sys
 # for get_config
 from keras.models import Sequential
 
-# for unzipping
+# for unzipping utility to train a model based on zipped training images
 import zipfile
 
 # for customizing SGD, rmsprop
@@ -41,8 +39,14 @@ import datetime
 # for csv logging
 launch_datetime = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
 
-# Custom Image Augmentation Function
 def add_salt_pepper_noise(X_img):
+    """
+    Custom Image Augmentation Function which can be added to the keras
+    fit_generator function call
+    Takes an numpy array as input and returns the same array with salt & pepper
+    noise (similar to what one might expect from bad quality images)
+    """
+
     # Need to produce a copy as to not modify the original image
     X_img_copy = X_img.copy()
     row, col, _ = X_img_copy.shape
@@ -62,6 +66,9 @@ def add_salt_pepper_noise(X_img):
     return X_img_copy
 
 class ValAccHistory(Callback):
+    """
+    Keras custom Callback which logs the validation history
+    """
     def on_train_begin(self, logs={}):
         self.val_accs = []
 
@@ -69,6 +76,11 @@ class ValAccHistory(Callback):
         self.val_accs.append(logs.get('val_acc'))
 
 class ExtraValidationCallback(Callback):
+    """
+    Keras custom callback class to log valdation metrics for two validation sets
+    saves everything to a csv called log_train_double_validation.csv
+    in the current working directory
+    """
     def __init__(self,extra_validation):
         self.extra_validation_dir = extra_validation
 
@@ -140,6 +152,9 @@ class ExtraValidationCallback(Callback):
         print('\Second Validation Set, loss: {}, acc: {}\n'.format(loss, acc))
 
 class KerasInception:
+    """
+    Class with provides an interface to train InceptionV3 based CNNs
+    """
     model = None
     input_dim = 0
     batch_size = 0
@@ -156,6 +171,10 @@ class KerasInception:
         self.model = None
 
     def assemble_model(self,train_dir):
+        """
+        build the InceptionV3 architecture based on the object instance
+        attributes such as number of dense layers, dropout etc
+        """
         class_count = len(next(os.walk(train_dir))[1])
 
         # base pre-trained model
@@ -197,8 +216,11 @@ class KerasInception:
 
         return model
 
-    # print train classes to txt file in classes_txt_dir
     def save_class_list(self,train_dir,classes_txt_dir):
+        """
+        print train classes to txt file in classes_txt_dir
+        """
+
         # assemble path
         filename = "classes.txt"
         my_file = os.path.join(classes_txt_dir, filename)
@@ -219,8 +241,10 @@ class KerasInception:
                         classes_file.write("\n")
             classes_file.close()
 
-    # unfreeze a specified number of InceptionV3 layers
     def unfreeze(self,layers):
+        """
+        unfreeze a specified number of InceptionV3 layers ard recompile model
+        """
         inception_layers = 311
         slice = inception_layers-layers
 
@@ -236,6 +260,28 @@ class KerasInception:
     def train(self,train_dir,validation_dir,epochs=0,fine_tune=False, unfrozen_layers=0,
             salt_pepper=False,augmentation_params={},classes_txt_dir=None,save_model=False,
             validation_dir_2=None,steps_per_epoch=12000):
+        """
+        initializes the keras model object and trains the model
+        train_dir: directory of training data
+        validation_dir: directory of validation data
+        epochs: number of epochs to train
+        fine_tune: whether to fine-tune the model at the end of normal epochs
+        unfrozen_layers: how many layers of the 311 inceptionV3 conv layers
+                        should be retrained, has to be between 0 and 311
+        salt_pepper: whether to add salt & pepper noise to the training images
+        augmentation_params: list of augmentation parameters for keras
+        classes_txt_dir: if provided a path, it will save a file named
+            "classes.txt" containing the labels of all classes we train for,
+            if None, it will not save such a file
+        save_model: whether to save the model at the end of training
+            name will default to model.h5 in the working directory
+        validation_dir_2: if provided a path, this will calculate additional
+            validation metrics for a second set of data and log everything
+            in a csv in the current working directory
+        steps_per_epoch: the number of images that should be processed between
+            each validation (= the number of images per epoch)
+        returns validation accuracy history
+        """
         if classes_txt_dir:
             self.save_class_list(train_dir,classes_txt_dir)
 
@@ -325,10 +371,11 @@ class KerasInception:
 
         return history
 
-    # top 2 inception blocks layers will be trained for specified number of
-    # epochs
     def fine_tune(self,train_generator,validation_generator,tensorboard,
             epochs=1):
+        """
+        fine-tunes the top 2 inception blocks for a specified number of epochs
+        """
         # we chose to train the top 2 inception blocks, i.e. we will freeze
         # the first 249 layers and unfreeze the rest:
         for layer in self.model.layers[:249]:
@@ -350,8 +397,13 @@ class KerasInception:
                 validation_steps=800 // self.batch_size,
                 callbacks = [tensorboard])
 
-    # returns accuracy and loss of the trained model given a test directory
     def evaluate(self,test_dir):
+        """
+        input = path to directory with test images, expects directory to
+        be structured as follows: folders with names of classes, images in each
+        of these folders
+        output = loss, accuracy of the model
+        """
         # augmentation configuration for testing: only rescaling
         test_datagen = ImageDataGenerator(rescale=1./255)
 
@@ -369,16 +421,28 @@ class KerasInception:
 
         return score
 
-    # expects a path to a model in h5 format (a model, not weights!)
-    # model will be as when saving (i.e. compiled), can then call predict etc
+
     def load_model(self,file_path):
+        """
+        input = path to a model in h5 format (a model, not weights!)
+        model will be as when saving (i.e. compiled), can then call predict etc
+        """
         self.model = load_model(file_path)
 
     # saves a model, provie a file path ending with .h5
     def save_model(self,path):
+        """
+        saves the current model to a specified path
+        path has to contain the name of the file itself, i.e. end in ".h5"
+        """
         self.model.save(path)
 
 def get_augmentation_params(augmentation_mode):
+    """
+    returns a list of augmentation parameters for training
+    0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
+    """
+
     if augmentation_mode == 0:
         return {}
     elif augmentation_mode == 1:
@@ -390,6 +454,13 @@ def get_augmentation_params(augmentation_mode):
         sys.exit(0)
 
 def unzip_and_return_path_to_folder(path_to_zip_file):
+    """
+    utility to unzip files containing training images
+    input = path to a zip file
+    unzips the file to a folder with the same name
+    returns path to this folder
+    """
+
     maindirname, filename = os.path.split(path_to_zip_file)
 
     new_dir = os.path.join(maindirname, filename.split('.')[0])
@@ -401,12 +472,3 @@ def unzip_and_return_path_to_folder(path_to_zip_file):
     zip_ref.close()
 
     return path_to_zip_file.split('.')[0] # name of new folder
-
-
-
-
-# main()
-
-# main_for_pipeline()
-
-# grid_search()

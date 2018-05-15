@@ -1,10 +1,14 @@
-//
-//  ViewController.swift
-//  Camera
-//
-//  Created by Rizwan on 16/06/17.
-//  Copyright © 2017 Rizwan. All rights reserved.
-//
+/*
+ 
+ iPhone App for Grocery Product Recognition
+ 
+ This file is adapted from and based on a foundation of code produced for a Swfit iOS Camera tutorial written by Rizwan Mohamed Ibrahim at https://medium.com/@rizwanm/swift-camera-part-2-c6de440a9404. Additional code was written to provide the necessary custom functionality.
+ 
+ This source code is released under the MIT License, as per the terms of Rizwan's original license.
+ 
+*/
+
+// Begin Adapted Code
 
 import UIKit
 import AVFoundation
@@ -113,7 +117,7 @@ class ViewController: UIViewController {
         
         // Set photo settings for our need
         photoSettings.isAutoStillImageStabilizationEnabled = true
-        photoSettings.isHighResolutionPhotoEnabled = true
+        photoSettings.isHighResolutionPhotoEnabled = false
         photoSettings.flashMode = .auto
         
         MainLabel.text = "Image Captured!"
@@ -122,10 +126,83 @@ class ViewController: UIViewController {
         capturePhotoOutput.capturePhoto(with: photoSettings, delegate: self)
     }
     
+    // End Adapted Code
+    
+    // Begin code written for this project
+    
+    /*
+     Function to upload image to Web Server API and to parse result returned by the API.
+     
+     Input Arguments:
+     api_address (String): URL of API service to upload image to
+     input_imageData (Data): Image to be uploaded, stored as Data
+     
+     Return Value:
+     output_string (String):
+     
+     
+     */
+    
+    func upload_image(api_address: String, input_imageData: Data?) -> String {
+        var return_string :String = "";
+        //self.MainLabel.text = "Uploading...";
+        
+        // Initialise an UIImage with our image data
+        let capturedImage = UIImage.init(data: input_imageData! , scale: 1.0);
+        let for_upload_imageData = UIImageJPEGRepresentation(capturedImage!, 1.0)!
+        
+        // Save captured image to photo album
+        if let image = capturedImage {
+            UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+        }
+        
+        // Initialise string that will contain output
+        var output_string = ""
+        
+        // Use Alamofire to submit HTTP POST Request to Web Server API
+        Alamofire.upload(
+            multipartFormData: { multipartFormData in
+                multipartFormData.append(for_upload_imageData , withName: "my_image", fileName: "image.jpg", mimeType: "image/jpeg")
+        },
+            to: api_address,
+            encodingCompletion: { encodingResult in
+                switch encodingResult {
+                case .success(let upload, _, _):
+                    upload.responseJSON { response in
+                        // Parse JSON reponse and add relevant information to output string
+                        //debugPrint(response)
+                        //debugPrint(response.result.value)
+                        let jsonDict = response.result.value as? [String:Any]
+                        //debugPrint(jsonDict)
+                        //debugPrint(jsonDict!["max_class"])
+                        //debugPrint(jsonDict!["max_value"])
+                        //var output_string = ""
+                        output_string += jsonDict!["max_class"] as! String
+                        output_string += ": "
+                        output_string += jsonDict!["max_value"] as! String
+                        output_string += "%"
+                        print("Second Output")
+                        print(output_string)
+                        self.MainLabel.text = output_string
+                        return_string = output_string;
+                        print("Third Output");
+                        print(return_string);
+                    }
+                case .failure(let encodingError):
+                    print(encodingError)
+                }
+        }
+        )
+        
+        
+        // Return string containing name and confidence of predicted class
+        return return_string
+    }
+    
+    // End code written for this project
+    
+    // Begin Adapted Code
 }
-
-
-
 
 extension ViewController : AVCapturePhotoCaptureDelegate {
     func photoOutput(_ captureOutput: AVCapturePhotoOutput,
@@ -141,91 +218,20 @@ extension ViewController : AVCapturePhotoCaptureDelegate {
                 return
         }
         
+        self.MainLabel.text = "Uploading...";
+        
         // Convert photo same buffer to a jpeg image data by using AVCapturePhotoOutput
         guard let imageData = AVCapturePhotoOutput.jpegPhotoDataRepresentation(forJPEGSampleBuffer: photoSampleBuffer, previewPhotoSampleBuffer: previewPhotoSampleBuffer) else {
             return
         }
         
-        // Initialise an UIImage with our image data
-        let capturedImage = UIImage.init(data: imageData , scale: 1.0);
-        let my_data:Data = UIImageJPEGRepresentation(capturedImage!, 1.0)!
-//        print(String(data: my_data, encoding: String.Encoding.utf8) as String!)
+        let output_string = upload_image(api_address: "http://146.169.3.104:5000/api", input_imageData: imageData);
         
-        let for_upload_imageData = UIImageJPEGRepresentation(capturedImage!, 1.0)!
-        
-        MainLabel.text = "Uploading..."
-        if let image = capturedImage {
-            // Save our captured image to photos album
-            UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
-        }
-        
-//        Alamofire.upload(for_upload_imageData, to: "http://146.169.3.104:5000/predict").responseJSON { response in
-//            debugPrint(response)
-//        }
-        
-        //Start upload
-        
-//        let URL = "http://146.169.3.104:5000/predict"
-//        let image = UIImage(named: "image.png")
-        
-        Alamofire.upload(
-            multipartFormData: { multipartFormData in
-                multipartFormData.append(for_upload_imageData as! Data, withName: "my_image", fileName: "image.jpg", mimeType: "image/jpeg")
-        },
-            to: "http://146.169.3.104:5000/api",
-            encodingCompletion: { encodingResult in
-                switch encodingResult {
-                case .success(let upload, _, _):
-                    upload.responseJSON { response in
-                        //debugPrint(response)
-                        debugPrint(response.result.value)
-                        let jsonDict = response.result.value as? [String:Any]
-                        debugPrint(jsonDict)
-                        debugPrint(jsonDict!["max_class"])
-                        debugPrint(jsonDict!["max_value"])
-                        var output_string = ""
-                        output_string += jsonDict!["max_class"] as! String
-                        output_string += ": "
-                        output_string += jsonDict!["max_value"] as! String
-                        output_string += "%"
-                        self.MainLabel.text = output_string
-//                        if let jsonDict = response.result.value as? [String:Any]{
-//                            let dataArray = jsonDict["max_class"] as? [[String:Any]]
-//                            debugPrint(dataArray)
-//                        }
-                        
-//                        {
-//                            let nameArray = dataArray.flatMap { $0["max_value"] as? String }
-//                            debugPrint(nameArray)
-//                        }
-                    }
-                case .failure(let encodingError):
-                    print(encodingError)
-                }
-        }
-        )
-
-        
-//        let imageStr = my_data.base64EncodedString()
-        
-//        var request = URLRequest(url: url)
-//        request.httpMethod = "POST"
-//
-        
-//        Alamofire.request("https://httpbin.org/get").responseJSON { response in
-//            print("Request: \(String(describing: response.request))")   // original url request
-//            print("Response: \(String(describing: response.response))") // http url response
-//            print("Result: \(response.result)")                         // response serialization result
-//
-//            if let json = response.result.value {
-//                print("JSON: \(json)") // serialized json response
-//            }
-//
-//            if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
-//                print("Data: \(utf8Text)") // original server data as UTF8 string
-//            }
-//        }
-        
+        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(5), execute: {
+            // Put your code which should be executed with a delay here
+            print("printing output");
+            print(self.MainLabel.text);
+        })
         
     }
 }
@@ -268,3 +274,8 @@ extension UIInterfaceOrientation {
         }
     }
 }
+
+// End Adapted Code
+
+
+
