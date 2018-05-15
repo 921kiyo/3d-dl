@@ -2,6 +2,8 @@ import unittest
 from shutil import copyfile
 from PIL import Image
 
+import os.path
+
 import flask_implementations
 
 from keras.models import load_model
@@ -46,6 +48,8 @@ class TestFlaskImplementations(unittest.TestCase):
 
         self.assertEqual(result['max_class'], "Anchor")
         self.assertEqual(result['max_value'], "99.5")
+
+
 
 
 if __name__ == '__main__':
