@@ -47,7 +47,5 @@ class TestFlaskImplementations(unittest.TestCase):
         self.assertEqual(result['max_value'], "99.5")
 
 
-
-
 if __name__ == '__main__':
     unittest.main()
