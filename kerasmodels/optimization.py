@@ -2,6 +2,8 @@
 Experimental Script for Bayesian Optimization of Rendering and CNN
 parameters. This can be used to tune the rendering parameters to a given sample
 of real images.
+
+REQUIRES PYTHON PATH SET TO Lobster/src
 """
 
 
