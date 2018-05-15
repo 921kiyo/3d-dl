@@ -145,15 +145,16 @@ cov.save()
 data_paths = [os.path.join(project_dir, 'test', 'coverage', 'data')]
 if args.blender_tests or args.all_tests:
     data_paths.append(os.path.join(project_dir, 'test', 'coverage', 'data_blender'))
-if args.keras_tests or args.all_tests:
-    data_paths.append(os.path.join(project_dir, 'test', 'coverage', 'data_keras'))
+
+# if args.keras_tests or args.all_tests:
+#     data_paths.append(os.path.join(project_dir, 'test', 'coverage', 'data_keras'))
 
 if args.blender_tests or args.all_tests:
     cov.combine(data_paths=data_paths)
 
 
-omit = ['*testBlenderAPI*', '*TestRandomLib*', '*TestSceneLib*', '*test_*', '*retrain_unittest*']
-if args.report_tests or args.all_tests:
+omit = ['*testBlenderAPI*', '*TestRandomLib*', '*TestSceneLib*', '*test_*', '*retrain_unittest*', '*flask_tests*', '*testRetrainTest*']
+if args.report_tests:
     omit = []
 
 cov.report(omit=omit)
