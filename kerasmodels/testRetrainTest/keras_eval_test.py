@@ -157,7 +157,6 @@ class KerasEvalTest(test_util.TensorFlowTestCase):
         # case one empty class
         cm = np.array([[0, 1], [0, 1]])
         prec = keras_eval.compute_precision(cm)
-        print("PRECCC ", prec)
         self.assertEqual(prec[1], -0.25)
         # non-square confusion matrix
         cm = np.array([[1, 0, 0], [0, 1, 0]])
