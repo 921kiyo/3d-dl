@@ -1,7 +1,15 @@
+"""
+Experimental Script for Bayesian Optimization of Rendering and CNN
+parameters. This can be used to tune the rendering parameters to a given sample
+of real images.
+"""
+
+
 # Hacky way to import render_pipeline
 # import sys
 # sys.path.append('src/rendering/')
 # sys.path.insert(0, '~/ocado/Lobster/src/rendering/')
+
 from rendering import render_pipeline
 # import render_pipeline
 import retrain
@@ -32,6 +40,11 @@ launch_datetime = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
 def evaluate_pipeline(learning_rate,dense_layers,batch_size,dropout,dense_dim,
         num_lamps_mid, num_lamps_scale, lamp_energy_mu, lamp_energy_sigmu,
         camera_loc_phi_sigma, camera_radius_mu,camera_radius_sigmu):
+    """
+    script which takes a number of parameters for neural network training and
+    for rendering and returns the best resulting validation accuracy
+    the results are also logged to log_filename defined below
+    """
 
     background_type = 'white'
     adjust_brightness = False
@@ -157,13 +170,25 @@ def evaluate_pipeline(learning_rate,dense_layers,batch_size,dropout,dense_dim,
 
     return best_validation_accuracy
 
-def continue_bayes_optimization(bo_instance_filename,iterations,kappa):
+def continue_bayes_optimization(bo_instance_filename,iterations,kappa=4):
+    """
+    continue a previously pickled BayesianOptimization instance
+    inputs: filename of a bo instance, number of iterations for optimization,
+    kappa value (high kappa = aggressive exploration), recommended values are
+    between 1 and 10
+    """
     # TODO: Function that takes pickled BO and can explore based on it
     pickle.load(open(bo_instance_filename,"rb"))
     bo.maximize(n_iter=iterations, kappa=kappa)
     return
 
 def evaluate_cnn(learning_rate,dense_layers,batch_size,dropout,dense_dim):
+    """
+    script which takes a number of parameters for neural network training and
+    returns the best resulting validation accuracy from these parameters
+    results are also logged to log_filename defined below
+    """
+
     # turn float inputs from BO to ints
     dense_layers = int(dense_layers + 0.5)
     dense_dim = int(dense_dim + 0.5)*512
@@ -221,7 +246,9 @@ def evaluate_cnn(learning_rate,dense_layers,batch_size,dropout,dense_dim):
         if not my_file.is_file():
             print("writing head")
             with open(log_filename, "w") as log:
-                log.write("datetime,epochs,learning_rate,batch_size,input_dim,dense_layers,dropout,dense_dim,best_validation_accuracy,test_accuracy,file\n")
+                log.write("datetime,epochs,learning_rate,batch_size,input_dim,\
+                dense_layers,dropout,dense_dim,best_validation_accuracy,\
+                test_accuracy,file\n")
 
         # append parameters
         with open(log_filename, "a") as log:
@@ -251,7 +278,11 @@ def evaluate_cnn(learning_rate,dense_layers,batch_size,dropout,dense_dim):
     return max(history.val_accs) # return best validation accuracy
 
 def initial_queries(bo):
-    """Initial Queries"""
+    """
+    script which explores the initial query points of a BayesianOptimization
+    instance, reports errors to Slack
+    Input: instance of a BayesianOptimization
+    """
     # loop to try a second time in case of error
     errcount = 0
     for i in range(2):
@@ -272,14 +303,20 @@ def initial_queries(bo):
     return bo
 
 def exploration(iterations,bo):
-    """Query Loop (save after every iteration)"""
+    """
+    script performs exploration within the Gaussian Process and saves
+    the state of the bayesian optimization after every new evaluation
+    input: number of iterations, instance of a BayesianOptimization
+    """
 
+     # Query Loop (save after every iteration)
     for i in range(iterations):
         # loop to try a second time in case of error
         errcount = 0
         for i in range(2):
             try:
-                bo.maximize(n_iter=1, kappa=4) # would be just this line without errorhandling
+                # would be just this line without errorhandling
+                bo.maximize(n_iter=1, kappa=4)
             except KeyBoardInterrupt:
                 raise
             except:
@@ -307,6 +344,11 @@ def exploration(iterations,bo):
     return bo
 
 def bayes_optimization_cnn(iterations):
+    """
+    script to set boundaries for search space for bayesian optimization
+    of the cnn parameters
+    """
+
     gp_params = {"alpha": 1e-5}
     bo = BayesianOptimization(evaluate_cnn,
         {'learning_rate': (1e-07, 1e-03),
@@ -328,6 +370,11 @@ def bayes_optimization_cnn(iterations):
     print(bo.res['max'])
 
 def bayes_optimization_pipeline(iterations):
+    """
+    main script to set boundaries for search space for bayesian optimization
+    of both the cnn parameters as well as the
+    rendering parameters
+    """
     gp_params = {"alpha": 1e-5}
 
     bo = BayesianOptimization(evaluate_pipeline,
@@ -360,5 +407,90 @@ def bayes_optimization_pipeline(iterations):
 
     bo = initial_queries(bo)
     bo = exploration(iterations,bo)
+
+def grid_search():
+    logging = True
+    log_filename = 'log_unfrozen_layers_grid_1epoch.csv'
+
+    train_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/train'
+    validation_dir = '/data/g1753002_ocado/manhattan_project/training_data/split_ten_set_model_official_SUN_back_2018-04-07_13_19_16/validation'
+    test_dir = '/data/g1753002_ocado/manhattan_project/test_data/extended_test_set_ambient'
+
+    learning_rate_grid = np.logspace(-2,0,6) # originally 10 pow -5
+    unfrozen_layers_grid = np.linspace(0,311,10)
+    dropout_grid = [0,0.2,0.5]
+    layer_grid = [1,2]
+    batch_size_grid = [16,32,64]
+
+    # go through grid of parameters
+    for lr in learning_rate_grid:
+
+        # set parameters
+        input_dim = 224
+        fine_tune = False
+        add_salt_pepper_noise = False # if True, it adds SP noise
+        augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
+        epochs = 18
+        unfrozen_layers = 311
+
+        learning_rate = lr # 0.0001
+        dense_layers = 1
+        batch_size = 64
+        dropout = 0
+
+        # initialize & train model
+        model = retrain.KerasInception(input_dim=input_dim,
+                                batch_size=batch_size,
+                                dense_layers=dense_layers,
+                                dropout=dropout,
+                                lr=learning_rate)
+
+
+        model.train(train_dir=train_dir,
+                    validation_dir=validation_dir,
+                    fine_tune=fine_tune,
+                    epochs=epochs,
+                    salt_pepper=add_salt_pepper_noise,
+                    augmentation_params=get_augmentation_params(augmentation_mode),
+                    save_model=True,
+                    unfrozen_layers=unfrozen_layers
+                    )
+
+        # get accuracy score
+        test_loss, test_acc = model.evaluate(test_dir=test_dir)
+
+        # store accuracy & model parameters
+        if logging:
+            print("logging now...")
+            my_file = Path(log_filename)
+
+            # write header if this is the first run
+            if not my_file.is_file():
+                print("writing head")
+                with open(log_filename, "w") as log:
+                    log.write("datetime,epochs,learning_rate,batch_size,unfrozen_layers,input_dim,dense_layers,dropout,test_loss,test_acc\n")
+
+            # append parameters
+            with open(log_filename, "a") as log:
+                log.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+                log.write(',')
+                log.write(str(epochs))
+                log.write(',')
+                log.write(str(learning_rate))
+                log.write(',')
+                log.write(str(batch_size))
+                log.write(',')
+                log.write(str(unfrozen_layers))
+                log.write(',')
+                log.write(str(input_dim))
+                log.write(',')
+                log.write(str(dense_layers))
+                log.write(',')
+                log.write(str(dropout))
+                log.write(',')
+                log.write(str(test_loss))
+                log.write(',')
+                log.write(str(test_acc))
+                log.write('\n')
 
 bayes_optimization_cnn(20)
