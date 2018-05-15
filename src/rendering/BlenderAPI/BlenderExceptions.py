@@ -1,8 +1,3 @@
-import bpy
-import math
-import mathutils as mathU
-import itertools
-
 def check_is_iter(input, size):
     try:
         input_iter = iter(input)

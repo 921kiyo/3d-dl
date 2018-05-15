@@ -1,6 +1,7 @@
 import bpy
 import sys
 import unittest
+import mathutils as mathU
 
 boop = "/Users/maxbaylis/Lobster/src/"
 if not (boop in sys.path):

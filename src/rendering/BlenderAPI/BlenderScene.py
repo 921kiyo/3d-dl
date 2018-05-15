@@ -1,13 +1,9 @@
 import bpy
-import math
-import rendering.RandomLib
-import mathutils as mathU
-import itertools
 
-from rendering.BlenderAPI.BlenderObjects import *
-from rendering.BlenderAPI.BlenderShapes import *
-from rendering.BlenderAPI.BlenderLamps import BlenderPoint
-import rendering.RandomLib.random_render as rnd
+from .BlenderObjects import *
+from .BlenderShapes import *
+from .BlenderLamps import BlenderPoint
+from ..RandomLib import random_render as rnd
 
 
 class BlenderRoom(object):

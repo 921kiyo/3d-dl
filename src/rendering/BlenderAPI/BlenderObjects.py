@@ -3,7 +3,7 @@ import math
 import mathutils as mathU
 import itertools
 
-from rendering.BlenderAPI.BlenderExceptions import *
+from .BlenderExceptions import *
 
 def rotate(vector, quaternion):
     """
