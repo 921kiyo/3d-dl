@@ -10,7 +10,8 @@ import fnmatch
 import zipfile
 import uuid
 import bpy
-import rendering.BlenderAPI as bld
+#import rendering.BlenderAPI as bld
+from . import BlenderAPI as bld
 
 def finds(patterns, list):
     results = []

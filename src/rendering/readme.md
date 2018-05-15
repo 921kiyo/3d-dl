@@ -28,23 +28,23 @@ Slack (For sending rendering logs to Slack for longer jobs )
 # Libraries
 There are more details in each library readme.
 
-##BlenderAPI
+## BlenderAPI
 
 A wrapper around the Blender native bp interface for easier manipulation. 
 Provides a way of adding and manipulating objects in a Blender scene.
 
-##RandomLib
+## RandomLib
 
 Provides all functions providing some higher level randomisation. Source of random parameters for BlenderAPI.
 The random colour mesh backgrounds are generated through metaballs implemented in this library.
 
-##SceneLib
+## SceneLib
 
 Contains functionality necessary for creation of the final scene.
 Functions that prepare a database of valid background images by rescaling them to requested size.
 Functions to merge RGBA poses with background image from the database. 
 
-##Testpackages
+## Testpackages
 
 Contains UT for all the other packages.
 

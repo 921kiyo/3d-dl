@@ -24,8 +24,8 @@ if not (base_path in sys.path):
     sys.path.append(base_path)
 
 
-import rendering.RandomLib.random_render as rr
-from rendering.RandomLib.random_exceptions import ImprobableError
+from ..RandomLib import random_render as rr 
+from ..RandomLib.random_exceptions import ImprobableError
 import itertools as it
 
 class Testturbulence(unittest.TestCase):
