@@ -13,9 +13,6 @@ class TestKerasRetrain(unittest.TestCase):
     # assert that when calling fit on the model, the last layers change
     # (= are not the same as initial values)
     def test_training_last_layers(self):
-        # TODO: Can be generalized: take an argument "number of top layers", include
-        # them in a for loop and store weights in list
-
         train_dir = os.path.join(file_dir,os.path.join(file_dir,'unit_test_images/'))
         validation_dir = os.path.join(file_dir,os.path.join(file_dir,'unit_test_images/'))
         test_dir = os.path.join(file_dir,os.path.join(file_dir,'unit_test_images/'))
@@ -45,7 +42,6 @@ class TestKerasRetrain(unittest.TestCase):
                     unfrozen_layers=311,
                     steps_per_epoch=1000,
                     validation_dir_2=validation_dir
-                    # save_model=True
                     )
 
 
@@ -56,8 +52,6 @@ class TestKerasRetrain(unittest.TestCase):
         # check that something has changed
         self.assertFalse( np.array_equal(before_softmax,after_softmax) )
         self.assertFalse( np.array_equal(before_dense,after_dense) )
-        # self.assertTrue( (before_softmax != after_softmax).any() )
-        # self.assertTrue( (before_dense != after_dense).any() )
 
     # tests if the model stays stable for the layers we want it to be stable
     def test_base_model_stable(self):
@@ -65,9 +59,6 @@ class TestKerasRetrain(unittest.TestCase):
         train_dir = os.path.join(file_dir,'unit_test_images/')
         validation_dir = os.path.join(file_dir,'unit_test_images/')
         test_dir = os.path.join(file_dir,'unit_test_images/')
-
-        # TODO delete
-        count = 0
 
         # initialize two lists for weights
         before_transferred_weights = []
@@ -78,7 +69,7 @@ class TestKerasRetrain(unittest.TestCase):
 
         # create model
         model = rt.KerasInception(dense_layers=1,
-                                dropout=0,
+                                dropout=0.01,
                                 dense_dim=1024)
 
         # initialize model (size of dense layer), 0 epochs
@@ -90,10 +81,6 @@ class TestKerasRetrain(unittest.TestCase):
 
         for layer_bm, layer_fm in zip(base_model.layers,model.model.layers):
             before_transferred_weights.append(layer_fm.get_weights())
-            count += 1
-
-        # TODO delete
-        # print(count)
 
         # train
         model.train(train_dir=train_dir,
@@ -102,10 +89,8 @@ class TestKerasRetrain(unittest.TestCase):
                     salt_pepper=True,
                     classes_txt_dir=os.getcwd(),
                     unfrozen_layers=0,
-                    dropout=0.01,
                     augmentation_params=rt.get_augmentation_params(0),
                     steps_per_epoch=1000
-                    # save_model=True
                     )
 
         # store all weights after
@@ -114,9 +99,7 @@ class TestKerasRetrain(unittest.TestCase):
 
         # check that nothing changed for any of the layers
         for b, a in zip(before_transferred_weights,after_transferred_weights):
-            # self.assertFalse( np.array_equal(b,a) )
             self.assertTrue( np.array_equal(b,a) )
-            # self.assertTrue( (b == a).all() )
 
 
     # tests if model can be trained on two classes and perform significantly
@@ -126,9 +109,9 @@ class TestKerasRetrain(unittest.TestCase):
         train_dir = rt.unzip_and_return_path_to_folder(path_of_zip)
 
         # dummy directories with black/white images
-        # train_dir = os.path.join(file_dir,'unit_test_images/')
         validation_dir = os.path.join(file_dir,'unit_test_images/')
         test_dir = os.path.join(file_dir,'unit_test_images/')
+
 
         # train
         model = rt.KerasInception(dense_layers=1,
@@ -143,11 +126,9 @@ class TestKerasRetrain(unittest.TestCase):
                     classes_txt_dir=os.getcwd(),
                     unfrozen_layers=311,
                     steps_per_epoch=1000
-                    # save_model=True
                     )
 
         # evaluate
-        # TODO: how many images does this generate
         score = model.evaluate(test_dir=test_dir)
 
         print("accuracy on test images")
