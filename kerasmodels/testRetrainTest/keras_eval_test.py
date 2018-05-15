@@ -119,18 +119,18 @@ class KerasEvalTest(test_util.TensorFlowTestCase):
         # case 1 class
         cm = np.array([[1]])
         sens = keras_eval.compute_sensitivity(cm)
-        self.assertAllClose(sens, np.array([1.]))
+        self.assertEqual(sens[1], 1.0)
         # case 2 classes
         cm = np.array([[1,0],[0,1]])
         sens = keras_eval.compute_sensitivity(cm)
-        self.assertAllClose(sens, np.array([1., 1.]))
+        self.assertEqual(sens[1], 1.0)
         cm = np.array([[1,1],[0,1]])
         sens = keras_eval.compute_sensitivity(cm)
-        self.assertAllClose(sens, np.array([.5, 1.]))
+        self.assertEqual(sens[1], 0.75)
         # case one empty class
         cm = np.array([[1, 1], [0, 0]])
         sens = keras_eval.compute_sensitivity(cm)
-        self.assertAllClose(sens, np.array([.5, -1]))
+        self.assertEqual(sens[1], -0.25)
         # non-square confusion matrix
         cm = np.array([[1, 0, 0], [0, 1, 0]])
         caught = False
@@ -144,18 +144,21 @@ class KerasEvalTest(test_util.TensorFlowTestCase):
 	# case 1 class
         cm = np.array([[1]])
         prec = keras_eval.compute_sensitivity(cm)
-        self.assertAllClose(prec, np.array([1.]))
+        self.assertEqual(prec[1], 1.0)
+        # self.assertAllClose(prec, np.array([1.]))
         # case 2 classes
         cm = np.array([[1,0],[0,1]])
         prec = keras_eval.compute_sensitivity(cm)
-        self.assertAllClose(prec, np.array([1., 1.]))
+        self.assertEqual(prec[1], 1.0)
+        # self.assertAllClose(prec, np.array([1., 1.]))
         cm = np.array([[1,1],[0,1]])
         prec = keras_eval.compute_precision(cm)
-        self.assertAllClose(prec, np.array([1., .5]))
+        self.assertEqual(prec[1], 0.75)
         # case one empty class
         cm = np.array([[0, 1], [0, 1]])
         prec = keras_eval.compute_precision(cm)
-        self.assertAllClose(prec, np.array([-1, .5]))
+        print("PRECCC ", prec)
+        self.assertEqual(prec[1], -0.25)
         # non-square confusion matrix
         cm = np.array([[1, 0, 0], [0, 1, 0]])
         caught = False

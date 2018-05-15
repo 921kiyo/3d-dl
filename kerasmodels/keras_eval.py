@@ -314,7 +314,6 @@ class KerasEval:
         predictions = []
         truth = []
         for label in per_class_test_results:
-            print("LABEL ", label)
             test_results = per_class_test_results[label]
             n = len(test_results)
 
