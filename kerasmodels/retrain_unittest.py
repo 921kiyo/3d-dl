@@ -2,7 +2,11 @@ import unittest
 import retrain as rt
 import numpy as np
 
+import pathlib
+
 import os
+
+file_dir = os.path.dirname(os.path.realpath(__file__))
 
 class TestKerasRetrain(unittest.TestCase):
 
@@ -12,9 +16,9 @@ class TestKerasRetrain(unittest.TestCase):
         # TODO: Can be generalized: take an argument "number of top layers", include
         # them in a for loop and store weights in list
 
-        train_dir = 'unit_test_images/'
-        validation_dir = 'unit_test_images/'
-        test_dir = 'unit_test_images/'
+        train_dir = os.path.join(file_dir,os.path.join(file_dir,'unit_test_images/'))
+        validation_dir = os.path.join(file_dir,os.path.join(file_dir,'unit_test_images/'))
+        test_dir = os.path.join(file_dir,os.path.join(file_dir,'unit_test_images/'))
 
         # create model
         model = rt.KerasInception(dense_layers=1,
@@ -58,9 +62,9 @@ class TestKerasRetrain(unittest.TestCase):
     # tests if the model stays stable for the layers we want it to be stable
     def test_base_model_stable(self):
         # dummy directories with black/white images
-        train_dir = 'unit_test_images/'
-        validation_dir = 'unit_test_images/'
-        test_dir = 'unit_test_images/'
+        train_dir = os.path.join(file_dir,'unit_test_images/')
+        validation_dir = os.path.join(file_dir,'unit_test_images/')
+        test_dir = os.path.join(file_dir,'unit_test_images/')
 
         # TODO delete
         count = 0
@@ -115,13 +119,13 @@ class TestKerasRetrain(unittest.TestCase):
     # tests if model can be trained on two classes and perform significantly
     # better than random on a test set after 15 minutes of training
     def test_full_training(self):
-        path_of_zip = 'unit_test_images_zipped.zip'
+        path_of_zip = os.path.join(file_dir,'unit_test_images_zipped.zip')
         train_dir = rt.unzip_and_return_path_to_folder(path_of_zip)
 
         # dummy directories with black/white images
-        # train_dir = 'unit_test_images/'
-        validation_dir = 'unit_test_images/'
-        test_dir = 'unit_test_images/'
+        # train_dir = os.path.join(file_dir,'unit_test_images/')
+        validation_dir = os.path.join(file_dir,'unit_test_images/')
+        test_dir = os.path.join(file_dir,'unit_test_images/')
 
         # train
         model = rt.KerasInception(dense_layers=1,
@@ -149,9 +153,9 @@ class TestKerasRetrain(unittest.TestCase):
         self.assertTrue( score[1] > 0.6 )
 
     def test_layers_connected(self):
-        train_dir = 'unit_test_images/'
-        validation_dir = 'unit_test_images/'
-        test_dir = 'unit_test_images/'
+        train_dir = os.path.join(file_dir,'unit_test_images/')
+        validation_dir = os.path.join(file_dir,'unit_test_images/')
+        test_dir = os.path.join(file_dir,'unit_test_images/')
 
         model = rt.KerasInception(dense_layers=1,
                                 dropout=0,
