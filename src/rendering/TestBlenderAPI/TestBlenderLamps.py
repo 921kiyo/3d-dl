@@ -1,13 +1,14 @@
 import bpy
 import sys
 import unittest
+import mathutils as mathU
 
 boop = "/Users/maxbaylis/Lobster/src/"
 if not (boop in sys.path):
     sys.path.append(boop)
 
-import rendering.BlenderAPI as bld
-from rendering.BlenderAPI.BlenderExceptions import *
+from .. import BlenderAPI as bld
+from ..BlenderAPI.BlenderExceptions import *
 
 
 class BlenderLampsTest(unittest.TestCase):

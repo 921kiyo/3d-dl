@@ -82,6 +82,7 @@ if args.keras_tests or args.all_tests:
     # from kerasmodels.testRetrainTest.keras_eval_test import KerasEvalTest
     from kerasmodels.retrain_unittest import TestKerasRetrain
 
+# Import scenes
 if args.scene_tests or args.all_tests:
     # Import randomLib
     from src.rendering.TestRandomLib.TestMetaballs import Testturbulence
@@ -92,20 +93,23 @@ if args.scene_tests or args.all_tests:
     # Import merge/resize
     from src.rendering.TestSceneLib.TestMergeResize import TestResizeImages
 
+# Import pipelines
 if args.pipeline_tests or args.all_tests:
     from src.rendering.TestPipeline.TestRenderPipeline import TestPipeline
+    from src.rendering.TestPipeline.TestSlackReporter import TestSlack
 
+# Import flask
 if args.flask_tests or args.all_tests:
     from flask_webserver.flask_tests import TestFlaskImplementations
 
-""" --------------- Load Tests Cases ------------- """
+""" --------------- Load Test Cases ------------- """
 suites = []
 
-# Load Keras
+# Load Keras tests
 if args.keras_tests or args.all_tests:
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestKerasRetrain))
 
-
+# Load scene tests
 if args.scene_tests or args.all_tests:
     # Load randomLib
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(Testturbulence))
@@ -116,9 +120,12 @@ if args.scene_tests or args.all_tests:
     # Load sceneLib
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestResizeImages))
 
+# Load pipeline tests
 if args.pipeline_tests or args.all_tests:
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestPipeline))
+    suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestSlack))
 
+# Load flask tests
 if args.flask_tests or args.all_tests:
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestFlaskImplementations))
 
@@ -138,15 +145,16 @@ cov.save()
 data_paths = [os.path.join(project_dir, 'test', 'coverage', 'data')]
 if args.blender_tests or args.all_tests:
     data_paths.append(os.path.join(project_dir, 'test', 'coverage', 'data_blender'))
-if args.keras_tests or args.all_tests:
-    data_paths.append(os.path.join(project_dir, 'test', 'coverage', 'data_keras'))
+
+# if args.keras_tests or args.all_tests:
+#     data_paths.append(os.path.join(project_dir, 'test', 'coverage', 'data_keras'))
 
 if args.blender_tests or args.all_tests:
     cov.combine(data_paths=data_paths)
 
 
-omit = ['*testBlenderAPI*', '*TestRandomLib*', '*TestSceneLib*', '*test_*', '*retrain_unittest*']
-if args.report_tests or args.all_tests:
+omit = ['*testBlenderAPI*', '*TestRandomLib*', '*TestSceneLib*', '*test_*', '*retrain_unittest*', '*flask_tests*', '*testRetrainTest*']
+if args.report_tests:
     omit = []
 
 cov.report(omit=omit)

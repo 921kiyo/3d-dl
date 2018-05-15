@@ -8,17 +8,17 @@ class SlackReporter:
 
     SlackReporter supports to methods for sending messages:
         a send_message() method where a message is passed as an argument
-        a @report() decorator which sends a message containing the return value of the 
+        a @report() decorator which sends a message containing the return value of the
             function passed to it
 
     Connecting to Slack:
-        SlackReporter will look for a SLACK_WEBHOOK_URL environment variable to 
+        SlackReporter will look for a SLACK_WEBHOOK_URL environment variable to
         authenticate with Slack.
 
         To add a value to environment variables in a virtual environment, add
-        'export SLACK_WEBHOOK_URL=value' to the end of your bin/activate script.  
+        'export SLACK_WEBHOOK_URL=value' to the end of your bin/activate script.
 
-        The webhook_url can be obtained by creating a new app on Slack with 
+        The webhook_url can be obtained by creating a new app on Slack with
         the 'incoming-webhook' scope and linking it to your Slack workspace and channel.
 
     Example usage:
@@ -33,10 +33,10 @@ class SlackReporter:
 
     """
     def __init__(self, webhook_url=None, disable=False):
-        self.webhook_url = webhook_url   
+        self.webhook_url = webhook_url
+        self.disable = disable
         if not webhook_url:
             self.webhook_url = environ.get('SLACK_WEBHOOK_URL')
-            self.disable = disable
 
     def send_message(self, message, title='New report', status='', print_message=False):
         """
@@ -70,34 +70,34 @@ class SlackReporter:
         }
 
         r = requests.post(self.webhook_url, headers=headers, json=payload)
-        
+
         if not r.status_code == 200:
             print("Error sending message to Slack", message)
 
-    def report(self, title='New Report', status='', print_message=False):
-        """
-        Send the return value of the decorated function to Slack
-    
-        args:
-            title: title of the report
-            status: 'good', 'warning' or 'danger'
-            print_message: also print the message to the screen
-            
-        """
-        def decorator(function):
-            @wraps(function)
-            def wrapper(*args, **kwargs):
-                message = str(function(*args, **kwargs))
-                
-                if self.disable:
-                    return
-
-                if print_message:
-                    print(message)
-
-                self.send_message(message, title, status)     
-            return wrapper
-        return decorator
+    # def report(self, title='New Report', status='', print_message=False):
+    #     """
+    #     Send the return value of the decorated function to Slack
+    #
+    #     args:
+    #         title: title of the report
+    #         status: 'good', 'warning' or 'danger'
+    #         print_message: also print the message to the screen
+    #
+    #     """
+    #     def decorator(function):
+    #         @wraps(function)
+    #         def wrapper(*args, **kwargs):
+    #             message = str(function(*args, **kwargs))
+    #
+    #             if self.disable:
+    #                 return
+    #
+    #             if print_message:
+    #                 print(message)
+    #
+    #             self.send_message(message, title, status)
+    #         return wrapper
+    #     return decorator
 
 # reporter = SlackReporter(disable=False)
 

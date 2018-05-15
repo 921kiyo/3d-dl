@@ -1,12 +1,8 @@
 import bpy
-import math
-import random
-import mathutils as mathU
-import itertools
 
-from rendering.BlenderAPI.BlenderObjects import *
-from rendering.BlenderAPI.BlenderNodes import *
-from rendering.BlenderAPI.BlenderExceptions import *
+from .BlenderObjects import *
+from .BlenderNodes import *
+from .BlenderExceptions import *
 
 
 class BlenderMesh(BlenderObject):

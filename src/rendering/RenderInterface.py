@@ -63,9 +63,13 @@ class RenderInterface(object):
         :return: None
         """
         C = bpy.context
-        C.user_preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
-        C.user_preferences.addons['cycles'].preferences.devices[0].use = True
         C.scene.render.engine = 'CYCLES'
+        try:
+            C.user_preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
+            C.user_preferences.addons['cycles'].preferences.devices[0].use = True
+        except:
+            print("Warning: CUDA device not detected, using CPU instead!", file=sys.stderr)
+
         # instantiate scene
         self.scene = bld.BlenderRandomScene(bpy.data.scenes[0])
         # delete the initial cube
@@ -299,69 +303,6 @@ class RenderInterface(object):
                 json.dump(params, f, sort_keys=True, indent=4, separators=(',', ': '))
 
         if visualize:
-
-            import matplotlib
-            matplotlib.use('agg')
-            from mpl_toolkits.mplot3d import Axes3D
-            import matplotlib.pyplot as plt
-            
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
-            camera_locations = logs['camera_loc']
-            X = [loc[0] for loc in camera_locations]
-            Y = [loc[1] for loc in camera_locations]
-            Z = [loc[2] for loc in camera_locations]
-            ax.scatter(X, Y, zs=Z)
-            ax.set_zlim([-1, 1])
-            ax.set_ylim([-1, 1])
-            ax.set_xlim([-1, 1])
-            plt.title('Camera Location')
-            dump_file = os.path.join(self.output_file, 'stats','camera_locations.svg')
-            plt.savefig(dump_file)
-            plt.close(fig)
-
-            fig = plt.figure()
-            plt.subplot(211)
-            camera_radii = logs['camera_radius']
-            plt.hist(camera_radii,bins=20)
-            plt.title('Camera Radius Histogram')
-
-            plt.subplot(212)
-            camera_radii = logs['spin_angle']
-            plt.hist(camera_radii,bins=20)
-            plt.title('Spin angle Histogram')
-            dump_file = os.path.join(self.output_file, 'stats', 'camera_stats.svg')
-            plt.savefig(dump_file)
-            plt.close(fig)
-
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
-            lamp_locations = logs['lamp_loc']
-            X = [loc[0] for loc in lamp_locations]
-            Y = [loc[1] for loc in lamp_locations]
-            Z = [loc[2] for loc in lamp_locations]
-            ax.scatter(X, Y, zs=Z)
-            ax.set_zlim([-1, 1])
-            ax.set_ylim([-1, 1])
-            ax.set_xlim([-1, 1])
-            plt.title('Lamp Location')
-            dump_file = os.path.join(self.output_file, 'stats', 'lamp_locations.svg')
-            plt.savefig(dump_file)
-            plt.close(fig)
-
-            fig = plt.figure()
-            plt.subplot(211)
-            lamp_energies = logs['lamp_energy']
-            plt.hist(lamp_energies,bins=20)
-            plt.title('Lamp Energy Histogram')
-
-            plt.subplot(212)
-            lamp_energies = logs['lamp_distance']
-            plt.hist(lamp_energies,bins=20)
-            plt.title('Lamp Distance Histogram')
-            
-            dump_file = os.path.join(self.output_file, 'stats', 'lamp_stats.svg')
-            plt.savefig(dump_file)
-            plt.close(fig)
+            print("Warning: Visualizing Stats is Deprecated. Another script will be added to visualize it separately!", file=sys.stderr)
 
         return logs

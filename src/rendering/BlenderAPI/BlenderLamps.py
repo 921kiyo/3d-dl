@@ -1,11 +1,8 @@
 import bpy
-import math
-import random
 import mathutils as mathU
-import itertools
 
-from rendering.BlenderAPI.BlenderObjects import *
-from rendering.BlenderAPI.BlenderExceptions import *
+from .BlenderObjects import *
+from .BlenderExceptions import *
 
 
 class BlenderLamp(BlenderObject):

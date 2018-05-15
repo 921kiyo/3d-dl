@@ -154,8 +154,6 @@ class TruncNormDist(Distribution):
 
         if not(self.l is None or self.r is None) and (self.l > self.r):
             raise ValueError('Lower bound greater than upper bound!')
-        if mu < 0:
-            raise ValueError('TruncNormDist accepts only non-negative means!')
         if sigmu < 0:
             raise ValueError('TruncNormDist accepts only non-negative sigmus!')
         super(TruncNormDist, self).__init__(**kwargs)
@@ -169,7 +167,7 @@ class TruncNormDist(Distribution):
         Implementation of abstract method sample_param
         :return: sample from this specified distribution
         """
-        y = sample_trunc_norm(self.mu, self.sigmu*self.mu, self.l, self.r)
+        y = sample_trunc_norm(self.mu, self.sigmu*np.abs(self.mu), self.l, self.r)
         self.log_param(y)
         return y
     
@@ -183,11 +181,10 @@ class TruncNormDist(Distribution):
         self_dict = vars(self)
         if param_name not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
-        if param_name=='mu' and param_val<0:
-            raise ValueError('TruncNormDist accepts only non-negative means!')
         if param_name=='sigmu' and param_val<0:
             raise ValueError('TruncNormDist accepts only non-negative sigmus!')
         self_dict[param_name] = param_val
+
         
 
 class NormDist(Distribution):
@@ -276,6 +273,7 @@ class UniformCDist(Distribution):
             raise KeyError('Cannot find specified attribute!')
         self_dict[param_name] = param_val
 
+
 class UniformDDist(Distribution):
     """
     Uniform discrete distribution on the interval of integers
@@ -317,6 +315,7 @@ class UniformDDist(Distribution):
         if param_name not in self_dict.keys():
             raise KeyError('Cannot find specified attribute!')
         self_dict[param_name] = param_val
+
 
 class PScaledUniformDDist(Distribution):
     """

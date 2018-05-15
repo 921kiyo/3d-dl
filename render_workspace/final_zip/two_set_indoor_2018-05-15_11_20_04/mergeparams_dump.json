@@ -1,9 +1,0 @@
-{
-    "all_bboxes": "{'Liberte': {'render4.jpg': ((73, 252), (46, 299)), 'render6.jpg': ((139, 274), (191, 299)), 'render8.jpg': ((9, 107), (67, 183)), 'render0.jpg': ((120, 250), (188, 291)), 'render2.jpg': ((128, 271), (13, 152)), 'render9.jpg': ((0, 99), (40, 227)), 'render1.jpg': ((0, 271), (0, 291)), 'render3.jpg': ((53, 264), (0, 276)), 'render5.jpg': ((59, 274), (90, 298)), 'render7.jpg': ((206, 299), (200, 299))}, 'Halloumi': {'render4.jpg': ((2, 123), (79, 191)), 'render6.jpg': ((125, 171), (0, 118)), 'render8.jpg': ((196, 299), (101, 194)), 'render0.jpg': ((157, 243), (79, 195)), 'render2.jpg': ((2, 275), (97, 299)), 'render9.jpg': ((0, 152), (99, 262)), 'render1.jpg': ((0, 190), (2, 213)), 'render3.jpg': ((235, 299), (0, 83)), 'render5.jpg': ((77, 200), (139, 285)), 'render7.jpg': ((50, 146), (6, 143))}}",
-    "background_database": "indoor",
-    "background_generated": false,
-    "brightness_adjusted": false,
-    "images_per_class": 10,
-    "number_of_pixels": 300,
-    "object_set": "two_set"
-}

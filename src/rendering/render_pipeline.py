@@ -71,7 +71,6 @@ from .RandomLib import random_background as rb
 
 """------------ Create Slack reporter ----------- """
 from . import SlackReporter
-cach
 # to disable sending messages pass disable=True to constructor
 slack = SlackReporter.SlackReporter(disable=True)
 
@@ -432,8 +431,13 @@ blender_attributes={}
 
 """------------------ Running the pipeline ------------------"""
 # Uncomment the below function if you want to run an example run
+
+
+
+
 """
-def example_run():
+def example_run():    
+
     #Function that holds all that is necessary for example run.
 
 
@@ -499,4 +503,4 @@ if __name__=="__main__":
 
     print("Running the Rendering Pipeline")
     example_run()
-"""
+"""    
