@@ -8,12 +8,12 @@ from PIL import Image
 
 import numpy as np
 
-# from keras.models import load_model
-#
-# from keras.applications import imagenet_utils
-# from keras.applications.inception_v3 import preprocess_input
-# from keras.preprocessing.image import img_to_array
-# from keras.preprocessing.image import load_img
+from keras.models import load_model
+
+from keras.applications import imagenet_utils
+from keras.applications.inception_v3 import preprocess_input
+from keras.preprocessing.image import img_to_array
+from keras.preprocessing.image import load_img
 
 
 """
@@ -59,11 +59,12 @@ Runs target image through Neural Network to get predicted results
 
 Inputs:
 Filepath: Path to image to be classified
+Model: Neural Network Model (Keras)
 
 Return value:
 Predictions: Array of predictions from Neural Network
 """
-def get_predictions(filepath):
+def get_predictions(filepath, model):
 
     inputShape = (224, 224)
     preprocess = preprocess_input
@@ -80,12 +81,15 @@ def get_predictions(filepath):
 
     # pre-process the image using the appropriate function based on the
     # model that has been loaded (i.e., mean subtraction, scaling, etc.)
-    image = preprocess(image)
+    # image = preprocess(image)
+    image /= 255.
 
     # classify the image
     print("[INFO] classifying image")
     preds = model.predict(image)
     print(preds)
+
+    return preds
 
 
 """
