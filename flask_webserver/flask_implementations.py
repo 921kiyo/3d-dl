@@ -44,10 +44,10 @@ Inputs:
 Filepath: Path to image to be cropped
 """
 def crop_image(filepath):
-    my_path = os.path.abspath(os.path.dirname(__file__))
-    new_path = str(my_path) + filepath
+    # my_path = os.path.abspath(os.path.dirname(__file__))
+    # new_path = str(my_path) + filepath
     # path = os.path.join(my_path, str(filepath))
-    img = Image.open(new_path)
+    img = Image.open(filepath)
     width, height = img.size
     print(width, height)
     # crop_amount = width - height
@@ -56,7 +56,7 @@ def crop_image(filepath):
     area = (0, 0, width, width)
     cropped_img = img.crop(area)
     print(cropped_img.size)
-    cropped_img.save(new_path)
+    cropped_img.save(filepath)
     #cropped_img.save('/data/reference_img.jpg')
 
 """
@@ -74,10 +74,10 @@ def get_predictions(filepath, model):
     inputShape = (224, 224)
     preprocess = preprocess_input
 
-    my_path = os.path.abspath(os.path.dirname(__file__))
-    new_path = str(my_path) + filepath
+    # my_path = os.path.abspath(os.path.dirname(__file__))
+    # new_path = str(my_path) + filepath
 
-    image = load_img(new_path, target_size=inputShape)
+    image = load_img(filepath, target_size=inputShape)
     # image = load_img('/data/reference_img.jpg', target_size=inputShape)
     image = img_to_array(image)
 

@@ -19,6 +19,8 @@ Numpy
 
 ## How to Run
 
+Change all file paths in the source to the appropriate location on your system as necessary
+
 In terminal on a system with an internet connection, enter the following:
 - export FLASK_APP=flask_main.py
 - flask run --host=0.0.0.0
