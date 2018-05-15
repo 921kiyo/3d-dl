@@ -7,7 +7,7 @@ its child classes define the logic, pased on the desired distribution.
 import numpy as np
 import random
 import math
-from rendering.RandomLib.random_exceptions import ImprobableError
+from .random_exceptions import ImprobableError
 
 def random_color():
     """
