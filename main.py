@@ -1,11 +1,17 @@
 """
 main file to choose render and neural network parameters
 input:
-    obj files stored in render_workspace/object_files
-    backgrounds stored in render_workspace/bg_database
-    path to blender executable
-    directories of validation data and test data
-output: trained model as h5 file
+    paths do:
+        obj files stored in render_workspace/object_files
+        backgrounds stored in render_workspace/bg_database
+        blender executable
+        directories of validation data and test data
+    parameters for:
+        rendering
+        neural network training
+output:
+    trained model as h5 file
+    prints test metric to screen
 """
 
 from kerasmodels import retrain
@@ -144,7 +150,7 @@ def main():
                 epochs=epochs,
                 salt_pepper=add_salt_pepper_noise,
                 augmentation_params=retrain.get_augmentation_params(augmentation_mode),
-                classes_txt_dir=main_dir,
+                # classes_txt_dir=main_dir,
                 save_model=True,
                 steps_per_epoch=renders_per_class
                 )

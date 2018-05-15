@@ -126,7 +126,7 @@ class ExtraValidationCallback(Callback):
                 log.write(',')
                 log.write(str(logs.get('val_acc'))),
                 log.write(',')
-                log.write(str(logs.get('val_loss'))),/data/g1753002_ocado/manhattan_project/training_data/ten_set_model_official_SUN_back_2018-05-11_08_03_02/images/train
+                log.write(str(logs.get('val_loss'))),
                 log.write(',')
                 log.write(str(acc)),
                 log.write(',')
@@ -164,7 +164,7 @@ class KerasInception:
         # global spatial average pooling layer
         x = base_model.output
 
-        base_model.layers[-1].name = 'base_output'/data/g1753002_ocado/manhattan_project/training_data/ten_set_model_official_SUN_back_2018-05-11_08_03_02/images/train
+        base_model.layers[-1].name = 'base_output'
 
         x = GlobalAveragePooling2D(name='pooling')(x)
 
