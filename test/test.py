@@ -11,6 +11,7 @@ import site
 project_dir = str(pathlib.Path(__file__).parents[1].resolve())
 sys.path.append(os.path.join(project_dir, 'src'))
 sys.path.append(os.path.join(project_dir, 'flask_webserver'))
+sys.path.append(os.path.join(project_dir, 'kerasmodels'))
 
 # for keras
 sys.path.append(project_dir)
@@ -78,7 +79,7 @@ cov.start()
 """ --------------- Module Imports ------------- """
 # Import keras
 if args.keras_tests or args.all_tests:
-    from kerasmodels.testRetrainTest.keras_eval_test import KerasEvalTest
+    # from kerasmodels.testRetrainTest.keras_eval_test import KerasEvalTest
     from kerasmodels.retrain_unittest import TestKerasRetrain
 
 if args.scene_tests or args.all_tests:
