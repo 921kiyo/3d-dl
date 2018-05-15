@@ -50,93 +50,33 @@ class KerasEvalTest(test_util.TensorFlowTestCase):
             caught = True
         self.assertTrue(caught)
 
-    def test_create_model_info(self):
-        keras_eval = KerasEval()
-        # No need to do partition test
-        model_info = keras_eval.create_model_info(current_dir)
-        self.assertEqual(current_dir, model_info['data_url'])
-        self.assertEqual("final_result:0", model_info['result_tensor_name'])
-        self.assertEqual("Mul:0", model_info['resized_input_tensor_name'])
-        self.assertEqual("output_graph.pb", model_info['model_file_name'])
-        self.assertEqual("pool_3/_reshape:0", model_info['bottleneck_tensor_name'])
-        self.assertEqual(2048, model_info['bottleneck_tensor_size'])
-        self.assertEqual(299, model_info['input_width'])
-        self.assertEqual(299, model_info['input_height'])
-        self.assertEqual(3, model_info['input_depth'])
-        self.assertEqual(128, model_info['input_mean'])
-        self.assertEqual(128, model_info['input_std'])
-    def test_create_model_graph(self):
-        keras_eval = KerasEval()
-        # Case1: correct path
-        model_info = keras_eval.create_model_info(current_dir)
-        graph, resized_input_tensor, bottleneck_tensor, result_tensor = keras_eval.create_model_graph(model_info)
-        self.assertIsNotNone(graph)
-        self.assertIsNotNone(resized_input_tensor)
-        self.assertIsNotNone(bottleneck_tensor)
-        self.assertIsNotNone(result_tensor)
-        # Case 2: Incorrect path
-        caught = False
-        try:
-            model_info = keras_eval.create_model_info("/")
-            keras_eval.create_model_graph(model_info)
-        except tf.errors.NotFoundError:
-            caught = True
-        self.assertTrue(caught)
-    def test_add_jpeg_decoding(self):
-        keras_eval = KerasEval()
-        with tf.Graph().as_default():
-            # test correct inputs
-            jpeg_data, mul_image, decoded_image = keras_eval.add_jpeg_decoding(10, 10, 3, 0, 255)
-            self.assertIsNotNone(jpeg_data)
-            self.assertIsNotNone(mul_image)
-            self.assertIsNotNone(decoded_image)
-            self.assertEqual(mul_image.shape, (1,10,10,3))
-            # test incorrect inputs
-            caught = False
-            try:
-                keras_eval.add_jpeg_decoding(-10, 10, 3, 0, 255)
-            except InvalidInputError:
-                caught = True
-            self.assertTrue(caught)
-    def test_run_resize_data(self):        # Build jpeg decoding and give it to run resized data
-        # No need to do partition test
-        keras_eval = KerasEval()
-        with tf.Graph().as_default():
-            with tf.Session() as sess:
-                jpeg_data, mul_image, decoded_image = keras_eval.add_jpeg_decoding(10, 10, 3, 0, 255)
-                label_path = os.path.join(current_dir, "test.txt")
-                label2idx, idx2label = keras_eval.create_label_lists(label_path)
-                file_dir = os.path.join(current_dir, "test_images/")
-                test_data = keras_eval.get_test_files(file_dir, label2idx, 1)
-                self.assertTrue(len(test_data) > 0)
-                for test_datum in test_data:
-                    image_data = gfile.FastGFile(test_datum[2], 'rb').read()
-                    resized_input_values, decoded_jpeg_data = keras_eval.run_resize_data(sess, image_data, jpeg_data, mul_image, decoded_image)
-                    self.assertIsNotNone(resized_input_values)
-                    self.assertIsNotNone(decoded_jpeg_data)
     def test_eval_result(self):
         keras_eval = KerasEval()
         # Case 1: eval_result() predicts correctly
         result_tensor = [[0.5180032,  0.4819968]]
         ground_truth = 0
         idx2label = {0: 'yogurt', 1: 'cheese'}
-        prediction, correct_label, predicted_label = keras_eval.eval_result(result_tensor, ground_truth, idx2label)
+        prediction, correct_label, predicted_label, max_score = keras_eval.eval_result(result_tensor, ground_truth, idx2label)
         self.assertEqual(True, prediction)
         self.assertEqual('yogurt', correct_label)
         self.assertEqual('yogurt', predicted_label)
+        self.assertGreaterEqual(max_score, 0)
+        self.assertLessEqual(max_score, 1)
         # Case 2: eval_result() predicts incorrectly
         result_tensor = [[0.1,  0.9]]
         ground_truth = 0
         idx2label = {0: 'yogurt', 1: 'cheese'}
-        prediction, correct_label, predicted_label = keras_eval.eval_result(result_tensor, ground_truth, idx2label)
+        prediction, correct_label, predicted_label, max_score = keras_eval.eval_result(result_tensor, ground_truth, idx2label)
         self.assertFalse(prediction)
         self.assertEqual('yogurt', correct_label)
         self.assertEqual('cheese', predicted_label)
+        self.assertGreaterEqual(max_score, 0)
+        self.assertLessEqual(max_score, 1)
         # Case 3: result_tensor is incorrect
         caught = False
         try:
             result_tensor = [[0.1, 0.91]]
-            prediction, correct_label, predicted_label = keras_eval.eval_result(result_tensor, ground_truth, idx2label)
+            prediction, correct_label, predicted_label, max_score = keras_eval.eval_result(result_tensor, ground_truth, idx2label)
         except InvalidInputError:
             caught = True
         self.assertTrue(caught)
@@ -179,18 +119,18 @@ class KerasEvalTest(test_util.TensorFlowTestCase):
         # case 1 class
         cm = np.array([[1]])
         sens = keras_eval.compute_sensitivity(cm)
-        self.assertAllClose(sens, np.array([1.]))
+        self.assertEqual(sens[1], 1.0)
         # case 2 classes
         cm = np.array([[1,0],[0,1]])
         sens = keras_eval.compute_sensitivity(cm)
-        self.assertAllClose(sens, np.array([1., 1.]))
+        self.assertEqual(sens[1], 1.0)
         cm = np.array([[1,1],[0,1]])
         sens = keras_eval.compute_sensitivity(cm)
-        self.assertAllClose(sens, np.array([.5, 1.]))
+        self.assertEqual(sens[1], 0.75)
         # case one empty class
         cm = np.array([[1, 1], [0, 0]])
         sens = keras_eval.compute_sensitivity(cm)
-        self.assertAllClose(sens, np.array([.5, -1]))
+        self.assertEqual(sens[1], -0.25)
         # non-square confusion matrix
         cm = np.array([[1, 0, 0], [0, 1, 0]])
         caught = False
@@ -204,18 +144,21 @@ class KerasEvalTest(test_util.TensorFlowTestCase):
 	# case 1 class
         cm = np.array([[1]])
         prec = keras_eval.compute_sensitivity(cm)
-        self.assertAllClose(prec, np.array([1.]))
+        self.assertEqual(prec[1], 1.0)
+        # self.assertAllClose(prec, np.array([1.]))
         # case 2 classes
         cm = np.array([[1,0],[0,1]])
         prec = keras_eval.compute_sensitivity(cm)
-        self.assertAllClose(prec, np.array([1., 1.]))
+        self.assertEqual(prec[1], 1.0)
+        # self.assertAllClose(prec, np.array([1., 1.]))
         cm = np.array([[1,1],[0,1]])
         prec = keras_eval.compute_precision(cm)
-        self.assertAllClose(prec, np.array([1., .5]))
+        self.assertEqual(prec[1], 0.75)
         # case one empty class
         cm = np.array([[0, 1], [0, 1]])
         prec = keras_eval.compute_precision(cm)
-        self.assertAllClose(prec, np.array([-1, .5]))
+        print("PRECCC ", prec)
+        self.assertEqual(prec[1], -0.25)
         # non-square confusion matrix
         cm = np.array([[1, 0, 0], [0, 1, 0]])
         caught = False
@@ -227,26 +170,27 @@ class KerasEvalTest(test_util.TensorFlowTestCase):
     def test_summarize_results(self):
         keras_eval = KerasEval()
         label2idx = {'0':0, '1':1}
+        dummy_image = os.path.join(current_dir, "test_images", "banana", "trump.jpg")
         per_class_test_results = {
-            '1':[{'class_confidences' : np.array([[0.6, 0.4]]), 'predicted_label': '0', 'correct_label': '1'},],
-            '1':[{'class_confidences' : np.array([[0.51, 0.49]]), 'predicted_label': '0', 'correct_label': '1'}]
+            '1':[{'class_confidences' : np.array([[0.6, 0.4]]), 'predicted_label': '0', 'correct_label': '1', 'image_file_name': dummy_image},],
+            '1':[{'class_confidences' : np.array([[0.51, 0.49]]), 'predicted_label': '0', 'correct_label': '1', 'image_file_name': dummy_image}]
         }
         model_source_dir = os.path.join(current_dir, "outputs/")
         with tf.Session() as sess:
             keras_eval.summarize_results(sess, label2idx, per_class_test_results, model_source_dir)
             self.assertTrue(tf.gfile.Exists(model_source_dir + '/test_results'))
             tf.gfile.DeleteRecursively(model_source_dir + '/test_results')
-    def test_eval(self):
-        keras_eval = KerasEval()
-        keras_eval.eval(output_folder="/vol/project/2017/530/g1753002/output", \
-                test_result_path="/vol/project/2017/530/g1753002/training_results.pkl",
-                test_result_file=None,
-                test_folder="/vol/project/2017/530/g1753002/matthew/8_class_data/qlone_training_images/",
-                notify_interval=20)
-
-        model_source_dir = "/vol/project/2017/530/g1753002/output"
-        self.assertTrue(tf.gfile.Exists(model_source_dir + '/test_results'))
-        tf.gfile.DeleteRecursively(model_source_dir + '/test_results')
-
-
+    # def test_eval(self):
+    #     keras_eval = KerasEval()
+    #     keras_eval.eval(output_folder="/vol/project/2017/530/g1753002/Trained_Models", \
+    #                     test_result_path="/vol/project/2017/530/g1753002/training_results.pkl",
+    #                     test_result_file=None,
+    #                     test_folder='/vol/project/2017/530/g1753002/matthew/8_class_data/qlone_training_images/',
+    #                     notify_interval=1000,
+    #                     input_dim=224
+    #     )
+    #
+    #     model_source_dir = "/vol/project/2017/530/g1753002/output"
+    #     self.assertTrue(tf.gfile.Exists(model_source_dir + '/test_results'))
+    #     tf.gfile.DeleteRecursively(model_source_dir + '/test_results')
 tf.test.main()

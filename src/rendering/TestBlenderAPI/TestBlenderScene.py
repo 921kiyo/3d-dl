@@ -257,11 +257,13 @@ class BlenderRandomSceneTest(unittest.TestCase):
         lamp_locations = []
 
         # vary the max number of lamps
-        self.my_scene.set_attribute_distribution_params('num_lamps', 'r', 5)
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'mid', 5)
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'scale', 0)
         self.my_scene.scene_setup()
         self.assertEqual(5, self.my_scene.max_num_lamps, "Number of lamps not correct")
         self.assertEqual(5, len(self.my_scene.lamps), "Number of lamps not correct")
-        self.my_scene.set_attribute_distribution_params('num_lamps', 'r', 7)
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'mid', 7)
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'scale', 0)
         self.my_scene.scene_setup()
         self.assertEqual(7, self.my_scene.max_num_lamps, "Number of lamps not correct")
         self.assertEqual(7, len(self.my_scene.lamps), "Number of lamps not correct")
@@ -296,9 +298,9 @@ class BlenderRandomSceneTest(unittest.TestCase):
         self.my_scene.load_subject_from_path(obj_path, texture_path)
 
         self.assertRaises(ValueError, self.my_scene.set_attribute_distribution_params,
-                          'lamp_distance', 'mu', -2)
-        self.my_scene.set_attribute_distribution_params('lamp_distance', 'l', -3)
-        self.my_scene.set_attribute_distribution_params('lamp_distance', 'r', -1)
+                          'lamp_distance', 'sigmu', -2)
+        self.my_scene.set_attribute_distribution_params('lamp_distance', 'l', -1)
+        self.assertRaises(ValueError,self.my_scene.set_attribute_distribution_params('lamp_distance', 'r', -3))
         
         self.assertRaises(ValueError, self.my_scene.scene_setup)
         
@@ -317,10 +319,9 @@ class BlenderRandomSceneTest(unittest.TestCase):
         self.my_scene.load_subject_from_path(obj_path, texture_path)
 
         self.assertRaises(ValueError, self.my_scene.set_attribute_distribution_params,
-                          'camera_radius', 'mu', -2)
-        self.my_scene.set_attribute_distribution_params('camera_radius', 'l', -3)
-        self.my_scene.set_attribute_distribution_params('camera_radius', 'r', -1)
-        
+                          'camera_radius', 'sigmu', -2)
+        self.my_scene.set_attribute_distribution_params('camera_radius', 'l', -1)
+        self.assertRaises(ValueError, self.my_scene.set_attribute_distribution_params('camera_radius', 'r', -3))
         
         self.assertRaises(ValueError, self.my_scene.scene_setup)
 
@@ -337,10 +338,8 @@ class BlenderRandomSceneTest(unittest.TestCase):
         texture_path = os.path.join(os.path.dirname(__file__), 'test_files' , 'texture.jpg')
         self.my_scene.load_subject_from_path(obj_path, texture_path)
 
-        self.my_scene.set_attribute_distribution_params('num_lamps', 'l', -3)
-        self.my_scene.set_attribute_distribution_params('num_lamps', 'r', -1)
-        
-        self.assertRaises(ValueError, self.my_scene.scene_setup)
+        self.assertRaises(ValueError, self.my_scene.set_attribute_distribution_params,'num_lamps', 'mid', -25)
+        self.assertRaises(ValueError, self.my_scene.set_attribute_distribution_params,'num_lamps', 'mid', -0.5)
 
     def test_set_distribution_params(self):
         # test that the camera location corresponds to the location reported in logs
@@ -351,21 +350,21 @@ class BlenderRandomSceneTest(unittest.TestCase):
         self.my_scene.add_camera(cam)
 
         # Number of Lamps - Uniform Discrete
-        self.my_scene.set_attribute_distribution_params('num_lamps', 'l', 20)
-        self.my_scene.set_attribute_distribution_params('num_lamps', 'r', 30)
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'mid', 25)
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'scale', 0.2)
 
         self.assertEquals(self.my_scene.num_lamps.l, 20)
-        self.assertEquals(self.my_scene.give_params()['num_lamps']['l'], 20)
+        self.assertEquals(self.my_scene.give_params()['num_lamps']['mid'], 25)
         self.assertEquals(self.my_scene.num_lamps.r, 30)
-        self.assertEquals(self.my_scene.give_params()['num_lamps']['r'], 30)
+        self.assertEquals(self.my_scene.give_params()['num_lamps']['scale'], 0.2)
 
-        self.my_scene.set_attribute_distribution_params('num_lamps','l', 1)
-        self.my_scene.set_attribute_distribution_params('num_lamps','r', 2)
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'mid', 2)
+        self.my_scene.set_attribute_distribution_params('num_lamps', 'scale', 0.5)
 
         self.assertEquals(self.my_scene.num_lamps.l, 1)
-        self.assertEquals(self.my_scene.give_params()['num_lamps']['l'], 1)
-        self.assertEquals(self.my_scene.num_lamps.r, 2)
-        self.assertEquals(self.my_scene.give_params()['num_lamps']['r'], 2)
+        self.assertEquals(self.my_scene.give_params()['num_lamps']['mid'], 2)
+        self.assertEquals(self.my_scene.num_lamps.r, 3)
+        self.assertEquals(self.my_scene.give_params()['num_lamps']['scale'], 0.5)
 
         # Lamp Energy - Truncated Normal
         self.my_scene.set_attribute_distribution_params('lamp_energy', 'mu', 2000.0)

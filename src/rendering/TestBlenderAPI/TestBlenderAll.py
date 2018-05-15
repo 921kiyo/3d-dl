@@ -1,10 +1,10 @@
 import sys
 
 
-boop = 'D:/PycharmProjects/Lobster/src/'
+boop = 'D:\\PycharmProjects\\Lobster\\src\\'
 if not (boop in sys.path):
     sys.path.append(boop)
-ext = 'D:/Anaconda3/envs/tensorflow/Lib/site-packages/'
+ext = 'D:\\Python\\Python35\\Lib\\site-packages'
 if not (ext in sys.path):
     sys.path.append(ext)
 
