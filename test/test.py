@@ -10,6 +10,7 @@ import site
 # Ensure source directory is in python path
 project_dir = str(pathlib.Path(__file__).parents[1].resolve())
 sys.path.append(os.path.join(project_dir, 'src'))
+sys.path.append(os.path.join(project_dir, 'flask_webserver'))
 
 # for keras
 sys.path.append(project_dir)
@@ -93,6 +94,8 @@ if args.scene_tests or args.all_tests:
 if args.pipeline_tests or args.all_tests:
     from src.rendering.TestPipeline.TestRenderPipeline import TestPipeline
 
+if args.flask_tests or args.all_tests:
+    from flask_webserver.flask_tests import TestFlaskImplementations
 
 """ --------------- Load Tests Cases ------------- """
 suites = []
@@ -114,6 +117,10 @@ if args.scene_tests or args.all_tests:
 
 if args.pipeline_tests or args.all_tests:
     suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestPipeline))
+
+if args.flask_tests or args.all_tests:
+    suites.append(unittest.defaultTestLoader.loadTestsFromTestCase(TestFlaskImplementations))
+
 
 """ --------------- Run tests ------------- """
 
