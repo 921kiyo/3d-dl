@@ -267,7 +267,7 @@ class KerasInception:
         epochs: number of epochs to train
         fine_tune: whether to fine-tune the model at the end of normal epochs
         unfrozen_layers: how many layers of the 311 inceptionV3 conv layers
-                        should be retrained
+                        should be retrained, has to be between 0 and 311
         salt_pepper: whether to add salt & pepper noise to the training images
         augmentation_params: list of augmentation parameters for keras
         classes_txt_dir: if provided a path, it will save a file named
