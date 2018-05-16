@@ -67,7 +67,10 @@ provide the path to your blender installation in
 ```bl_path = 'PATH/TO/BLENDER/INSTALLATION'```
 
 Choose all parameters in main.py for rendering and neural network training,
-save and run ```$python main.py```
+save and run
+```
+$python main.py
+```
 
 ### Rendering API
 
