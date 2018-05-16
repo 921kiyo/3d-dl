@@ -5,6 +5,7 @@ Class:
             lr=0.0031622777, dense_dim=1024)
 
 Methods:
+
     def train(self,train_dir,validation_dir,epochs=0,fine_tune=False, unfrozen_layers=0,
             salt_pepper=False,augmentation_params={},classes_txt_dir=None,save_model=False,
             validation_dir_2=None,steps_per_epoch=12000):
@@ -52,6 +53,7 @@ Methods:
         """
 
 Utilities:
+
     def get_augmentation_params(augmentation_mode):
         """
         returns a list of augmentation parameters for training
