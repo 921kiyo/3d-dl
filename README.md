@@ -1,7 +1,7 @@
 # Machine Learnig for Product Recognition at Ocado
 
 ## Note for the coursework submission
-We excluded .git file in order to meet the CATE submission limit. We can provide the .git file for the assessment purpose if requested.
+Since .git file was more than 300MB, we excluded it in order to meet the CATE submission limit. We can provide the .git file for the assessment purpose if requested.
 
 ## About the project
 
