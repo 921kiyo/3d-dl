@@ -1,17 +1,9 @@
 # Machine Learnig for Product Recognition at Ocado
 
-## Table of Contents
+## Note for the coursework submission
+We excluded .git file in order to meet the CATE submission limit. We can provide the .git file for the assessment purpose if requested.
 
-TODO Links to each section 
-
-* [About the project](#about)
-* [Installation & Dependencies](#release-types)
-* [How to run](#building-nodejs)
-* [Project Team Members](#project-team-members)
-
-<!-- ## Another paragraph <a name="about"></a> -->
-
-## About the project <a name="paragraph2"></a>
+## About the project
 
 [Ocado](https://www.ocado.com) is an online supermarket delivering groceries to customers across the UK. Their warehouses are heavily automated to fulfill more than 250,000 orders a week from a range of over 50,000 products. However, not all parts of the warehouse are automated, and still requires manual labour and barcode scanners to recognise the products, and Ocado is interested in any new methods to speed up this process. 
 
@@ -28,32 +20,6 @@ Our approach is to generate 3D training images using the pipeline we developed, 
 This project is conducted for  [Software Engineering Practice and Group project (CO 530)](http://www.imperial.ac.uk/computing/current-students/courses/530/), MSc in Computing Science at [Imperial College London](http://www.imperial.ac.uk/computing/).
 
 **The full report of the project can be found [here](XX)**
-
-## Folder Structures
-
-
-`/analysis`
-
-- All quick analysis/initial experiments are done, and this directory is sparated from our project codebase.
-
-
-`/download`
-
-- downloaded data only (No augumented/manipulated data).
-
-`/features`
-
-- features fed to classifier.
-
-`/logs`
-
-- Keep all the loggings in here (logging is what you see on your command line when you are executing the program/training the model)
-
-- We might not do this, but we will experiment
-
-`/src`
-
-- All the working files
 
 
 ## Installation & Dependencies
@@ -74,14 +40,13 @@ then log out and log in again or restart bash.
 
 ### Create Virtual Environment
 
-
 The first step is to install *virtualenv*.
 
 ```pip install virtualenv```
 
 The next is to initialise the virtual environment with 
 
-```virtualenv venv (name of virtualenv)```
+```virtualenv -p python3 venv```
 
 Get into the virtualenv
 
@@ -95,48 +60,35 @@ Install all the dependencies within the virtual environment.
 
 ### Rendering API
 
-Refer to PAVEl README
+README can be found in  `/src/rendering`.
 
-### Training pipeline
+### Training and Evaluation
 
-Refer to SWEN README
-
-
-### Evaluation
-
-Refer to KIYO README
+README can be found in  `/kerasmodels`.
 
 ### iPhone App
 
-Refer to MATTHEW README
+README can be found in  `/iPhone_app`.
 
 ### Flask
 
-Refer to MATTHEW README
-
-## Technology used
-
-- The code is tested with Python 3.5
-- Agisoft
-- Blender
-- List Any other third-party software
+README can be found in  `/flask_webserver`.
 
 
 ## Project Team Members <a name="project-team-members"></a>
 
+Should you have any questions regarding how to run the above, please contact one of the project team members.
 
-<!-- * [watilde](https://github.com/watilde) -
-**Daijiro Wachi** &lt;daijiro.wachi@gmail.com&gt; (he/him) -->
-* [xxx](https://github.com/XXX) -
-**Kiyohito Kunii** &lt;XX@imperial.ac.uk&gt;
-* [xxx](https://github.com/XXX) -
-**Max Baylis** &lt;XX@imperial.ac.uk&gt;
-* [xxx](https://github.com/XXX) -
-**Matthew Wong** &lt;XX@imperial.ac.uk&gt;
-* [xxx](https://github.com/XXX) -
-**Ong Wai Hong** &lt;XX@imperial.ac.uk&gt;
-* [xxx](https://github.com/XXX) -
-**Pavel Kroupa** &lt;XX@imperial.ac.uk&gt;
-* [xxx](https://github.com/XXX) -
-**Swen Koller** &lt;XX@imperial.ac.uk&gt;
+* [kk3317](https://gitlab.doc.ic.ac.uk/kk3317) -
+**Kiyohito Kunii** &lt;kk3317@imperial.ac.uk&gt;
+* [mzw17](https://gitlab.doc.ic.ac.uk/mzw17) -
+**Max Baylis** &lt;mzw17@imperial.ac.uk&gt;
+* [mgb17](https://gitlab.doc.ic.ac.uk/mgb17) -
+**Matthew Wong** &lt;mgb@imperial.ac.uk&gt;
+* [who11](https://gitlab.doc.ic.ac.uk/who11) -
+**Ong Wai Hong** &lt;who11@imperial.ac.uk&gt;
+* [pk3014](https://gitlab.doc.ic.ac.uk/pk3014) -
+**Pavel Kroupa** &lt;pk3014@imperial.ac.uk&gt;
+* [sk5317](https://gitlab.doc.ic.ac.uk/sk5317) -
+**Swen Koller** &lt;sk5317@imperial.ac.uk&gt;
 
