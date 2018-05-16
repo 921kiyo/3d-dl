@@ -423,11 +423,7 @@ class KerasEval:
 
                 # pre-process the image using the appropriate function based on the
                 # model that has been loaded (i.e., mean subtraction, scaling, etc.)
-<<<<<<< HEAD
-                image /= 255.
-=======
                 image = image/255.
->>>>>>> refs/remotes/origin/pavel/pipeline
 
 
                 pred = model.predict(image)
