@@ -58,6 +58,17 @@ Install all the dependencies within the virtual environment.
 
 ### How to run each program
 
+### Integrated Pipeline: main.py
+
+provide paths to validation and test set, currently pointing to the example
+folders provided with this repository.
+
+provide the path to your blender installation in 
+```bl_path = 'PATH/TO/BLENDER/INSTALLATION'```
+
+Choose all parameters in main.py for rendering and neural network training,
+save and run ```$python main.py```
+
 ### Rendering API
 
 README can be found in  `/src/rendering`.
