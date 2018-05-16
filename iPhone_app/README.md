@@ -28,6 +28,7 @@ An iPhone
 ## How to Run
 
 - Open the Camera folder in XCode as an Xcode Project
+- Download and install the Alamofire framework
 - Connect an iPhone to your Mac
 - Press the play button on the left corner
 
