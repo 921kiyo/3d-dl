@@ -1,6 +1,7 @@
 ## Training
 For an example how to use the wrapper, see retrain_main.py
 Class:
+
   KerasInception(self,input_dim=150,batch_size=16,dense_layers=1,dropout=None,
             lr=0.0031622777, dense_dim=1024)
 
