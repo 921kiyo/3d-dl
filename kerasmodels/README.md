@@ -5,31 +5,31 @@ Class:
             lr=0.0031622777, dense_dim=1024)
 
 Methods:
-  def train(self,train_dir,validation_dir,epochs=0,fine_tune=False, unfrozen_layers=0,
-          salt_pepper=False,augmentation_params={},classes_txt_dir=None,save_model=False,
-          validation_dir_2=None,steps_per_epoch=12000):
-      """
-      initializes the keras model object and trains the model
-      train_dir: directory of training data
-      validation_dir: directory of validation data
-      epochs: number of epochs to train
-      fine_tune: whether to fine-tune the model at the end of normal epochs
-      unfrozen_layers: how many layers of the 311 inceptionV3 conv layers
-                      should be retrained, has to be between 0 and 311
-      salt_pepper: whether to add salt & pepper noise to the training images
-      augmentation_params: list of augmentation parameters for keras
-      classes_txt_dir: if provided a path, it will save a file named
-          "classes.txt" containing the labels of all classes we train for,
-          if None, it will not save such a file
-      save_model: whether to save the model at the end of training
-          name will default to model.h5 in the working directory
-      validation_dir_2: if provided a path, this will calculate additional
-          validation metrics for a second set of data and log everything
-          in a csv in the current working directory
-      steps_per_epoch: the number of images that should be processed between
-          each validation (= the number of images per epoch)
-      returns validation accuracy history
-      """
+    def train(self,train_dir,validation_dir,epochs=0,fine_tune=False, unfrozen_layers=0,
+            salt_pepper=False,augmentation_params={},classes_txt_dir=None,save_model=False,
+            validation_dir_2=None,steps_per_epoch=12000):
+        """
+        initializes the keras model object and trains the model
+        train_dir: directory of training data
+        validation_dir: directory of validation data
+        epochs: number of epochs to train
+        fine_tune: whether to fine-tune the model at the end of normal epochs
+        unfrozen_layers: how many layers of the 311 inceptionV3 conv layers
+                        should be retrained, has to be between 0 and 311
+        salt_pepper: whether to add salt & pepper noise to the training images
+        augmentation_params: list of augmentation parameters for keras
+        classes_txt_dir: if provided a path, it will save a file named
+            "classes.txt" containing the labels of all classes we train for,
+            if None, it will not save such a file
+        save_model: whether to save the model at the end of training
+            name will default to model.h5 in the working directory
+        validation_dir_2: if provided a path, this will calculate additional
+            validation metrics for a second set of data and log everything
+            in a csv in the current working directory
+        steps_per_epoch: the number of images that should be processed between
+            each validation (= the number of images per epoch)
+        returns validation accuracy history
+        """
 
     def evaluate(self,test_dir):
         """
