@@ -1,8 +1,6 @@
-import argparse
 import functools
 import os
 import sys
-import warnings
 import csv
 from pathlib import Path
 import datetime
@@ -13,14 +11,11 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import Callback
 from keras import backend as K
 
-import tensorflow as tf
 import numpy as np
 import gc
 
-# Change these to absolute imports if you copy this script outside the keras_retinanet package.
 from keras_retinanet import models
 from keras_retinanet.models.retinanet import retinanet_bbox
-from keras_retinanet.utils.keras_version import check_keras_version
 from keras_retinanet.preprocessing import csv_generator
 from keras_retinanet.bin import train
 from keras_retinanet.utils.image import read_image_bgr, preprocess_image, resize_image
@@ -28,6 +23,12 @@ from keras_retinanet.utils.image import read_image_bgr, preprocess_image, resize
 score_threshold = 0.05
 
 def read_class_csv(csv_class_file):
+    """
+    function that reads in a class csv file that is used as an input to the retinanet training routine, and outputs
+    a list of class names which is the format required by Keras ImageGenerator
+    :param csv_class_file: the filename of the csv containing class names and indices
+    :return: list of classnames
+    """
     try:
         with csv_generator._open_for_csv(csv_class_file) as file:
             classes = csv_generator._read_classes(csv.reader(file, delimiter=','))
@@ -39,25 +40,43 @@ def read_class_csv(csv_class_file):
     except ValueError as e:
         raise_from(ValueError('invalid CSV class file: {}: {}'.format(csv_class_file, e)), None)
         
-def filter(scores, labels, threshold):
+def filter(scores, labels, threshold, boxes=None):
 
+    """
+    Given a threshold, a list of scores (size = (batch, max_detections)), for each sample i, filter scores[i,:] less
+    than threshold, and get corresponding labels.
+    :param scores: array of scores of size (batch, max_detections)
+    :param labels: array of labels of size (batch, max_detections)
+    :param threshold: min score to be considered
+    :return: tuples of filtered (scores, labels)
+    """
     hi = []
-    lo = []
-    
+
     for i in range(scores.shape[0]):
 
         hi_idx = np.nonzero(scores[i,:]>threshold)
-        lo_idx = np.nonzero(scores[i,:]<=threshold)
 
         hi_scores = scores[i,:][hi_idx]
         hi_labels = labels[i,:][hi_idx]
         sorted_idx = np.argsort(hi_scores)
-        
-        hi.append((hi_scores[sorted_idx], hi_labels[sorted_idx]))
+
+        if boxes is not None:
+            hi_boxes = boxes[i,:][hi_idx]
+            hi.append((hi_scores[sorted_idx], hi_labels[sorted_idx], hi_boxes[sorted_idx]))
+        else:
+            hi.append((hi_scores[sorted_idx], hi_labels[sorted_idx]))
 
     return hi
 
 def evaluate(detections, gts, top=3):
+    """
+    Evaluates the top N detection as classification (DAC) accuracy for a batch of detections
+    :param detections: given a tuple of filtered detections (scores, labels), determine if the top N labels (ranked by
+    scores) contain the ground truth gt, and if so, add one to tp. All other detections are fp's
+    :param gts: ground truth labels
+    :param top: number of top detections to consider
+    :return: the number of true positive and false positive detections
+    """
 
     assert top > 0, 'number of top selections must be greater than 0!'
     
@@ -84,6 +103,12 @@ def evaluate(detections, gts, top=3):
             
 
 def dir2csv(directory):
+    """
+    utility function to convert a directory structure to retinanet csv format for a detection as classification task
+    since there is not bbox information, this will all be fixed.
+    :param directory:
+    :return:
+    """
 
     filenames_csv = os.path.join(directory, os.path.basename(directory) + '.csv')
     if os.path.exists(filenames_csv):
@@ -118,6 +143,11 @@ def dir2csv(directory):
         
 
 def rgb2bgr(X):
+    """
+    RGB format to BGR format
+    :param X: images (assuming color channel last, and batch first)
+    :return: converted images
+    """
     Y = np.zeros(X.shape)
     Y[:,:,:,0] = X[:,:,:,2]
     Y[:,:,:,1] = X[:,:,:,1]
@@ -125,7 +155,13 @@ def rgb2bgr(X):
     return Y
 
 def detection_as_classification(model, test_generator):
-
+    """
+    Given a test_generator that is a regular Keras image generator (for classification tasks), run a DAC evaluate using
+    the given model, and return the toal number of TP's and FP's
+    :param model: model to run predictions
+    :param test_generator: Keras ImageGenerator iterator
+    :return: true positive number, and false positive number (detections)
+    """
     i = 0
     TP = 0
     FP = 0
@@ -144,6 +180,12 @@ def detection_as_classification(model, test_generator):
     return TP, FP
 
 class ClassificationCallback(Callback):
+    """
+    Callback to run DAC task on a directory, inside a retinanet training routine.
+    Works by fetching the snapshot from snapshot_path, and running detection as classification on the images in
+    test_data_dir.
+    Writes results into log_filename
+    """
     def __init__(self, args, log_filename, test_data_dir, prediction_model, delete_model=False, batch_size=50):
 
         super(ClassificationCallback, self).__init__()
@@ -167,9 +209,8 @@ class ClassificationCallback(Callback):
             class_mode='categorical',
             shuffle=False)
 
-    def on_epoch_end(self, epoch, logs={}):
+    def on_epoch_end(self, epoch):
         # load this epoch's saved snapshot
-        
         model_path = '{backbone}_{dataset_type}_{epoch:02d}.h5'.format(
             backbone=self.snapshot_data['backbone'], dataset_type=self.snapshot_data['dataset_type'], epoch=(epoch+1))
         model_path = os.path.join(self.snapshot_data['path'], model_path)
@@ -215,6 +256,13 @@ class ClassificationCallback(Callback):
 
         
 def add_classification_callbacks(args, callbacks, prediction_model):
+    """
+    self - explanatory
+    :param args: the command line arguments given to the scrip
+    :param callbacks: the list of callbacks to add the classification to
+    :param prediction_model:
+    :return: the callbacks list with the classification callbacks
+    """
     logs = os.path.join(args.tensorboard_dir, 'rendered_validation_logs.csv')
     callbacks.append(ClassificationCallback(args, logs, args.rendered_val_data, prediction_model))
     logs = os.path.join(args.tensorboard_dir, 'real_validation_logs.csv')
@@ -294,23 +342,31 @@ def train_main(args=None):
         initial_epoch=args.initial_epoch
     )
 
+    # cleanup at the end of every epoch since we keep loading prediction models
     del training_model
     del model
     del prediction_model
     K.clear_session()
 
-def test(saved_model_path, test_data_dir):
-    model = models.load_model(saved_model_path, backbone_name='resnet50')
-    detection_as_classification(model, test_data_dir)
+def predict_with_threshold(model, X, threshold):
+    single = False
+    if X.ndim == 3:
+        single = True
+        X = np.expand_dims(X, axis=0)
+    boxes, scores, labels = model.predict_on_batch(X)
+    detections = filter(scores, labels, threshold, boxes)
+    if single:
+        return detections[0]
+    return detections
     
 if __name__ == '__main__':
     
     args = sys.argv[1:]
     args = train.parse_args(args)
 
-    manhattan_root = '/data/g1753002_ocado/manhattan_project/'
-    images_root = os.path.join(manhattan_root, 'training_data/ten_set_model_official_SUN_back_2018-05-11_08_03_02/images')
-    
+    """
+    Fixed training constants
+    """
     args.batch_size = 50
     args.steps = 10000/args.batch_size
     args.epochs = 1
@@ -318,6 +374,13 @@ if __name__ == '__main__':
     args.image_min_side = 224
     args.random_transform = True
     args.dataset_type = 'csv'
+
+    """
+    The required data files
+    """
+    manhattan_root = '/data/g1753002_ocado/manhattan_project/'
+    images_root = os.path.join(manhattan_root,
+                               'training_data/ten_set_model_official_SUN_back_2018-05-11_08_03_02/images')
     args.annotations = os.path.join(images_root, 'train','annotations.csv')
     args.classes = os.path.join(images_root,'classes.csv')
     args.val_annotations = os.path.join(images_root, 'validation','annotations.csv')
@@ -325,10 +388,19 @@ if __name__ == '__main__':
     args.tensorboard_dir = os.path.join(args.snapshot_path, 'logs')
     args.rendered_val_data = os.path.join(images_root, 'validation')
     args.real_val_data = os.path.join(manhattan_root, 'test_data', 'extended_test_set_ambient')
-    args.initial_epoch = 100
+
+    """
+    Option to start from arbitrary epoch, as long as a snapshot of the correct last epoch exists in args.snapshot_path
+    """
+    args.initial_epoch = 1
     args.freeze_backbone = False
     epochs = 150
 
+    """
+    Training strategy:
+    Run train_main() for a single epoch. This allows train_main() to run to completion, and clear GPU memory.
+    Update the epoch number everytime we start a new run, so train main runs for exactly one more epoch
+    """
     for e in range(args.initial_epoch, epochs, 1):
         args.initial_epoch = e
         args.epochs = e+1
