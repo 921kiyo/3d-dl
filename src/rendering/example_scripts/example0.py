@@ -12,7 +12,7 @@ if not (boop in sys.path):
 	sys.path.append(boop)
 
 
-import BlenderAPI as bld
+import src.rendering.BlenderAPI as bld
 
 cube = bld.BlenderCube(reference=bpy.data.objects['Cube'])
 

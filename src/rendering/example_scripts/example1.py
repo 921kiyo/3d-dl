@@ -16,7 +16,7 @@ boop = 'D:\\PycharmProjects\\Lobster\\src\\rendering\\BlenderAPI'
 if not (boop in sys.path):
     sys.path.append(boop)
 
-import BlenderAPI as bld
+import src.rendering.BlenderAPI as bld
 
 radius = 10.0
 

@@ -3,7 +3,7 @@ This example script shows how to use the RenderInterface to control
 rendering parameters and produce rendering results
 """
 
-import RenderInterface as Render
+import src.rendering.RenderInterface as Render
 num_images = 100
 """ ************* User specified stuff here ************* """
 # required file paths for the script to run

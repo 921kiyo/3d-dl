@@ -1,7 +1,7 @@
 """
 This example script shows how to use the RenderInterface with two subject models
 """
-import RenderInterface as Render
+import src.rendering.RenderInterface as Render
 num_images = 10
 """ ************* User specified stuff here ************* """
 

@@ -1,7 +1,7 @@
 """
 This example script demonstrates the use of loading from model files
 """
-import RenderInterface as Render
+import src.rendering.RenderInterface as Render
 num_images = 10
 """ ************* User specified stuff here ************* """
 
