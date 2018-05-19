@@ -62,4 +62,4 @@ def predict_api():
 
     detections = flask_implementations.get_predictions(filepath, model)
 
-    return jsonify(detections)
+    return str(detections)
