@@ -6,7 +6,7 @@ import numpy as np
 
 import keras
 
-from keras.models import load_model
+# from keras.models import load_model
 
 from keras.applications import imagenet_utils
 from keras.applications.inception_v3 import preprocess_input
@@ -28,7 +28,7 @@ import train_keras_retinanet as ret
 
 
 # Change this to location of your model
-model = load_model('/data/g1753002_ocado/manhattan_project/trained_models/retinanet_second_attempt/resnet50_csv_150_inf.h5', backbone_name='resnet50')
+model = models.load_model('/data/g1753002_ocado/manhattan_project/trained_models/retinanet_second_attempt/resnet50_csv_150_inf.h5', backbone_name='resnet50')
 
 # Change this to preferred location
 # This is where HTTP attachments are stored
