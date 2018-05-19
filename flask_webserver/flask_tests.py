@@ -18,6 +18,7 @@ class TestFlaskImplementations(unittest.TestCase):
         self.assertNotEqual(filepath_1, filepath_2)
 
     def test_crop_image(self):
+        # Change these paths as necessary
         my_path = os.path.abspath(os.path.dirname(__file__))
         original_path = str(my_path) + '/test_image.jpg'
         target_path = str(my_path) + '/temp_test.jpg'
@@ -30,7 +31,9 @@ class TestFlaskImplementations(unittest.TestCase):
         self.assertEqual(width, height)
 
     def test_get_predictions(self):
+        # Change to location of your model
         model = load_model('/data/g1753002_ocado/manhattan_project/trained_models/first_attempt_with_all_layers_unfrozen/model.h5')
+        # Change this as necessary
         predictions = flask_implementations.get_predictions('/temp_test.jpg', model)
         print(predictions.shape)
         print(predictions[0].shape)
@@ -43,8 +46,6 @@ class TestFlaskImplementations(unittest.TestCase):
         predictions = [[0.995, 0.005, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000]]
 
         result = flask_implementations.process_predictions(predictions)
-
-        # print(flask_implementations.process_predictions(predictions))
 
         print(result)
 

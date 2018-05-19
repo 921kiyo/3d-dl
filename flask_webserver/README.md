@@ -19,7 +19,7 @@ Numpy
 
 ## How to Run
 
-Change all file paths in the source to the appropriate location on your system as necessary
+Change all file paths in the source code to the appropriate location on your system as necessary. Filepaths that might need to be changed depending on your system configuration are clearly indicated using comments in the source code.
 
 In terminal on a system with an internet connection, enter the following:
 - export FLASK_APP=flask_main.py

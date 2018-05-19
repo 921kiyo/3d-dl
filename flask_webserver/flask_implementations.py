@@ -44,20 +44,15 @@ Inputs:
 Filepath: Path to image to be cropped
 """
 def crop_image(filepath):
-    # my_path = os.path.abspath(os.path.dirname(__file__))
-    # new_path = str(my_path) + filepath
-    # path = os.path.join(my_path, str(filepath))
     img = Image.open(filepath)
     width, height = img.size
     print(width, height)
-    # crop_amount = width - height
-    # area = (crop_amount, 0, width, height)
-    # crop_amount = height - (height)
+
     area = (0, 0, width, width)
     cropped_img = img.crop(area)
     print(cropped_img.size)
     cropped_img.save(filepath)
-    #cropped_img.save('/data/reference_img.jpg')
+
 
 """
 Runs target image through Neural Network to get predicted results
@@ -74,22 +69,12 @@ def get_predictions(filepath, model):
     inputShape = (224, 224)
     preprocess = preprocess_input
 
-    # my_path = os.path.abspath(os.path.dirname(__file__))
-    # new_path = str(my_path) + filepath
-
     image = load_img(filepath, target_size=inputShape)
-    # image = load_img('/data/reference_img.jpg', target_size=inputShape)
     image = img_to_array(image)
 
-    # our input image is now represented as a NumPy array of shape
-    # (inputShape[0], inputShape[1], 3) however we need to expand the
-    # dimension by making the shape (1, inputShape[0], inputShape[1], 3)
-    # so we can pass it through thenetwork
     image = np.expand_dims(image, axis=0)
 
-    # pre-process the image using the appropriate function based on the
-    # model that has been loaded (i.e., mean subtraction, scaling, etc.)
-    # image = preprocess(image)
+    # pre-process the image
     image /= 255.
 
     # classify the image
@@ -143,7 +128,3 @@ def process_predictions(preds):
     result = {"max_class": max_key, "max_value": str(max_value)}
 
     return result
-
-    # print(result)
-    #
-    # return jsonify(result)

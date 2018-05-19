@@ -18,7 +18,7 @@ from kerasmodels import retrain
 from src.rendering import render_pipeline
 import os
 
-"This script generates artefacts which are saved in folder /artefacts"
+"This script generates artefacts which are saved in folder render_workspace"
 
 def main():
     ############################################################################
@@ -32,11 +32,10 @@ def main():
     test_dir = os.path.join(os.getcwd(),'demo_images','validation')
 
     # path to blender executable
-    # bl_path = 'PATH/TO/BLENDER/INSTALLATION'
-    bl_path = '/vol/project/2017/530/g1753002/Blender/blender-2.79-linux-glibc219-x86_64/blender'
+    bl_path = 'PATH/TO/BLENDER/INSTALLATION'
 
     # path to render workspace folder
-    workspace = os.path.join(os.getcwd(),"render_workspace") # relative path to provided workspace
+    workspace = os.path.join(os.getcwd(),"render_workspace") 
 
     # path to folder containing a set of .model files
     obj_set = os.path.join(workspace, 'object_files','two_set') # obj files
@@ -52,9 +51,12 @@ def main():
     dense_layers = 1
     dense_dim = 1024
     dropout = 0
-    fine_tune = False # if true, some of the inceptionV3 layers will be trained for 5 epochs at the end of training
-    add_salt_pepper_noise = False # if True, it adds SP noise
-    augmentation_mode = 0 # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
+    # if true, some of the inceptionV3 layers will be trained for 5 epochs at the end of training
+    fine_tune = False 
+    # if True, it adds SP noise
+    add_salt_pepper_noise = False 
+    # 0 = no augmentation, 1 = rotation only, 2 = rotation & zoom
+    augmentation_mode = 0 
     epochs = 10
     input_dim = 224
 
