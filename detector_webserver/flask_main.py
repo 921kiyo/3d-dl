@@ -71,20 +71,18 @@ def predict_api():
     for score, label, box in zip(scores, labels, boxes):
         current = []
 
-        if (float(score) > 70):
+        current.append(str(label))
 
-            current.append(str(label))
+        cmin, rmin, cmax, rmax = box
 
-            cmin, rmin, cmax, rmax = box
+        current.append(str(cmin))
+        current.append(str(rmin))
+        current.append(str(cmax))
+        current.append(str(rmax))
 
-            current.append(str(cmin))
-            current.append(str(rmin))
-            current.append(str(cmax))
-            current.append(str(rmax))
+        current.append(str(score))
 
-            current.append(str(score))
-
-            items.append(current)
+        items.append(current)
 
 
     # detections = np.array(detections).tolist()
