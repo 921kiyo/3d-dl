@@ -71,16 +71,16 @@ def predict_api():
     for score, label, box in zip(scores, labels, boxes):
         current = []
 
-        current.append(label)
+        current.append(str(label))
 
         cmin, rmin, cmax, rmax = box
 
-        current.append(cmin)
-        current.append(rmin)
-        current.append(cmax)
-        current.append(rmax)
+        current.append(str(cmin))
+        current.append(str(rmin))
+        current.append(str(cmax))
+        current.append(str(rmax))
 
-        current.append(score)
+        current.append(str(score))
 
         items.append(current)
 
