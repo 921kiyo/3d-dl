@@ -71,7 +71,7 @@ def predict_api():
     for score, label, box in zip(scores, labels, boxes):
         current = []
 
-        if (float(score) > 70):
+        if (float(score) > 50):
 
             current.append(str(label))
 
