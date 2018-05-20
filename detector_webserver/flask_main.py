@@ -64,7 +64,7 @@ def predict_api():
 
     detections = flask_implementations.get_predictions(filepath, model)
 
-    scores, lables, boxes = detections
+    scores, labels, boxes = detections
 
     items = []
 
