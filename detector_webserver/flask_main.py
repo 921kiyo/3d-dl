@@ -26,6 +26,8 @@ import os
 import numpy as np
 import train_keras_retinanet as ret
 
+import json
+
 
 # Change this to location of your model
 model = models.load_model('/data/g1753002_ocado/manhattan_project/trained_models/retinanet_second_attempt/resnet50_csv_150_inf.h5', backbone_name='resnet50')
@@ -62,4 +64,4 @@ def predict_api():
 
     detections = flask_implementations.get_predictions(filepath, model)
 
-    return str(detections)
+    return json.dumps(detections)
