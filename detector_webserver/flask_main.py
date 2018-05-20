@@ -64,4 +64,6 @@ def predict_api():
 
     detections = flask_implementations.get_predictions(filepath, model)
 
+    detections = numpy.array(detections).tolist()
+
     return json.dumps(detections)
