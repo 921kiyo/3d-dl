@@ -64,6 +64,27 @@ def predict_api():
 
     detections = flask_implementations.get_predictions(filepath, model)
 
-    detections = np.array(detections).tolist()
+    scores, lables, boxes = detections
 
-    return json.dumps(detections)
+    items = []
+
+    for score, label, box in zip(scores, labels, boxes):
+        current = []
+
+        current.append(label)
+
+        cmin, rmin, cmax, rmax = box
+
+        current.append(cmin)
+        current.append(rmin)
+        current.append(cmax)
+        current.append(rmax)
+
+        current.append(score)
+
+        items.append(current)
+
+
+    # detections = np.array(detections).tolist()
+
+    return json.dumps(items)
