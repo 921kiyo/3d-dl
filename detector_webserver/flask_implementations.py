@@ -57,14 +57,15 @@ Inputs:
 Filepath: Path to image to be cropped
 """
 def crop_image(filepath):
-    img = Image.open(filepath)
-    width, height = img.size
-    print(width, height)
-
-    area = (280, 0, 1000, height)
-    cropped_img = img.crop(area)
-    print(cropped_img.size)
-    cropped_img.save(filepath)
+    # img = Image.open(filepath)
+    # width, height = img.size
+    # print(width, height)
+    #
+    # area = (280, 0, 1000, height)
+    # cropped_img = img.crop(area)
+    # print(cropped_img.size)
+    # cropped_img.save(filepath)
+    return
 
 
 """
