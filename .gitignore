@@ -1,3 +1,4 @@
 /data/
 *.pyc
 *.ipynb_checkpoints
+RCNN/*.jpg
