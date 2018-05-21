@@ -29,8 +29,7 @@ class myThread (threading.Thread):
       self.name = name
       self.counter = counter
    def run(self):
-      smaller_frame = cv2.resize(current_frame, (224, 224))
-      cv2.imwrite('image1.jpg', smaller_frame)
+      cv2.imwrite('image1.jpg', current_frame)
       url = "http://146.169.3.104:5000/detector"
       files = {'my_image': open('image1.jpg', 'rb')}
       response = requests.post(url, files=files)
