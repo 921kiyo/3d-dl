@@ -66,7 +66,7 @@ while(True):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
 
-    if ((time.time() - last_sent) > 0.3):
+    if ((time.time() - last_sent) > 0.2):
         my_threads.append(myThread(thread_counter, str(thread_counter), thread_counter))
         my_threads[thread_counter].start()
         last_sent = time.time()
