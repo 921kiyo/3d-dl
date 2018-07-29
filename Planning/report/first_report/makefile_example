@@ -1,0 +1,2 @@
+report_template.pdf: report_template.tex references.bib
+	latexmk --pdf $<

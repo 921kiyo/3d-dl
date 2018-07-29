@@ -1,0 +1,33 @@
+\begin{thebibliography}{1}
+
+\bibitem{Rawat2017}
+W.~Rawat and Z.~Wang, ``{Deep Convolutional Neural Networks for Image
+  Classification: A Comprehensive Review},'' {\em Neural Computation}, vol.~29,
+  no.~9, pp.~2352--2449, 2017.
+
+\bibitem{Su2015}
+H.~Su, C.~R. Qi, Y.~Li, and L.~Guibas, ``{Render for CNN: Viewpoint Estimation
+  in Images Using CNNs Trained with Rendered 3D Model Views},'' may 2015.
+
+\bibitem{Savarese2007}
+S.~Savarese and L.~Fei-Fei, ``{3D generic object categorization, localization
+  and pose estimation},'' in {\em Proceedings of the IEEE International
+  Conference on Computer Vision}, 2007.
+
+\bibitem{Peng2015}
+X.~Peng, B.~Sun, K.~Ali, and K.~Saenko, ``{Learning Deep Object Detectors from
+  3D Models},'' in {\em ICCV '15 Proceedings of the 2015 IEEE International
+  Conference on Computer Vision (ICCV)}, dec 2015.
+
+\bibitem{Shlens2016}
+J.~Shlens, ``{Research Blog: Train your own image classifier with Inception in
+  TensorFlow},'' 2016.
+
+\bibitem{Google2017}
+Google, ``{How to Retrain Inception's Final Layer for New Categories  | 
+  TensorFlow},'' 2017.
+
+\bibitem{Arjovsky2017}
+M.~Arjovsky, S.~Chintala, and L.~Bottou, ``{Wasserstein GAN},'' 2017.
+
+\end{thebibliography}

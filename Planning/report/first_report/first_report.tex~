@@ -1,0 +1,93 @@
+
+\documentclass[a4paper,11pt]{article}
+
+% \usepackage[margin=2cm]{geometry}
+
+\usepackage[nodayofweek]{datetime}
+\longdate
+
+\usepackage{fancyhdr}
+\pagestyle{fancyplain}
+\fancyhf{}
+\lhead{\fancyplain{}{M.Sc.\ Group Project Report}}
+\rhead{\fancyplain{}{\today}}
+\cfoot{\fancyplain{}{\thepage}}
+
+
+\title{Machine Learning for Product Recognition at Ocado\\\Large{--- Report One/Two ---}}
+\author{Kiyohito Kunii, Max Baylis, Matthew Wong, \\
+       Ong Wai Hong, Pavel Kroupa, Swen Koller, \\
+       \{kk3317, email2, etc.\}@doc.ic.ac.uk\\ \\
+       \small{Supervisor: Dr.\ Bernhard Kainz}\\
+       \small{Course: CO530, Imperial College London}
+}
+
+\begin{document}
+\maketitle
+
+\section{Preliminary Investigation}
+
+Briefly explains the tasks we are given from Ocado
+
+\input{preliminary-pipeline}
+
+\subsection{Data}
+
+\subsubsection{Data Argumentation}
+
+\subsubsection{3D rendering}
+
+\subsubsection{Barcode reading}
+
+\section{Suggested Methods}
+
+\subsection{Data}
+
+One sided product
+
+\subsubsection{Pipeline}
+
+\section{Requirements}
+
+\subsubsection{Software Engineering Requirements}
+
+Development Approach
+
+what resources (hardware and software) will be required
+
+what techniques (e.g., which programming languages) you will use to implement the project
+
+version control system we are using
+
+the report should identify the development strategy chosen by your group (e.g., Scrum, XP programming) and how you are using it in the context of your project. You should include here information about the division of work.
+
+\subsubsection{Minimum Viable Product}
+
+what functionality you are setting out to provide with your final product
+
+Please refer to the minutes from this Thursday
+
+The report should clearly identify the requirements of the project using goal oriented-capture, categorize (essential vs. non-essential) and prioritize each requirement, assess their feasibility, decide on planned completion dates, and discuss the overall boundaries of your system
+\subsubsection{Extension}
+
+
+\subsubsection{Deliverable}
+
+
+\section{Next Step}
+
+GAN??
+
+Rendering images
+
+\section{Appendix}
+
+\bibliographystyle{plain}
+\bibliography{references}
+\end{document}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
