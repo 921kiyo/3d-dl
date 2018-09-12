@@ -1,8 +1,5 @@
 # Machine Learnig for Product Recognition at Ocado
 
-## Note for the coursework submission
-Since .git file was more than 300MB, we excluded it in order to meet the CATE submission limit. We can provide the .git file for the assessment purpose if requested.
-
 ## About the project
 
 [Ocado](https://www.ocado.com) is an online supermarket delivering groceries to customers across the UK. Their warehouses are heavily automated to fulfill more than 250,000 orders a week from a range of over 50,000 products. However, not all parts of the warehouse are automated, and still requires manual labour and barcode scanners to recognise the products, and Ocado is interested in any new methods to speed up this process. 
