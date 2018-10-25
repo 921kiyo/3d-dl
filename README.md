@@ -3,7 +3,6 @@
 ## About the project
 
 [Ocado](https://www.ocado.com) is an online supermarket delivering groceries to customers across the UK. Their warehouses are heavily automated to fulfill more than 250,000 orders a week from a range of over 50,000 products. However, not all parts of the warehouse are automated, and still requires manual labour and barcode scanners to recognise the products, and Ocado is interested in any new methods to speed up this process. 
-
 The goal of the project is to deliver a machine learning system that can classify images of Ocado products in a range of environments.
 
 Our approach is to generate 3D training images using the pipeline we developed, which consists of the following main components.
@@ -14,10 +13,17 @@ Our approach is to generate 3D training images using the pipeline we developed, 
 - Flask server
 - iPhone App
 
+**The full report of the project can be found [here](https://www.imperial.ac.uk/media/imperial-college/faculty-of-engineering/computing/public/1718-pg-projects/Group2-Machine-Learning-for-Product-Recognition.pdf)**
+
+**The short demo video can be found [here](https://vimeo.com/277194444)**
+
 This project is conducted for  [Software Engineering Practice and Group project (CO 530)](http://www.imperial.ac.uk/computing/current-students/courses/530/), MSc in Computing Science at [Imperial College London](http://www.imperial.ac.uk/computing/).
 
-**The full report of the project can be found [here](XX)**
+### Production Recognition (Classification)
+![](/demo_images/classification.gif)
 
+### Production Recognition (Detection)
+![](/demo_images/detection.gif)
 
 ## Installation & Dependencies
 
