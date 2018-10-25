@@ -17,8 +17,7 @@ Our approach is to generate 3D training images using the pipeline we developed, 
 
 **The short demo video can be found [here](https://vimeo.com/277194444)**
 
-This project is conducted for  [Software Engineering Practice and Group project (CO 530)](http://www.imperial.ac.uk/computing/current-students/courses/530/), MSc in Computing Science at [Imperial College London](http://www.imperial.ac.uk/computing/).
-
+This project is conducted for  [Software Engineering Practice and Group project (CO 530)](http://www.imperial.ac.uk/computing/current-students/courses/530/), MSc in Computing Science at [Imperial College London](http://www.imperial.ac.uk/computing/), and is awarded for ["Corporate Partnership Programme Commendation for Group Project"](http://www.imperial.ac.uk/computing/prospective-students/distinguished-projects/pg-prizes/?fbclid=IwAR16XMDbC5tJ3HAAf6oe8k35TJ1aPFmWRJLwyLLnDBMYJ0lbBTR8qp60WRs).
 ### Production Recognition (Classification)
 ![](/demo_images/classification.gif)
 
