@@ -1,4 +1,4 @@
-# Machine Learnig for Product Recognition at Ocado
+# Deep Learnig for Product Recognition at Ocado
 
 ## About the project
 
