@@ -1,4 +1,4 @@
-# Deep Learnig for Product Recognition at Ocado
+# Deep Learning using Synthetic Data for Product Recognition
 
 ## About the project
 
@@ -23,6 +23,17 @@ This project was conducted for  [Software Engineering Practice and Group project
 
 ### Production Recognition (Detection)
 ![](/demo_images/detection.gif)
+
+## Design Choices
+
+### Standard Pipeline Design vs Custom Pipeline Design
+Under the standard design that is applied to most deep learning projects, a pre-existing data set would be used to train a neural network, which would then be evaluated and optimised.
+
+![](/demo_images/classification.gif)
+
+While the standard pipeline works well when a high-quality data set is available, given the challenges described above inherent in the data set we were provided with, the standard pipeline designed was not considered to be a viable option.
+
+Specifically, instead of training a neural network on a pre-existing data set, we decided to generate our own data and to curate our own data set using 3D modelling and Image Rendering techniques.
 
 ## Installation & Dependencies
 
