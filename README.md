@@ -19,10 +19,15 @@ Our approach is to generate 3D training images using the pipeline we developed, 
 
 This project was conducted for  [Software Engineering Practice and Group project (CO 530)](http://www.imperial.ac.uk/computing/current-students/courses/530/), MSc in Computing Science at [Imperial College London](http://www.imperial.ac.uk/computing/), and was awarded for ["Corporate Partnership Programme Commendation for Group Project"](http://www.imperial.ac.uk/computing/prospective-students/distinguished-projects/pg-prizes/?fbclid=IwAR16XMDbC5tJ3HAAf6oe8k35TJ1aPFmWRJLwyLLnDBMYJ0lbBTR8qp60WRs).
 ### Production Recognition (Classification)
-![](/demo_images/classification.gif)
+
+<p align="center">
+  <img width="600" height="300" src="/demo_images/classification.gif">
+</p>
 
 ### Production Recognition (Detection)
-![](/demo_images/detection.gif)
+<p align="center">
+  <img width="600" height="300" src="/demo_images/detection.gif">
+</p>
 
 ## Design Choices
 
