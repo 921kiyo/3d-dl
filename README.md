@@ -37,6 +37,27 @@ Specifically, instead of training a neural network on a pre-existing data set, w
 
 ![](/demo_images/custom_pipeline.png)
 
+### Image Rendering
+An interface between the generated 3D models and the input to the neural network was also necessary, using 3D models as the direct input to a classifier is is highly complex and would not achieve our goal of producing a scalable system for classifying 2D images. 
+
+![](/demo_images/rendering_diagram.png)
+
+We developed an image rendering system that would take a 3D model as its input and produce a set of training images as its output, given a number of rendering parameters θ as shown in the figure above. The system would use the 3D model to produce multiple images showcasing the modelled product from all possible viewpoints, at different scale, under various lighting conditions, with different amounts of occlusion and with varying backgrounds.
+
+A classifier trained on such generated data is expected to be robust to varying backgrounds, light conditions, occlusion, scale and pose. Furthermore, it allows the user to tailor the training set to a particular environment for which the image classifier will be deployed.
+
+### Final System Design
+Our final system design shown in the figure below incorporated the key design choices describe above. These resulted in a custom neural network pipeline which goes from generation of 3D models to a customised evaluation suite used to optimise classification accuracy.
+
+![](/demo_images/system_design.png)
+
+The individual component functionality is outlined as follows.
+
+- **Data Generation**: provides 3D models of 10 products in .obj format. These models include textures and colour representations of the product and have to be of high enough quality to produce realistic product images in the next stage.
+- **Data Processing (Image Rendering)**: produces a specified number of training images for each product which vary product pose, lighting, background and occlusions. The type of background can be specified by the user. Both the rendered product and a background from a database are combined to create a unique training image in .jpeg format.
+- **Neural Network**: the produced images are fed into a pre-trained convolutional neural network. The resulting retrained classifier should be able to classify real product images. 
+- **Evaluation and Optimisation**: the outlined approach to training data generation means that the training data can be tailored based on results. Therefore, a custom evaluation and optimization suite is required that is not provided in sufficient in detail in off-the-shelf solutions.
+
 ## Installation & Dependencies
 
 ### Activate correct CUDA version to link TF to GPU
