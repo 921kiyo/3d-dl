@@ -29,11 +29,13 @@ This project was conducted for  [Software Engineering Practice and Group project
 ### Standard Pipeline Design vs Custom Pipeline Design
 Under the standard design that is applied to most deep learning projects, a pre-existing data set would be used to train a neural network, which would then be evaluated and optimised.
 
-![](/demo_images/classification.gif)
+![](/demo_images/standard_pipeline.png)
 
 While the standard pipeline works well when a high-quality data set is available, given the challenges described above inherent in the data set we were provided with, the standard pipeline designed was not considered to be a viable option.
 
 Specifically, instead of training a neural network on a pre-existing data set, we decided to generate our own data and to curate our own data set using 3D modelling and Image Rendering techniques.
+
+![](/demo_images/custom_pipeline.png)
 
 ## Installation & Dependencies
 
