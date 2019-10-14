@@ -1,4 +1,4 @@
-# Deep Learning using Synthetic Data for Product Recognition
+# Synthetic dataset generation for object-to-model deep learning in industrial applications
 
 ## About the project
 
@@ -13,11 +13,14 @@ Our approach is to generate 3D training images using the pipeline we developed, 
 - Flask server
 - iPhone App
 
-**The full report of the project can be found [here](https://www.imperial.ac.uk/media/imperial-college/faculty-of-engineering/computing/public/1718-pg-projects/Group2-Machine-Learning-for-Product-Recognition.pdf)**
+**The project is published in [PeerJ Computer Science](https://peerj.com/articles/cs-222/).**
 
-**The short demo video can be found [here](https://vimeo.com/277194444)**
+**The original full report of the project can be found [here](https://www.imperial.ac.uk/media/imperial-college/faculty-of-engineering/computing/public/1718-pg-projects/Group2-Machine-Learning-for-Product-Recognition.pdf).**
 
-This project was conducted for  [Software Engineering Practice and Group project (CO 530)](http://www.imperial.ac.uk/computing/current-students/courses/530/), MSc in Computing Science at [Imperial College London](http://www.imperial.ac.uk/computing/), and was awarded for ["Corporate Partnership Programme Commendation for Group Project"](http://www.imperial.ac.uk/computing/prospective-students/distinguished-projects/pg-prizes/?fbclid=IwAR16XMDbC5tJ3HAAf6oe8k35TJ1aPFmWRJLwyLLnDBMYJ0lbBTR8qp60WRs).
+**The short demo video can be found [here](https://vimeo.com/277194444). **
+
+
+> This project was conducted for  [Software Engineering Practice and Group project (CO 530)](http://www.imperial.ac.uk/computing/current-students/courses/530/), MSc in Computing Science at [Imperial College London](http://www.imperial.ac.uk/computing/), and was awarded for ["Corporate Partnership Programme Commendation for Group Project"](http://www.imperial.ac.uk/computing/prospective-students/distinguished-projects/pg-prizes/?fbclid=IwAR16XMDbC5tJ3HAAf6oe8k35TJ1aPFmWRJLwyLLnDBMYJ0lbBTR8qp60WRs).
 ### Production Recognition (Classification)
 
 <p align="center">
