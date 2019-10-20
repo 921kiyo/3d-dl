@@ -2,16 +2,7 @@
 
 ## About the project
 
-[Ocado](https://www.ocado.com) is an online supermarket delivering groceries to customers across the UK. Their warehouses are heavily automated to fulfill more than 250,000 orders a week from a range of over 50,000 products. However, not all parts of the warehouse are automated, and still requires manual labour and barcode scanners to recognise the products, and Ocado is interested in any new methods to speed up this process. 
-The goal of the project is to deliver a machine learning system that can classify images of Ocado products in a range of environments.
-
-Our approach is to generate 3D training images using the pipeline we developed, which consists of the following main components.
-
-- Rendering API 
-- Training pipeline
-- Evaluation
-- Flask server
-- iPhone App
+The availability of large image data sets has been a crucial factor in the success of deep learning-based classification and detection methods. Yet, while data sets for everyday objects are widely available, data for specific industrial use-cases (e.g., identifying packaged products in a warehouse) remains scarce. In such cases, the data sets have to be created from scratch, placing a crucial bottleneck on the deployment of deep learning techniques in industrial applications. We present work carried out in collaboration with a leading UK online supermarket, with the aim of creating a computer vision system capable of detecting and identifying unique supermarket products in a warehouse setting. To this end, we demonstrate a framework for using data synthesis to create an end-to-end deep learning pipeline, beginning with real-world objects and culminating in a trained model. Our method is based on the generation of a synthetic dataset from 3D models obtained by applying photogrammetry techniques to real-world objects. Using 100K synthetic images for 10 classes, an InceptionV3 convolutional neural network was trained, which achieved accuracy of 96% on a separately acquired test set of real supermarket product images. The image generation process supports automatic pixel annotation. This eliminates the prohibitively expensive manual annotation typically required for detection tasks. Based on this readily available data, a one-stage RetinaNet detector was trained on the synthetic, annotated images to produce a detector that can accurately localize and classify the specimen products in real-time.
 
 **The project is published in [PeerJ Computer Science](https://peerj.com/articles/cs-222/).**
 
@@ -46,7 +37,7 @@ Specifically, instead of training a neural network on a pre-existing data set, w
 ![](/demo_images/custom_pipeline.png)
 
 ### Image Rendering
-An interface between the generated 3D models and the input to the neural network was also necessary, using 3D models as the direct input to a classifier is is highly complex and would not achieve our goal of producing a scalable system for classifying 2D images. 
+An interface between the generated 3D models and the input to the neural network was also necessary, using 3D models as the direct input to a classifier is is highly complex and would not achieve our goal of producing a scalable system for classifying 2D images.
 <p align="center">
   <img src="/demo_images/rendering_diagram.png">
 </p>
@@ -66,7 +57,7 @@ The individual component functionality is outlined as follows.
 
 - **Data Generation**: provides 3D models of 10 products in .obj format. These models include textures and colour representations of the product and have to be of high enough quality to produce realistic product images in the next stage.
 - **Data Processing (Image Rendering)**: produces a specified number of training images for each product which vary product pose, lighting, background and occlusions. The type of background can be specified by the user. Both the rendered product and a background from a database are combined to create a unique training image in .jpeg format.
-- **Neural Network**: the produced images are fed into a pre-trained convolutional neural network. The resulting retrained classifier should be able to classify real product images. 
+- **Neural Network**: the produced images are fed into a pre-trained convolutional neural network. The resulting retrained classifier should be able to classify real product images.
 - **Evaluation and Optimisation**: the outlined approach to training data generation means that the training data can be tailored based on results. Therefore, a custom evaluation and optimization suite is required that is not provided in sufficient in detail in off-the-shelf solutions.
 
 ## Installation & Dependencies
@@ -91,7 +82,7 @@ The first step is to install *virtualenv*.
 
 ```pip install virtualenv```
 
-The next is to initialise the virtual environment with 
+The next is to initialise the virtual environment with
 
 ```virtualenv -p python3 venv```
 
@@ -110,7 +101,7 @@ Install all the dependencies within the virtual environment.
 provide paths to validation and test set, currently pointing to the example
 folders provided with this repository.
 
-provide the path to your blender installation in 
+provide the path to your blender installation in
 ```bl_path = 'PATH/TO/BLENDER/INSTALLATION'```
 
 Choose all parameters in main.py for rendering and neural network training,
