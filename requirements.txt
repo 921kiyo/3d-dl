@@ -1,6 +1,6 @@
 Augmentor==0.2.0
 bayesian-optimization==0.6.0
-bleach==3.1.1
+bleach==3.1.2
 certifi==2018.1.18
 chardet==3.0.4
 click==6.7
