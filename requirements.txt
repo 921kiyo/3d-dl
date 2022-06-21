@@ -25,7 +25,7 @@ Markdown==2.6.11
 MarkupSafe==1.0
 matplotlib==2.1.1
 networkx==2.1
-numpy==1.21.0
+numpy==1.22.0
 opencv-python==4.2.0.32
 Pillow==9.0.1
 pkg-resources==0.0.0
