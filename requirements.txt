@@ -48,4 +48,4 @@ tensorflow-tensorboard==0.4.0rc3
 tqdm==4.20.0
 urllib3>=1.24.2
 websocket-client==0.47.0
-Werkzeug==0.15.3
+Werkzeug==2.2.3
